@@ -1,6 +1,10 @@
 import { api } from './api';
-import type { TimeEntry, WeekData, UpsertEntryData } from '../types/time-entry.types';
+import type { TimeEntry, WeekData, MonthData, UpsertEntryData } from '../types/time-entry.types';
 import type { PaginatedResponse } from '../types/pagination.types';
+
+export async function getMonthEntries(date: string): Promise<MonthData> {
+  return api<MonthData>(`/time-entries/month?date=${date}`);
+}
 
 export async function getWeekEntries(date: string): Promise<WeekData> {
   return api<WeekData>(`/time-entries/week?date=${date}`);

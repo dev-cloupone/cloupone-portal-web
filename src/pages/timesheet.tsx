@@ -1,49 +1,38 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Send } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
-import { Button } from '../components/ui/button';
-import { WeekHeader } from '../components/timesheet/week-header';
-import { DayEntryList } from '../components/timesheet/day-entry-list';
-import { DayCards } from '../components/timesheet/day-cards';
-import { EntryEditor } from '../components/timesheet/entry-editor';
+import { MonthHeader } from '../components/timesheet/month-header';
+import { MonthCalendar } from '../components/timesheet/month-calendar';
+import { MonthSummary } from '../components/timesheet/month-summary';
+import { DayPanel } from '../components/timesheet/day-panel';
+import { InlineEntryForm } from '../components/timesheet/inline-entry-form';
 import { SubmitDialog } from '../components/timesheet/submit-dialog';
-import { useTimesheet } from '../hooks/use-timesheet';
+import { useMonthTimesheet } from '../hooks/use-month-timesheet';
 import { useNavItems } from '../hooks/use-nav-items';
 import { useAuth } from '../hooks/use-auth';
-import { useMobile } from '../hooks/use-mobile';
 import * as activityCategoryService from '../services/activity-category.service';
 import * as consultantService from '../services/consultant.service';
 import type { ActivityCategory } from '../types/activity-category.types';
-import type { TimeEntry, UpsertEntryData } from '../types/time-entry.types';
+import type { TimeEntry } from '../types/time-entry.types';
 import { Skeleton } from '../components/ui/skeleton';
+
+type PanelState =
+  | { view: 'month-summary' }
+  | { view: 'day-entries' }
+  | { view: 'entry-form'; entry: TimeEntry | null };
 
 export default function TimesheetPage() {
   const navItems = useNavItems();
   const { user } = useAuth();
-  const isMobile = useMobile();
   const {
-    weekData,
-    isLoading,
-    currentWeekStart,
-    dayGroups,
-    hasDraftEntries,
-    weekStatus,
-    saveEntry,
-    deleteEntry,
-    submitWeek,
-    goToPreviousWeek,
-    goToNextWeek,
-    goToCurrentWeek,
-  } = useTimesheet();
+    currentMonth, monthData, selectedDate, isLoading,
+    calendarDays, selectedDayEntries, selectedWeekSummary, weekSummaries,
+    setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentMonth,
+    saveEntry, deleteEntry, submitWeek,
+  } = useMonthTimesheet();
 
   const [categories, setCategories] = useState<ActivityCategory[]>([]);
   const [allocatedProjects, setAllocatedProjects] = useState<Array<{ projectId: string; projectName: string; clientName: string }>>([]);
-
-  // Editor modal state
-  const [editorState, setEditorState] = useState<{
-    entry: TimeEntry | null;
-    date: string;
-  } | null>(null);
+  const [panelState, setPanelState] = useState<PanelState>({ view: 'month-summary' });
 
   // Submit dialog
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
@@ -57,26 +46,43 @@ export default function TimesheetPage() {
     }
   }, [user]);
 
-  const handleEditEntry = useCallback((entry: TimeEntry) => {
-    setEditorState({ entry, date: entry.date });
-  }, []);
+  // Explicit panel state handlers (no useEffect to avoid race conditions)
+  function handleSelectDate(date: string) {
+    setSelectedDate(date);
+    setPanelState({ view: 'day-entries' });
+  }
 
-  const handleAddEntry = useCallback((date: string) => {
-    setEditorState({ entry: null, date });
-  }, []);
+  function handleNewEntry() {
+    const today = new Date().toISOString().split('T')[0];
+    setSelectedDate(today);
+    setPanelState({ view: 'entry-form', entry: null });
+  }
 
-  const handleDeleteEntry = useCallback(async (entryId: string) => {
-    await deleteEntry(entryId);
-  }, [deleteEntry]);
+  function handleClosePanel() {
+    setSelectedDate(null);
+    setPanelState({ view: 'month-summary' });
+  }
 
-  const handleEditorSave = useCallback(async (data: UpsertEntryData) => {
-    await saveEntry(data);
-  }, [saveEntry]);
+  function handlePreviousMonth() {
+    goToPreviousMonth();
+    setPanelState({ view: 'month-summary' });
+  }
 
-  async function handleSubmit() {
+  function handleNextMonth() {
+    goToNextMonth();
+    setPanelState({ view: 'month-summary' });
+  }
+
+  function handleGoToToday() {
+    goToCurrentMonth();
+    setPanelState({ view: 'day-entries' });
+  }
+
+  async function handleSubmitWeek() {
+    if (!selectedWeekSummary) return;
     setIsSubmitting(true);
     try {
-      await submitWeek();
+      await submitWeek(selectedWeekSummary.weekStartDate);
       setIsSubmitOpen(false);
     } catch {
       // Error handled in hook
@@ -85,81 +91,90 @@ export default function TimesheetPage() {
     }
   }
 
-  // Get existing entries for the date being edited (for time suggestion)
-  const existingEntriesForDate = editorState
-    ? weekData?.entries.filter((e) => e.date === editorState.date && e.id !== editorState.entry?.id) ?? []
+  // Existing entries for time suggestion in form
+  const existingEntriesForForm = selectedDate
+    ? monthData?.entries.filter(e => e.date === selectedDate && e.id !== (panelState.view === 'entry-form' ? panelState.entry?.id : undefined)) ?? []
     : [];
 
-  const isReadonly = weekStatus === 'submitted' || weekStatus === 'approved';
-  const draftEntryCount = weekData?.entries.filter((e) => e.status === 'draft').length ?? 0;
+  const draftEntryCount = selectedWeekSummary?.entries.filter(e => e.status === 'draft').length ?? 0;
 
   return (
     <SidebarLayout navItems={navItems} title="Apontamento">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Apontamento de Horas</h2>
-          <div className="flex items-center gap-2">
-            {hasDraftEntries && (
-              <Button size="sm" onClick={() => setIsSubmitOpen(true)}>
-                <Send size={14} className="mr-1" /> Submeter
-              </Button>
+        <MonthHeader
+          currentMonth={currentMonth}
+          monthData={monthData}
+          selectedWeekSummary={selectedWeekSummary}
+          onPreviousMonth={handlePreviousMonth}
+          onNextMonth={handleNextMonth}
+          onToday={handleGoToToday}
+        />
+
+        {/* Split View: 65% calendar / 35% panel */}
+        <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+          {/* Calendar */}
+          <div className="lg:w-[65%] w-full">
+            {isLoading ? (
+              <div className="rounded-xl border border-border bg-surface-1 p-4 space-y-3">
+                <div className="grid grid-cols-7 gap-2">
+                  {Array.from({ length: 35 }).map((_, i) => (
+                    <Skeleton key={i} className="h-16" />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <MonthCalendar
+                calendarDays={calendarDays}
+                selectedDate={selectedDate}
+                selectedWeekStart={selectedWeekSummary?.weekStartDate ?? null}
+                onSelectDate={handleSelectDate}
+              />
+            )}
+          </div>
+
+          {/* Side Panel */}
+          <div className="lg:w-[35%] w-full">
+            {panelState.view === 'month-summary' && monthData && (
+              <MonthSummary monthData={monthData} weekSummaries={weekSummaries} />
+            )}
+            {panelState.view === 'day-entries' && selectedDate && (
+              <DayPanel
+                selectedDate={selectedDate}
+                entries={selectedDayEntries}
+                weekSummary={selectedWeekSummary}
+
+                onEdit={(entry) => setPanelState({ view: 'entry-form', entry })}
+                onDelete={deleteEntry}
+                onNewEntry={() => setPanelState({ view: 'entry-form', entry: null })}
+                onSubmitWeek={() => setIsSubmitOpen(true)}
+                onClose={handleClosePanel}
+              />
+            )}
+            {panelState.view === 'entry-form' && selectedDate && (
+              <InlineEntryForm
+                date={selectedDate}
+                entry={panelState.entry}
+                projects={allocatedProjects}
+                categories={categories}
+                existingEntries={existingEntriesForForm}
+                onSave={async (data) => {
+                  await saveEntry(data);
+                  setPanelState({ view: 'day-entries' });
+                }}
+                onCancel={() => setPanelState({ view: 'day-entries' })}
+              />
             )}
           </div>
         </div>
-
-        <WeekHeader
-          weekStartDate={currentWeekStart}
-          totalHours={weekData?.totalHours ?? 0}
-          targetHours={weekData?.targetHours ?? 40}
-          weekStatus={weekStatus}
-          onPrevious={goToPreviousWeek}
-          onNext={goToNextWeek}
-          onToday={goToCurrentWeek}
-        />
-
-        {isLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-32 w-full" />
-          </div>
-        ) : isMobile ? (
-          <DayCards
-            dayGroups={dayGroups}
-            onEditEntry={handleEditEntry}
-            onDeleteEntry={handleDeleteEntry}
-            onAddEntry={handleAddEntry}
-            isReadonly={isReadonly}
-          />
-        ) : (
-          <DayEntryList
-            dayGroups={dayGroups}
-            onEditEntry={handleEditEntry}
-            onDeleteEntry={handleDeleteEntry}
-            onAddEntry={handleAddEntry}
-            isReadonly={isReadonly}
-          />
-        )}
       </div>
-
-      {/* Entry Editor Modal */}
-      <EntryEditor
-        entry={editorState?.entry ?? null}
-        date={editorState?.date ?? ''}
-        projects={allocatedProjects}
-        categories={categories}
-        isOpen={!!editorState}
-        onClose={() => setEditorState(null)}
-        onSave={handleEditorSave}
-        existingEntries={existingEntriesForDate}
-      />
 
       {/* Submit Dialog */}
       <SubmitDialog
         isOpen={isSubmitOpen}
         onClose={() => setIsSubmitOpen(false)}
-        onConfirm={handleSubmit}
-        totalHours={weekData?.totalHours ?? 0}
-        targetHours={weekData?.targetHours ?? 40}
+        onConfirm={handleSubmitWeek}
+        totalHours={selectedWeekSummary?.totalHours ?? 0}
+        targetHours={selectedWeekSummary?.targetHours ?? 40}
         entryCount={draftEntryCount}
         isSubmitting={isSubmitting}
       />

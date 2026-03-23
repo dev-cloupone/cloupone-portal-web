@@ -37,6 +37,33 @@ export interface DayGroup {
   totalHours: number;
 }
 
+export interface MonthData {
+  month: string;
+  entries: TimeEntry[];
+  totalHours: number;
+  targetHours: number;
+  workingDays: number;
+}
+
+export interface WeekSummary {
+  weekStartDate: string;
+  entries: TimeEntry[];
+  totalHours: number;
+  targetHours: number;
+  status: 'empty' | 'draft' | 'submitted' | 'approved' | 'mixed';
+  hasDraftEntries: boolean;
+}
+
+export interface CalendarDay {
+  date: string;
+  dayNumber: number;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  isWeekend: boolean;
+  entries: TimeEntry[];
+  totalHours: number;
+}
+
 export interface UpsertEntryData {
   id?: string;
   projectId: string;

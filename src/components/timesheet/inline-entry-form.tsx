@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Modal } from '../ui/modal';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Select } from '../ui/select';
 import { TimePicker } from '../ui/time-picker';
@@ -14,15 +14,14 @@ interface AllocatedProject {
   clientName: string;
 }
 
-interface EntryFormModalProps {
-  entry: TimeEntry | null;
+interface InlineEntryFormProps {
   date: string;
+  entry?: TimeEntry | null;
   projects: AllocatedProject[];
   categories: ActivityCategory[];
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (data: UpsertEntryData) => Promise<void>;
   existingEntries?: TimeEntry[];
+  onSave: (data: UpsertEntryData) => Promise<void>;
+  onCancel: () => void;
 }
 
 function timeToMinutes(time: string): number {
@@ -45,31 +44,22 @@ function formatDuration(startTime: string, endTime: string): string {
 
 function suggestStartTime(existingEntries: TimeEntry[]): string {
   if (existingEntries.length === 0) return '08:00';
-
-  const sorted = [...existingEntries].sort((a, b) =>
-    a.endTime.localeCompare(b.endTime)
-  );
+  const sorted = [...existingEntries].sort((a, b) => a.endTime.localeCompare(b.endTime));
   const lastEnd = sorted[sorted.length - 1].endTime.slice(0, 5);
   const lastEndMin = timeToMinutes(lastEnd);
-
-  // If last entry ends around noon, suggest 13:00 (lunch break)
-  if (lastEndMin >= 11 * 60 && lastEndMin <= 13 * 60) {
-    return '13:00';
-  }
-
+  if (lastEndMin >= 11 * 60 && lastEndMin <= 13 * 60) return '13:00';
   return lastEnd;
 }
 
-export function EntryEditor({
-  entry,
+export function InlineEntryForm({
   date,
+  entry = null,
   projects,
   categories,
-  isOpen,
-  onClose,
-  onSave,
   existingEntries = [],
-}: EntryFormModalProps) {
+  onSave,
+  onCancel,
+}: InlineEntryFormProps) {
   const [projectId, setProjectId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -80,12 +70,9 @@ export function EntryEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
-  // Reset form when modal opens
+  // Initialize form
   useEffect(() => {
-    if (!isOpen) return;
-
     if (entry) {
-      // Editing existing entry
       setProjectId(entry.projectId);
       setCategoryId(entry.categoryId || '');
       setStartTime(entry.startTime.slice(0, 5));
@@ -93,8 +80,8 @@ export function EntryEditor({
       setDescription(entry.description || '');
       setTicketId(entry.ticketId || '');
     } else {
-      // New entry — suggest times
-      const suggested = suggestStartTime(existingEntries);
+      const filteredExisting = existingEntries.filter(e => e.date === date);
+      const suggested = suggestStartTime(filteredExisting);
       setProjectId(projects.length === 1 ? projects[0].projectId : '');
       setCategoryId('');
       setStartTime(suggested);
@@ -103,28 +90,22 @@ export function EntryEditor({
       setTicketId('');
     }
     setError('');
-  }, [isOpen, entry, existingEntries, projects]);
+  }, [entry, date, existingEntries, projects]);
 
   // Load tickets when project changes
   useEffect(() => {
-    if (!projectId || !isOpen) {
+    if (!projectId) {
       setProjectTickets([]);
       return;
     }
-
     ticketService.list({
       projectId,
       status: 'open,in_analysis,in_progress,in_review',
       limit: 100,
-    }).then((res) => {
-      setProjectTickets(res.data);
-    }).catch(() => {
-      setProjectTickets([]);
-    });
-  }, [projectId, isOpen]);
+    }).then(res => setProjectTickets(res.data)).catch(() => setProjectTickets([]));
+  }, [projectId]);
 
   const isEditable = !entry || entry.status === 'draft' || entry.status === 'rejected';
-
   const duration = useMemo(() => formatDuration(startTime, endTime), [startTime, endTime]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -144,7 +125,6 @@ export function EntryEditor({
         description: description || undefined,
         ticketId: ticketId || null,
       });
-      onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar registro.');
     } finally {
@@ -152,36 +132,52 @@ export function EntryEditor({
     }
   }
 
-  const projectOptions = projects.map((p) => ({
+  const projectOptions = projects.map(p => ({
     value: p.projectId,
     label: `${p.projectName} (${p.clientName})`,
   }));
 
   const categoryOptions = categories
-    .filter((c) => c.isActive)
-    .map((c) => ({ value: c.id, label: `${c.name}${c.isBillable ? '' : ' (nao faturavel)'}` }));
+    .filter(c => c.isActive)
+    .map(c => ({ value: c.id, label: `${c.name}${c.isBillable ? '' : ' (nao faturavel)'}` }));
 
-  const ticketOptions = projectTickets.map((t) => ({
+  const ticketOptions = projectTickets.map(t => ({
     value: t.id,
     label: `${t.code} — ${t.title}`,
   }));
 
-  const dateDisplay = date
-    ? new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'short' })
-    : '';
+  const dateDisplay = new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'long',
+  });
 
-  const title = entry ? 'Editar Registro' : 'Novo Registro';
+  const title = entry ? 'Editar Apontamento' : 'Novo Apontamento';
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {dateDisplay && (
-          <div className="text-sm text-text-muted">{dateDisplay}</div>
-        )}
+    <div className="rounded-xl border border-border bg-surface-1 p-4 animate-slide-in-right">
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex items-center text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+        >
+          <ArrowLeft size={14} className="mr-1" /> Voltar
+        </button>
+        <span className="text-sm font-semibold text-text-primary">{title}</span>
+      </div>
 
+      <p className="text-xs text-text-muted mb-4 capitalize">{dateDisplay}</p>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Rejection comment */}
         {entry?.status === 'rejected' && entry.rejectionComment && (
           <div className="rounded-lg border border-danger/30 bg-danger/5 px-3.5 py-2.5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-danger mb-1">Motivo da rejeicao</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <AlertTriangle size={12} className="text-danger" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-danger">Motivo da rejeicao</span>
+            </div>
             <p className="text-sm text-text-primary">{entry.rejectionComment}</p>
           </div>
         )}
@@ -202,7 +198,6 @@ export function EntryEditor({
           />
         </div>
 
-        {/* Duration display */}
         {duration && (
           <div className="text-xs text-text-muted">
             Duracao: <span className="font-medium text-text-secondary">{duration}</span>
@@ -255,6 +250,9 @@ export function EntryEditor({
             className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none resize-none disabled:opacity-40"
             placeholder="Descreva a atividade realizada..."
           />
+          <div className="text-right text-caption text-text-muted">
+            {description.length}/500
+          </div>
         </div>
 
         {error && (
@@ -263,17 +261,17 @@ export function EntryEditor({
           </div>
         )}
 
-        <div className="modal-actions">
-          <Button variant="secondary" type="button" onClick={onClose} disabled={isSaving}>
+        <div className="flex items-center gap-2 pt-2">
+          <Button variant="secondary" type="button" onClick={onCancel} disabled={isSaving} className="flex-1">
             Cancelar
           </Button>
           {isEditable && (
-            <Button type="submit" disabled={isSaving || !projectId || !startTime || !endTime}>
+            <Button type="submit" disabled={isSaving || !projectId || !startTime || !endTime} className="flex-1">
               {isSaving ? 'Salvando...' : 'Salvar'}
             </Button>
           )}
         </div>
       </form>
-    </Modal>
+    </div>
   );
 }
