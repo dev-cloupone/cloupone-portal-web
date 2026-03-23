@@ -52,12 +52,6 @@ export default function TimesheetPage() {
     setPanelState({ view: 'day-entries' });
   }
 
-  function handleNewEntry() {
-    const today = new Date().toISOString().split('T')[0];
-    setSelectedDate(today);
-    setPanelState({ view: 'entry-form', entry: null });
-  }
-
   function handleClosePanel() {
     setSelectedDate(null);
     setPanelState({ view: 'month-summary' });
