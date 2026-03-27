@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Settings, User, Building2, FolderKanban, Tag, Clock, CheckSquare, BarChart3, FileText, Headset } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, User, Building2, FolderKanban, Tag, Clock, CheckSquare, BarChart3, FileText, Headset, Receipt, Wallet, HandCoins } from 'lucide-react';
 import { useAuth } from './use-auth';
 
 export function useNavItems() {
@@ -13,9 +13,13 @@ export function useNavItems() {
       { label: 'Projetos', path: '/admin/projects', icon: <FolderKanban size={18} /> },
       { label: 'Consultores', path: '/admin/consultants', icon: <Users size={18} /> },
       { label: 'Categorias', path: '/admin/activity-categories', icon: <Tag size={18} /> },
+      { label: 'Cat. Despesas', path: '/admin/expense-categories', icon: <Receipt size={18} /> },
       { label: 'Atendimento', path: '/tickets', icon: <Headset size={18} /> },
       { label: 'Apontamento', path: '/timesheet', icon: <Clock size={18} /> },
+      { label: 'Despesas', path: '/expenses', icon: <Wallet size={18} /> },
       { label: 'Aprovacoes', path: '/approvals', icon: <CheckSquare size={18} /> },
+      { label: 'Aprov. Despesas', path: '/expense-approvals', icon: <Receipt size={18} /> },
+      { label: 'Reembolsos', path: '/expense-reimbursements', icon: <HandCoins size={18} /> },
       { label: 'Relatorios', path: '/admin/reports', icon: <FileText size={18} /> },
       { label: 'Configuracoes', path: '/admin/settings', icon: <Settings size={18} /> },
       { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
@@ -29,9 +33,13 @@ export function useNavItems() {
       { label: 'Projetos', path: '/admin/projects', icon: <FolderKanban size={18} /> },
       { label: 'Consultores', path: '/admin/consultants', icon: <Users size={18} /> },
       { label: 'Categorias', path: '/admin/activity-categories', icon: <Tag size={18} /> },
+      { label: 'Cat. Despesas', path: '/admin/expense-categories', icon: <Receipt size={18} /> },
       { label: 'Atendimento', path: '/tickets', icon: <Headset size={18} /> },
       { label: 'Apontamento', path: '/timesheet', icon: <Clock size={18} /> },
+      { label: 'Despesas', path: '/expenses', icon: <Wallet size={18} /> },
       { label: 'Aprovacoes', path: '/approvals', icon: <CheckSquare size={18} /> },
+      { label: 'Aprov. Despesas', path: '/expense-approvals', icon: <Receipt size={18} /> },
+      { label: 'Reembolsos', path: '/expense-reimbursements', icon: <HandCoins size={18} /> },
       { label: 'Relatorios', path: '/admin/reports', icon: <FileText size={18} /> },
       { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
     ];
@@ -42,6 +50,7 @@ export function useNavItems() {
       { label: 'Dashboard', path: '/consultant-dashboard', icon: <BarChart3 size={18} /> },
       { label: 'Atendimento', path: '/tickets', icon: <Headset size={18} /> },
       { label: 'Apontamento', path: '/timesheet', icon: <Clock size={18} /> },
+      { label: 'Despesas', path: '/expenses', icon: <Wallet size={18} /> },
       { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
     ];
   }

@@ -1,5 +1,5 @@
 import { api, BASE_URL, getAccessToken } from './api';
-import type { ClientReportData, ConsultantReportData, EnhancedClientReportData } from '../types/report.types';
+import type { ClientReportData, ConsultantReportData, EnhancedClientReportData, ExpenseReportData } from '../types/report.types';
 
 export async function getClientReportData(clientId: string, from: string, to: string): Promise<ClientReportData> {
   return api<ClientReportData>(`/reports/client/${clientId}?from=${from}&to=${to}`);
@@ -47,6 +47,41 @@ export function getEnhancedClientPdfUrl(clientId: string, from: string, to: stri
 
 export function getEnhancedClientCsvUrl(clientId: string, from: string, to: string): string {
   return `${BASE_URL}/reports/client/${clientId}/enhanced/excel?from=${from}&to=${to}`;
+}
+
+// --- Expense Report ---
+
+function buildExpenseQueryString(from: string, to: string, filters?: { projectId?: string; consultantId?: string; categoryId?: string; reimbursementStatus?: string }): string {
+  const params = new URLSearchParams({ from, to });
+  if (filters?.projectId) params.set('projectId', filters.projectId);
+  if (filters?.consultantId) params.set('consultantId', filters.consultantId);
+  if (filters?.categoryId) params.set('categoryId', filters.categoryId);
+  if (filters?.reimbursementStatus) params.set('reimbursementStatus', filters.reimbursementStatus);
+  return params.toString();
+}
+
+export async function getExpenseReportData(
+  from: string, to: string,
+  filters?: { projectId?: string; consultantId?: string; categoryId?: string; reimbursementStatus?: string },
+): Promise<ExpenseReportData> {
+  const qs = buildExpenseQueryString(from, to, filters);
+  return api<ExpenseReportData>(`/reports/expenses?${qs}`);
+}
+
+export function getExpensePdfUrl(
+  from: string, to: string,
+  filters?: { projectId?: string; consultantId?: string; categoryId?: string; reimbursementStatus?: string },
+): string {
+  const qs = buildExpenseQueryString(from, to, filters);
+  return `${BASE_URL}/reports/expenses/pdf?${qs}`;
+}
+
+export function getExpenseCsvUrl(
+  from: string, to: string,
+  filters?: { projectId?: string; consultantId?: string; categoryId?: string; reimbursementStatus?: string },
+): string {
+  const qs = buildExpenseQueryString(from, to, filters);
+  return `${BASE_URL}/reports/expenses/excel?${qs}`;
 }
 
 export async function downloadReport(url: string, filename: string): Promise<void> {

@@ -10,16 +10,20 @@ import { useNavItems } from '../../hooks/use-nav-items';
 import * as clientService from '../../services/client.service';
 import * as consultantService from '../../services/consultant.service';
 import * as reportService from '../../services/report.service';
+import * as expenseCategoryService from '../../services/expense-category.service';
 import { formatApiError } from '../../services/api';
 import type { Client } from '../../types/client.types';
 import type { Consultant } from '../../types/consultant.types';
-import type { ClientReportData, ConsultantReportData, EnhancedClientReportData } from '../../types/report.types';
+import type { ExpenseCategory } from '../../types/expense.types';
+import type { ClientReportData, ConsultantReportData, EnhancedClientReportData, ExpenseReportData } from '../../types/report.types';
 import { useToastStore } from '../../stores/toast.store';
+import * as projectService from '../../services/project.service';
+import type { Project } from '../../types/project.types';
 
-type ReportType = 'client' | 'enhanced_client' | 'consultant' | 'billing' | 'payroll';
+type ReportType = 'client' | 'enhanced_client' | 'consultant' | 'billing' | 'payroll' | 'expenses';
 
-const PREVIEWABLE: ReportType[] = ['client', 'enhanced_client', 'consultant'];
-const CSV_ENABLED: ReportType[] = ['client', 'enhanced_client', 'consultant'];
+const PREVIEWABLE: ReportType[] = ['client', 'enhanced_client', 'consultant', 'expenses'];
+const CSV_ENABLED: ReportType[] = ['client', 'enhanced_client', 'consultant', 'expenses'];
 const NEEDS_CLIENT: ReportType[] = ['client', 'enhanced_client'];
 const NEEDS_CONSULTANT: ReportType[] = ['consultant'];
 
@@ -48,20 +52,33 @@ export default function ReportsPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Expense report filters
+  const [expenseProjectId, setExpenseProjectId] = useState('');
+  const [expenseConsultantId, setExpenseConsultantId] = useState('');
+  const [expenseCategoryId, setExpenseCategoryId] = useState('');
+  const [expenseReimbursementStatus, setExpenseReimbursementStatus] = useState('');
+  const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>([]);
+
   // Preview states
   const [clientPreview, setClientPreview] = useState<ClientReportData | null>(null);
   const [consultantPreview, setConsultantPreview] = useState<ConsultantReportData | null>(null);
   const [enhancedClientPreview, setEnhancedClientPreview] = useState<EnhancedClientReportData | null>(null);
+  const [expensePreview, setExpensePreview] = useState<ExpenseReportData | null>(null);
 
   // Load clients and consultants on mount
   const loadData = useCallback(async () => {
     try {
-      const [clientResult, consultantResult] = await Promise.all([
+      const [clientResult, consultantResult, projectResult, categoryResult] = await Promise.all([
         clientService.listClients({ page: 1, limit: 100 }),
         consultantService.listConsultants({ page: 1, limit: 100 }),
+        projectService.listProjects({ page: 1, limit: 200 }),
+        expenseCategoryService.listCategories(),
       ]);
       setClients(clientResult.data);
       setConsultants(consultantResult.data);
+      setAllProjects(projectResult.data);
+      setExpenseCategories(categoryResult.data);
     } catch (err) {
       setError(formatApiError(err));
     }
@@ -75,6 +92,7 @@ export default function ReportsPage() {
     setClientPreview(null);
     setConsultantPreview(null);
     setEnhancedClientPreview(null);
+    setExpensePreview(null);
   }
 
   function handleReportTypeChange(v: string) {
@@ -82,7 +100,20 @@ export default function ReportsPage() {
     clearPreviews();
     setClientId('');
     setConsultantId('');
+    setExpenseProjectId('');
+    setExpenseConsultantId('');
+    setExpenseCategoryId('');
+    setExpenseReimbursementStatus('');
     setError(null);
+  }
+
+  function getExpenseFilters() {
+    return {
+      projectId: expenseProjectId || undefined,
+      consultantId: expenseConsultantId || undefined,
+      categoryId: expenseCategoryId || undefined,
+      reimbursementStatus: expenseReimbursementStatus || undefined,
+    };
   }
 
   // Preview
@@ -119,6 +150,11 @@ export default function ReportsPage() {
         case 'enhanced_client': {
           const data = await reportService.getEnhancedClientReportData(clientId, dateRange.from, dateRange.to);
           setEnhancedClientPreview(data);
+          break;
+        }
+        case 'expenses': {
+          const data = await reportService.getExpenseReportData(dateRange.from, dateRange.to, getExpenseFilters());
+          setExpensePreview(data);
           break;
         }
         default:
@@ -168,6 +204,10 @@ export default function ReportsPage() {
           url = reportService.getPayrollPdfUrl(dateRange.from, dateRange.to);
           filename = `pagamento-${dateRange.from}-${dateRange.to}.pdf`;
           break;
+        case 'expenses':
+          url = reportService.getExpensePdfUrl(dateRange.from, dateRange.to, getExpenseFilters());
+          filename = `relatorio-despesas-${dateRange.from}-${dateRange.to}.pdf`;
+          break;
       }
 
       await reportService.downloadReport(url, filename);
@@ -208,6 +248,10 @@ export default function ReportsPage() {
           url = reportService.getConsultantCsvUrl(consultantId, dateRange.from, dateRange.to);
           filename = `relatorio-consultor-${dateRange.from}-${dateRange.to}.csv`;
           break;
+        case 'expenses':
+          url = reportService.getExpenseCsvUrl(dateRange.from, dateRange.to, getExpenseFilters());
+          filename = `relatorio-despesas-${dateRange.from}-${dateRange.to}.csv`;
+          break;
         default:
           return;
       }
@@ -227,20 +271,27 @@ export default function ReportsPage() {
     { value: 'consultant', label: 'Relatorio por Consultor' },
     { value: 'billing', label: 'Relatorio de Faturamento' },
     { value: 'payroll', label: 'Relatorio de Pagamento' },
+    { value: 'expenses', label: 'Relatorio de Despesas' },
   ];
 
   const clientOptions = clients.map((c) => ({ value: c.id, label: c.companyName }));
   const consultantOptions = consultants.map((c) => ({ value: c.userId, label: c.userName }));
+  const projectOptions = allProjects.map((p) => ({ value: p.id, label: p.name }));
+  const categoryOptions = expenseCategories.map((c) => ({ value: c.id, label: c.name }));
+  const reimbursementOptions = [
+    { value: 'pending', label: 'Pendente' },
+    { value: 'paid', label: 'Pago' },
+  ];
 
   const showPreviewBtn = PREVIEWABLE.includes(reportType);
   const showCsvBtn = CSV_ENABLED.includes(reportType);
-  const hasAnyPreview = clientPreview || consultantPreview || enhancedClientPreview;
+  const hasAnyPreview = clientPreview || consultantPreview || enhancedClientPreview || expensePreview;
 
   return (
     <SidebarLayout navItems={navItems} title="Admin">
       <div className="mb-6">
         <h2 className="text-2xl font-bold tracking-tight text-text-primary">Relatorios</h2>
-        <p className="mt-1 text-sm text-text-tertiary">Gere relatorios de horas, faturamento e pagamento</p>
+        <p className="mt-1 text-sm text-text-tertiary">Gere relatorios de horas, faturamento, pagamento e despesas</p>
       </div>
 
       {/* Filters */}
@@ -271,6 +322,39 @@ export default function ReportsPage() {
               onChange={setConsultantId}
               placeholder="Selecione um consultor"
             />
+          )}
+
+          {reportType === 'expenses' && (
+            <>
+              <Select
+                label="Projeto"
+                options={projectOptions}
+                value={expenseProjectId}
+                onChange={setExpenseProjectId}
+                placeholder="Todos"
+              />
+              <Select
+                label="Consultor"
+                options={consultantOptions}
+                value={expenseConsultantId}
+                onChange={setExpenseConsultantId}
+                placeholder="Todos"
+              />
+              <Select
+                label="Categoria"
+                options={categoryOptions}
+                value={expenseCategoryId}
+                onChange={setExpenseCategoryId}
+                placeholder="Todas"
+              />
+              <Select
+                label="Reembolso"
+                options={reimbursementOptions}
+                value={expenseReimbursementStatus}
+                onChange={setExpenseReimbursementStatus}
+                placeholder="Todos"
+              />
+            </>
           )}
 
           <DateInput
@@ -637,6 +721,84 @@ export default function ReportsPage() {
                     <TableCell>{e.activityName || '-'}</TableCell>
                     <TableCell className="max-w-xs truncate">{e.description || '-'}</TableCell>
                     <TableCell className="text-right">{Number(e.hours).toFixed(1)}h</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </>
+      )}
+
+      {/* Preview: Expense Report */}
+      {expensePreview && (
+        <>
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-4">
+            <Card>
+              <CardHeader><CardTitle>Total Despesas</CardTitle></CardHeader>
+              <p className="text-3xl font-bold text-accent">R$ {expensePreview.totalAmount.toFixed(2)}</p>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>Quantidade</CardTitle></CardHeader>
+              <p className="text-3xl font-bold text-text-primary">{expensePreview.totalCount}</p>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>Reembolsavel</CardTitle></CardHeader>
+              <p className="text-3xl font-bold text-text-primary">R$ {expensePreview.totalReimbursable.toFixed(2)}</p>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>Reembolsado</CardTitle></CardHeader>
+              <p className="text-3xl font-bold text-accent">R$ {expensePreview.totalReimbursed.toFixed(2)}</p>
+            </Card>
+          </div>
+
+          {/* Category summary */}
+          {expensePreview.categorySummary.length > 0 && (
+            <div className="mb-6">
+              <h3 className="mb-3 text-lg font-semibold text-text-primary">Resumo por Categoria</h3>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>Categoria</TableHeader>
+                    <TableHeader className="text-right">Quantidade</TableHeader>
+                    <TableHeader className="text-right">Valor</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {expensePreview.categorySummary.map((c) => (
+                    <TableRow key={c.categoryName}>
+                      <TableCell>{c.categoryName}</TableCell>
+                      <TableCell className="text-right">{c.count}</TableCell>
+                      <TableCell className="text-right font-medium">R$ {c.totalAmount.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
+          {/* Detail */}
+          <div>
+            <h3 className="mb-3 text-lg font-semibold text-text-primary">Detalhamento</h3>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Data</TableHeader>
+                  <TableHeader>Consultor</TableHeader>
+                  <TableHeader>Projeto</TableHeader>
+                  <TableHeader>Categoria</TableHeader>
+                  <TableHeader>Descricao</TableHeader>
+                  <TableHeader className="text-right">Valor</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {expensePreview.entries.map((e, i) => (
+                  <TableRow key={i}>
+                    <TableCell>{formatDateBR(e.date)}</TableCell>
+                    <TableCell>{e.consultantName || '-'}</TableCell>
+                    <TableCell>{e.projectName}</TableCell>
+                    <TableCell>{e.categoryName || '-'}</TableCell>
+                    <TableCell className="max-w-xs truncate">{e.description}</TableCell>
+                    <TableCell className="text-right font-medium">R$ {Number(e.amount).toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

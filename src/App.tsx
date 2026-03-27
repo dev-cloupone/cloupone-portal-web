@@ -29,12 +29,22 @@ const AdminClientsPage = lazy(() => import('./pages/admin/clients'));
 const AdminProjectsPage = lazy(() => import('./pages/admin/projects'));
 const AdminConsultantsPage = lazy(() => import('./pages/admin/consultants'));
 const AdminActivityCategoriesPage = lazy(() => import('./pages/admin/activity-categories'));
+const AdminExpenseCategoriesPage = lazy(() => import('./pages/admin/expense-categories'));
 
 // Timesheet (consultor + gestor + super_admin)
 const TimesheetPage = lazy(() => import('./pages/timesheet'));
 
 // Approvals (gestor + super_admin)
 const ApprovalsPage = lazy(() => import('./pages/approvals'));
+
+// Expenses (consultor + gestor + super_admin)
+const ExpensesPage = lazy(() => import('./pages/expenses'));
+
+// Expense Approvals (gestor + super_admin)
+const ExpenseApprovalsPage = lazy(() => import('./pages/expense-approvals'));
+
+// Expense Reimbursements (gestor + super_admin)
+const ExpenseReimbursementsPage = lazy(() => import('./pages/expense-reimbursements'));
 
 // Dashboards
 const ManagerDashboardPage = lazy(() => import('./pages/manager-dashboard'));
@@ -107,6 +117,7 @@ export default function App() {
                     <Route path="projects" element={<AdminProjectsPage />} />
                     <Route path="consultants" element={<AdminConsultantsPage />} />
                     <Route path="activity-categories" element={<AdminActivityCategoriesPage />} />
+                    <Route path="expense-categories" element={<AdminExpenseCategoriesPage />} />
                     <Route path="reports" element={<AdminReportsPage />} />
                   </Routes>
                 </RoleGuard>
@@ -157,6 +168,42 @@ export default function App() {
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['gestor', 'super_admin']}>
                   <ApprovalsPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Expenses (consultor + gestor + super_admin) */}
+          <Route
+            path="/expenses"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['consultor', 'gestor', 'super_admin']}>
+                  <ExpensesPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Expense Approvals (gestor + super_admin) */}
+          <Route
+            path="/expense-approvals"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['gestor', 'super_admin']}>
+                  <ExpenseApprovalsPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Expense Reimbursements (gestor + super_admin) */}
+          <Route
+            path="/expense-reimbursements"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['gestor', 'super_admin']}>
+                  <ExpenseReimbursementsPage />
                 </RoleGuard>
               </ProtectedRoute>
             }

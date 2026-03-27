@@ -135,3 +135,32 @@ export interface EnhancedClientReportData {
   totalHours: number;
   totalValue: number;
 }
+
+// --- Expense Report Types ---
+
+export interface ExpenseReportEntry {
+  date: string;
+  consultantName: string | null;
+  projectName: string;
+  clientName: string;
+  categoryName: string | null;
+  description: string;
+  amount: string;
+  requiresReimbursement: boolean;
+  reimbursedAt: string | null;
+}
+
+export interface ExpenseReportCategorySummary {
+  categoryName: string;
+  count: number;
+  totalAmount: number;
+}
+
+export interface ExpenseReportData {
+  entries: ExpenseReportEntry[];
+  categorySummary: ExpenseReportCategorySummary[];
+  totalAmount: number;
+  totalCount: number;
+  totalReimbursable: number;
+  totalReimbursed: number;
+}
