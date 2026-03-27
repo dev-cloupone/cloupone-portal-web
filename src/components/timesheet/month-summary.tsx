@@ -11,6 +11,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   submitted: { label: 'Submetido', color: 'bg-warning' },
   approved: { label: 'Aprovado', color: 'bg-success' },
   rejected: { label: 'Rejeitado', color: 'bg-danger' },
+  auto_approved: { label: 'Aprovado automaticamente', color: 'bg-success' },
 };
 
 export function MonthSummary({ monthData, weekSummaries }: MonthSummaryProps) {

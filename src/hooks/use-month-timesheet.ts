@@ -29,10 +29,11 @@ function addDays(date: Date, days: number): Date {
 
 function computeWeekStatus(entries: { status: string }[]): WeekSummary['status'] {
   if (entries.length === 0) return 'empty';
-  const statuses = new Set(entries.map(e => e.status));
+  const normalized = entries.map(e => e.status === 'auto_approved' ? 'approved' : e.status);
+  const statuses = new Set(normalized);
   if (statuses.size === 1) {
-    const s = entries[0].status;
-    if (s === 'draft' || s === 'submitted' || s === 'approved') return s;
+    const s = normalized[0];
+    if (s === 'draft' || s === 'submitted' || s === 'approved') return s as WeekSummary['status'];
   }
   return 'mixed';
 }
@@ -192,8 +193,9 @@ export function useMonthTimesheet() {
   // CRUD
   const saveEntry = useCallback(async (data: UpsertEntryData) => {
     try {
-      await timeEntryService.upsertEntry(data);
+      const result = await timeEntryService.upsertEntry(data);
       await loadMonth(currentMonth);
+      return result;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao salvar registro.';
       addToast(message, 'error');
@@ -208,6 +210,18 @@ export function useMonthTimesheet() {
       addToast('Registro removido.', 'success');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao remover registro.';
+      addToast(message, 'error');
+      throw err;
+    }
+  }, [currentMonth, loadMonth, addToast]);
+
+  const submitEntry = useCallback(async (entryId: string) => {
+    try {
+      const result = await timeEntryService.submitEntry(entryId);
+      await loadMonth(currentMonth);
+      return result;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao submeter apontamento.';
       addToast(message, 'error');
       throw err;
     }
@@ -237,6 +251,6 @@ export function useMonthTimesheet() {
     // Navigation
     setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentMonth,
     // CRUD
-    saveEntry, deleteEntry, submitWeek, reload: () => loadMonth(currentMonth),
+    saveEntry, deleteEntry, submitEntry, submitWeek, reload: () => loadMonth(currentMonth),
   };
 }

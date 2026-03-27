@@ -11,7 +11,7 @@ export interface TimeEntry {
   endTime: string;
   hours: number | string;
   description?: string | null;
-  status: 'draft' | 'submitted' | 'approved' | 'rejected';
+  status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'auto_approved';
   submittedAt?: string | null;
   approvedAt?: string | null;
   createdAt?: string;
@@ -50,7 +50,7 @@ export interface WeekSummary {
   entries: TimeEntry[];
   totalHours: number;
   targetHours: number;
-  status: 'empty' | 'draft' | 'submitted' | 'approved' | 'mixed';
+  status: 'empty' | 'draft' | 'submitted' | 'approved' | 'auto_approved' | 'mixed';
   hasDraftEntries: boolean;
 }
 

@@ -6,6 +6,7 @@ import { MonthSummary } from '../components/timesheet/month-summary';
 import { DayPanel } from '../components/timesheet/day-panel';
 import { InlineEntryForm } from '../components/timesheet/inline-entry-form';
 import { SubmitDialog } from '../components/timesheet/submit-dialog';
+import { SubmitEntryDialog } from '../components/timesheet/submit-entry-dialog';
 import { useMonthTimesheet } from '../hooks/use-month-timesheet';
 import { useNavItems } from '../hooks/use-nav-items';
 import { useAuth } from '../hooks/use-auth';
@@ -27,7 +28,7 @@ export default function TimesheetPage() {
     currentMonth, monthData, selectedDate, isLoading,
     calendarDays, selectedDayEntries, selectedWeekSummary, weekSummaries,
     setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentMonth,
-    saveEntry, deleteEntry, submitWeek,
+    saveEntry, deleteEntry, submitEntry, submitWeek,
   } = useMonthTimesheet();
 
   const [categories, setCategories] = useState<ActivityCategory[]>([]);
@@ -37,6 +38,10 @@ export default function TimesheetPage() {
   // Submit dialog
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Submit entry dialog
+  const [submitEntryDialog, setSubmitEntryDialog] = useState<{ entryId: string } | null>(null);
+  const [isSubmittingEntry, setIsSubmittingEntry] = useState(false);
 
   // Load categories and allocated projects
   useEffect(() => {
@@ -152,8 +157,11 @@ export default function TimesheetPage() {
                 categories={categories}
                 existingEntries={existingEntriesForForm}
                 onSave={async (data) => {
-                  await saveEntry(data);
+                  const result = await saveEntry(data);
                   setPanelState({ view: 'day-entries' });
+                  if (result?.id) {
+                    setSubmitEntryDialog({ entryId: result.id });
+                  }
                 }}
                 onCancel={() => setPanelState({ view: 'day-entries' })}
               />
@@ -161,6 +169,25 @@ export default function TimesheetPage() {
           </div>
         </div>
       </div>
+
+      {/* Submit Entry Dialog */}
+      <SubmitEntryDialog
+        isOpen={!!submitEntryDialog}
+        loading={isSubmittingEntry}
+        onSubmit={async () => {
+          if (!submitEntryDialog) return;
+          setIsSubmittingEntry(true);
+          try {
+            await submitEntry(submitEntryDialog.entryId);
+            setSubmitEntryDialog(null);
+          } catch {
+            // Error handled in hook
+          } finally {
+            setIsSubmittingEntry(false);
+          }
+        }}
+        onKeepDraft={() => setSubmitEntryDialog(null)}
+      />
 
       {/* Submit Dialog */}
       <SubmitDialog

@@ -29,8 +29,8 @@ export default function ConsultantsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Consultant | null>(null);
   const [error, setError] = useState('');
-  const [createForm, setCreateForm] = useState({ userId: '', hourlyRate: '', contractType: 'pj', allowOverlappingEntries: false });
-  const [editForm, setEditForm] = useState({ hourlyRate: '', contractType: 'pj', allowOverlappingEntries: false });
+  const [createForm, setCreateForm] = useState({ userId: '', hourlyRate: '', contractType: 'pj', allowOverlappingEntries: false, requiresApproval: false });
+  const [editForm, setEditForm] = useState({ hourlyRate: '', contractType: 'pj', allowOverlappingEntries: false, requiresApproval: false });
   const { page, limit, meta, setMeta, goToPage } = usePagination({ initialLimit: 20 });
 
   async function loadData() {
@@ -60,9 +60,10 @@ export default function ConsultantsPage() {
         hourlyRate: Number(createForm.hourlyRate),
         contractType: createForm.contractType,
         allowOverlappingEntries: createForm.allowOverlappingEntries,
+        requiresApproval: createForm.requiresApproval,
       });
       setIsCreateOpen(false);
-      setCreateForm({ userId: '', hourlyRate: '', contractType: 'pj', allowOverlappingEntries: false });
+      setCreateForm({ userId: '', hourlyRate: '', contractType: 'pj', allowOverlappingEntries: false, requiresApproval: false });
       await loadData();
     } catch (err) {
       setError(formatApiError(err));
@@ -78,6 +79,7 @@ export default function ConsultantsPage() {
         hourlyRate: Number(editForm.hourlyRate),
         contractType: editForm.contractType,
         allowOverlappingEntries: editForm.allowOverlappingEntries,
+        requiresApproval: editForm.requiresApproval,
       });
       setEditing(null);
       await loadData();
@@ -91,13 +93,14 @@ export default function ConsultantsPage() {
       hourlyRate: String(consultant.hourlyRate),
       contractType: consultant.contractType,
       allowOverlappingEntries: consultant.allowOverlappingEntries,
+      requiresApproval: consultant.requiresApproval,
     });
     setError('');
     setEditing(consultant);
   }
 
   function openCreate() {
-    setCreateForm({ userId: '', hourlyRate: '', contractType: 'pj', allowOverlappingEntries: false });
+    setCreateForm({ userId: '', hourlyRate: '', contractType: 'pj', allowOverlappingEntries: false, requiresApproval: false });
     setError('');
     loadAvailableUsers();
     setIsCreateOpen(true);
@@ -174,6 +177,18 @@ export default function ConsultantsPage() {
               <p className="text-xs text-text-muted">Quando habilitado, o consultor pode criar registros com horarios sobrepostos no mesmo dia.</p>
             </div>
           </label>
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={createForm.requiresApproval}
+              onChange={(e) => setCreateForm({ ...createForm, requiresApproval: e.target.checked })}
+              className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent bg-surface-2"
+            />
+            <div>
+              <span className="text-sm text-text-primary">Requer aprovacao de apontamentos</span>
+              <p className="text-xs text-text-muted">Quando ativado, os apontamentos deste consultor precisam ser aprovados por um gestor.</p>
+            </div>
+          </label>
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
             <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
@@ -197,6 +212,18 @@ export default function ConsultantsPage() {
             <div>
               <span className="text-sm text-text-primary">Permitir sobreposicao de horarios</span>
               <p className="text-xs text-text-muted">Quando habilitado, o consultor pode criar registros com horarios sobrepostos no mesmo dia.</p>
+            </div>
+          </label>
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={editForm.requiresApproval}
+              onChange={(e) => setEditForm({ ...editForm, requiresApproval: e.target.checked })}
+              className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent bg-surface-2"
+            />
+            <div>
+              <span className="text-sm text-text-primary">Requer aprovacao de apontamentos</span>
+              <p className="text-xs text-text-muted">Quando ativado, os apontamentos deste consultor precisam ser aprovados por um gestor.</p>
             </div>
           </label>
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}

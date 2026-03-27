@@ -13,6 +13,7 @@ const STATUS_DOT_COLORS: Record<string, string> = {
   submitted: 'bg-warning',
   approved: 'bg-success',
   rejected: 'bg-danger',
+  auto_approved: 'bg-success',
 };
 
 function formatTimeRange(start: string, end: string): string {

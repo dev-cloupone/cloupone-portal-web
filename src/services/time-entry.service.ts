@@ -18,11 +18,15 @@ export async function deleteEntry(id: string): Promise<void> {
   return api<void>(`/time-entries/${id}`, { method: 'DELETE' });
 }
 
-export async function submitWeek(weekStartDate: string): Promise<{ submitted: number; warnings: string[] }> {
-  return api<{ submitted: number; warnings: string[] }>('/time-entries/submit-week', {
+export async function submitWeek(weekStartDate: string): Promise<{ submitted: number; warnings: string[]; autoApproved: boolean }> {
+  return api<{ submitted: number; warnings: string[]; autoApproved: boolean }>('/time-entries/submit-week', {
     method: 'POST',
     body: JSON.stringify({ weekStartDate }),
   });
+}
+
+export async function submitEntry(id: string): Promise<{ status: 'submitted' | 'auto_approved' }> {
+  return api<{ status: 'submitted' | 'auto_approved' }>(`/time-entries/${id}/submit`, { method: 'POST' });
 }
 
 export async function resubmitEntry(id: string): Promise<TimeEntry> {
