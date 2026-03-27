@@ -1,4 +1,5 @@
 import { api } from './api';
+import { uploadFile } from './uploads';
 import type { Ticket, TicketComment, TicketHistoryEntry, TicketAttachment, TicketStats, CreateTicketData, UpdateTicketData, ListTicketParams } from '../types/ticket.types';
 import type { PaginatedResponse } from '../types/pagination.types';
 
@@ -40,10 +41,12 @@ export const ticketService = {
     return api(`/tickets/${ticketId}/history`);
   },
 
-  addAttachment(ticketId: string, file: File): Promise<TicketAttachment> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return api(`/tickets/${ticketId}/attachments`, { method: 'POST', body: formData });
+  async addAttachment(ticketId: string, file: File): Promise<TicketAttachment> {
+    const uploaded = await uploadFile(file);
+    return api(`/tickets/${ticketId}/attachments`, {
+      method: 'POST',
+      body: JSON.stringify({ fileId: uploaded.id }),
+    });
   },
 
   listAttachments(ticketId: string): Promise<TicketAttachment[]> {
