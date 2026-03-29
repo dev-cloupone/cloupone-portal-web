@@ -21,6 +21,9 @@ export const BASE_URL = getBaseUrl();
 
 let accessToken: string | null = null;
 let onAuthFailure: (() => void) | null = null;
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+const REFRESH_BEFORE_EXPIRY_MS = 2 * 60 * 1000; // refresh 2min before expiry
 
 interface RefreshResult {
   success: boolean;
@@ -28,12 +31,38 @@ interface RefreshResult {
 
 let refreshPromise: Promise<RefreshResult> | null = null;
 
+function scheduleTokenRefresh(token: string) {
+  if (refreshTimer) clearTimeout(refreshTimer);
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const expiresAt = payload.exp * 1000;
+    const delay = expiresAt - Date.now() - REFRESH_BEFORE_EXPIRY_MS;
+
+    if (delay > 0) {
+      refreshTimer = setTimeout(async () => {
+        const result = await tryRefreshToken();
+        if (!result.success) {
+          onAuthFailure?.();
+        }
+      }, delay);
+    }
+  } catch {
+    // token parse failed, skip scheduling
+  }
+}
+
 export function setAccessToken(token: string) {
   accessToken = token;
+  scheduleTokenRefresh(token);
 }
 
 export function clearAccessToken() {
   accessToken = null;
+  if (refreshTimer) {
+    clearTimeout(refreshTimer);
+    refreshTimer = null;
+  }
 }
 
 export function getAccessToken(): string | null {
@@ -69,7 +98,7 @@ async function doRefreshToken(): Promise<RefreshResult> {
     if (!response.ok) return { success: false };
 
     const data = await response.json();
-    accessToken = data.accessToken;
+    setAccessToken(data.accessToken);
     return { success: true };
   } catch (err) {
     console.warn('[auth] Token refresh failed:', err);
