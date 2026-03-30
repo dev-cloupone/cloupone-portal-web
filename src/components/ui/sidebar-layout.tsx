@@ -1,23 +1,76 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router';
-import { LogOut, Menu } from 'lucide-react';
+import { LogOut, Menu, ChevronRight } from 'lucide-react';
 import { IconButton } from './icon-button';
 import { useAuth } from '../../hooks/use-auth';
 import { useMobile } from '../../hooks/use-mobile';
 import { useSidebarStore } from '../../stores/sidebar.store';
 import { ThemeToggle } from './theme-toggle';
-
-interface NavItem {
-  label: string;
-  path: string;
-  icon: ReactNode;
-}
+import { type NavEntry, type NavItem, type NavGroup, isNavGroup } from '../../hooks/use-nav-items';
 
 interface SidebarLayoutProps {
   children: ReactNode;
-  navItems: NavItem[];
+  navItems: NavEntry[];
   title: string;
   fullHeight?: boolean;
+}
+
+function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
+  return (
+    <Link
+      to={item.path}
+      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 ${
+        isActive
+          ? 'bg-accent/10 text-accent shadow-[inset_0_0_0_1px_rgba(59,130,246,0.15)]'
+          : 'text-text-tertiary hover:bg-surface-3 hover:text-text-secondary'
+      }`}
+    >
+      <span className={isActive ? 'text-accent' : 'text-text-muted'}>{item.icon}</span>
+      {item.label}
+    </Link>
+  );
+}
+
+function NavGroupSection({
+  group,
+  isExpanded,
+  onToggle,
+  pathname,
+}: {
+  group: NavGroup;
+  isExpanded: boolean;
+  onToggle: () => void;
+  pathname: string;
+}) {
+  const hasActiveItem = group.items.some((item) => pathname === item.path);
+
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted hover:text-text-secondary transition-colors"
+      >
+        <ChevronRight
+          size={12}
+          className={`transition-transform duration-200 ${isExpanded || hasActiveItem ? 'rotate-90' : ''}`}
+        />
+        {group.group}
+      </button>
+      <div
+        className={`grid transition-[grid-template-rows] duration-200 ${
+          isExpanded || hasActiveItem ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="space-y-0.5">
+            {group.items.map((item) => (
+              <NavLink key={item.path} item={item} isActive={pathname === item.path} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function SidebarLayout({ children, navItems, title, fullHeight }: SidebarLayoutProps) {
@@ -26,10 +79,34 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
   const isMobile = useMobile();
   const { isOpen, open, close } = useSidebarStore();
 
+  const groupNames = useMemo(
+    () => navItems.filter(isNavGroup).map((g) => g.group),
+    [navItems],
+  );
+
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(groupNames.map((name) => [name, true])),
+  );
+
+  // Sync expanded state when group names change (role switch)
+  useEffect(() => {
+    setExpandedGroups((prev) => {
+      const next: Record<string, boolean> = {};
+      for (const name of groupNames) {
+        next[name] = prev[name] ?? true;
+      }
+      return next;
+    });
+  }, [groupNames]);
+
   // Close sidebar on navigation (mobile)
   useEffect(() => {
     if (isMobile) close();
   }, [location.pathname, isMobile, close]);
+
+  const toggleGroup = (name: string) => {
+    setExpandedGroups((prev) => ({ ...prev, [name]: !prev[name] }));
+  };
 
   const sidebarContent = (
     <>
@@ -44,22 +121,25 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
         </div>
       </div>
 
-      <nav className="flex-1 space-y-0.5 px-3 py-3">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+        {navItems.map((entry) => {
+          if (isNavGroup(entry)) {
+            return (
+              <NavGroupSection
+                key={entry.group}
+                group={entry}
+                isExpanded={expandedGroups[entry.group] ?? true}
+                onToggle={() => toggleGroup(entry.group)}
+                pathname={location.pathname}
+              />
+            );
+          }
           return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 ${
-                isActive
-                  ? 'bg-accent/10 text-accent shadow-[inset_0_0_0_1px_rgba(59,130,246,0.15)]'
-                  : 'text-text-tertiary hover:bg-surface-3 hover:text-text-secondary'
-              }`}
-            >
-              <span className={isActive ? 'text-accent' : 'text-text-muted'}>{item.icon}</span>
-              {item.label}
-            </Link>
+            <NavLink
+              key={entry.path}
+              item={entry}
+              isActive={location.pathname === entry.path}
+            />
           );
         })}
       </nav>
