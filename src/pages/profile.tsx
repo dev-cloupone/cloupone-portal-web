@@ -6,7 +6,7 @@ import { Input } from '../components/ui/input';
 import { FileUpload } from '../components/ui/file-upload';
 import { useAuth } from '../hooks/use-auth';
 import { useNavItems } from '../hooks/use-nav-items';
-import { api, formatApiError } from '../services/api';
+import { api, formatApiError, BASE_URL } from '../services/api';
 import * as uploadsService from '../services/uploads';
 import * as loginHistoryService from '../services/login-history';
 import { MSG } from '../constants/messages';
@@ -23,7 +23,9 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(
+    user?.avatarFileId ? `${BASE_URL}/uploads/download/${user.avatarFileId}` : undefined,
+  );
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [loginHistory, setLoginHistory] = useState<LoginHistoryEntry[]>([]);
 
@@ -92,7 +94,7 @@ export default function ProfilePage() {
     setError('');
     try {
       const result = await uploadsService.uploadAvatar(file);
-      setAvatarUrl(result.avatarUrl);
+      setAvatarUrl(`${BASE_URL}${result.avatarUrl}`);
       if (result.user) setUser(result.user);
     } catch (err) {
       setError(formatApiError(err));

@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Paperclip, Download, Trash2, FileText, Image, Film, FileArchive } from 'lucide-react';
 import { Button } from '../ui/button';
+import { BASE_URL } from '../../services/api';
 import type { TicketAttachment } from '../../types/ticket.types';
 
 interface TicketAttachmentsProps {
@@ -33,6 +34,10 @@ export function TicketAttachments({ attachments, onUpload, onRemove, canRemove, 
       onUpload(file);
       e.target.value = '';
     }
+  }
+
+  function getDownloadUrl(fileId: string) {
+    return `${BASE_URL}/uploads/download/${fileId}`;
   }
 
   return (
@@ -76,7 +81,7 @@ export function TicketAttachments({ attachments, onUpload, onRemove, canRemove, 
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <a
-                  href={attachment.fileUrl}
+                  href={getDownloadUrl(attachment.fileId)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-1 text-text-muted hover:text-accent transition-colors"
