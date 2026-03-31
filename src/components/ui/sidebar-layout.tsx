@@ -85,7 +85,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
   );
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(groupNames.map((name) => [name, true])),
+    Object.fromEntries(groupNames.map((name) => [name, false])),
   );
 
   // Sync expanded state when group names change (role switch)
@@ -93,7 +93,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
     setExpandedGroups((prev) => {
       const next: Record<string, boolean> = {};
       for (const name of groupNames) {
-        next[name] = prev[name] ?? true;
+        next[name] = prev[name] ?? false;
       }
       return next;
     });
@@ -128,7 +128,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
               <NavGroupSection
                 key={entry.group}
                 group={entry}
-                isExpanded={expandedGroups[entry.group] ?? true}
+                isExpanded={expandedGroups[entry.group] ?? false}
                 onToggle={() => toggleGroup(entry.group)}
                 pathname={location.pathname}
               />
