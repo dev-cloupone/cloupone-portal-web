@@ -39,7 +39,7 @@ export function ExpenseForm({
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [receiptFileId, setReceiptFileId] = useState<string | null>(null);
-  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [_receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [requiresReimbursement, setRequiresReimbursement] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
