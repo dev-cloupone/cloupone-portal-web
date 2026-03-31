@@ -3,7 +3,7 @@ import { ArrowLeft, AlertTriangle, Paperclip, Upload, Bookmark, Settings } from 
 import { Button } from '../ui/button';
 import { Select } from '../ui/select';
 import type { Expense, UpsertExpenseData, ExpenseCategory, ExpenseTemplate } from '../../types/expense.types';
-import { apiFetch } from '../../services/api';
+import { apiFetch, BASE_URL } from '../../services/api';
 
 interface AllocatedProject {
   projectId: string;
@@ -310,10 +310,10 @@ export function ExpenseForm({
           <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
             Comprovante {needsReceipt && <span className="text-warning">(obrigatório)</span>}
           </label>
-          {receiptUrl ? (
+          {receiptFileId ? (
             <div className="flex items-center gap-2 rounded-lg bg-surface-2 border border-border px-3 py-2">
               <Paperclip size={14} className="text-accent shrink-0" />
-              <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-accent hover:underline truncate flex-1">
+              <a href={`${BASE_URL}/uploads/download/${receiptFileId}`} target="_blank" rel="noopener noreferrer" className="text-xs text-accent hover:underline truncate flex-1">
                 Ver comprovante
               </a>
               {isEditable && (

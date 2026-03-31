@@ -8,6 +8,7 @@ import { Modal } from '../components/ui/modal';
 import { Skeleton } from '../components/ui/skeleton';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../components/ui/table';
 import * as expenseService from '../services/expense.service';
+import { BASE_URL } from '../services/api';
 import * as consultantService from '../services/consultant.service';
 import { formatApiError } from '../services/api';
 import { useToastStore } from '../stores/toast.store';
@@ -448,8 +449,8 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
                   {expense.description || '—'}
                 </TableCell>
                 <TableCell>
-                  {expense.receiptUrl ? (
-                    <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+                  {expense.receiptFileId ? (
+                    <a href={`${BASE_URL}/uploads/download/${expense.receiptFileId}`} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
                       <Paperclip size={14} />
                     </a>
                   ) : (

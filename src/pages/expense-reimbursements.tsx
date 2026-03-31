@@ -7,6 +7,7 @@ import { Select } from '../components/ui/select';
 import { Skeleton } from '../components/ui/skeleton';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../components/ui/table';
 import * as expenseService from '../services/expense.service';
+import { BASE_URL } from '../services/api';
 import * as consultantService from '../services/consultant.service';
 import * as projectService from '../services/project.service';
 import { formatApiError } from '../services/api';
@@ -318,8 +319,8 @@ export default function ExpenseReimbursementsPage() {
                         {formatCurrency(item.amount)}
                       </TableCell>
                       <TableCell>
-                        {item.receiptUrl ? (
-                          <a href={item.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+                        {item.receiptFileId ? (
+                          <a href={`${BASE_URL}/uploads/download/${item.receiptFileId}`} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
                             <Paperclip size={14} />
                           </a>
                         ) : (
