@@ -93,6 +93,20 @@ export default function TimesheetPage() {
     setShowApproveModal(true);
   }
 
+  // Consultants can only approve past months; admins/gestors can approve anytime
+  const isAdmin = user?.role === 'super_admin' || user?.role === 'gestor';
+
+  function isMonthInPast(year: number, month: number): boolean {
+    const now = new Date();
+    return year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1);
+  }
+
+  const canApproveCurrentMonth = (() => {
+    if (isAdmin) return true;
+    const [yearStr, monthStr] = currentMonth.split('-');
+    return isMonthInPast(parseInt(yearStr), parseInt(monthStr));
+  })();
+
   // Existing entries for time suggestion in form
   const existingEntriesForForm = selectedDate
     ? monthData?.entries.filter(e => e.date === selectedDate && e.id !== (panelState.view === 'entry-form' ? panelState.entry?.id : undefined)) ?? []
@@ -109,6 +123,7 @@ export default function TimesheetPage() {
           pendingMonths={pendingMonths}
           onApprove={handleOpenApproveModal}
           onNavigate={handleNavigateToMonth}
+          canApproveMonth={isAdmin ? undefined : (year, month) => isMonthInPast(year, month)}
         />
 
         <MonthHeader
@@ -119,7 +134,7 @@ export default function TimesheetPage() {
           onPreviousMonth={handlePreviousMonth}
           onNextMonth={handleNextMonth}
           onToday={handleGoToToday}
-          onApproveMonth={handleApproveCurrentMonth}
+          onApproveMonth={canApproveCurrentMonth ? handleApproveCurrentMonth : undefined}
         />
 
         {/* Split View: 65% calendar / 35% panel */}

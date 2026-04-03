@@ -6,6 +6,7 @@ interface PendingMonthsBannerProps {
   pendingMonths: PendingMonth[];
   onApprove: (year: number, month: number) => void;
   onNavigate: (year: number, month: number) => void;
+  canApproveMonth?: (year: number, month: number) => boolean;
 }
 
 const MONTH_NAMES = [
@@ -13,7 +14,7 @@ const MONTH_NAMES = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
-export function PendingMonthsBanner({ pendingMonths, onApprove, onNavigate }: PendingMonthsBannerProps) {
+export function PendingMonthsBanner({ pendingMonths, onApprove, onNavigate, canApproveMonth }: PendingMonthsBannerProps) {
   if (pendingMonths.length === 0) return null;
 
   return (
@@ -47,7 +48,7 @@ export function PendingMonthsBanner({ pendingMonths, onApprove, onNavigate }: Pe
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              {!isReopened && (
+              {!isReopened && (!canApproveMonth || canApproveMonth(pm.year, pm.month)) && (
                 <Button size="sm" onClick={() => onApprove(pm.year, pm.month)}>
                   <CheckCircle size={14} className="mr-1" /> Aprovar mes
                 </Button>
