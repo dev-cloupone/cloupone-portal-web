@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as timeEntryService from '../services/time-entry.service';
+import * as monthlyTimesheetService from '../services/monthly-timesheet.service';
 import type { MonthData, WeekSummary, CalendarDay, UpsertEntryData } from '../types/time-entry.types';
+import type { PendingMonth, MonthlyTimesheetStatus } from '../types/monthly-timesheet.types';
 import { useToastStore } from '../stores/toast.store';
 
 function formatMonth(date: Date): string {
@@ -27,22 +29,12 @@ function addDays(date: Date, days: number): Date {
   return d;
 }
 
-function computeWeekStatus(entries: { status: string }[]): WeekSummary['status'] {
-  if (entries.length === 0) return 'empty';
-  const normalized = entries.map(e => e.status === 'auto_approved' ? 'approved' : e.status);
-  const statuses = new Set(normalized);
-  if (statuses.size === 1) {
-    const s = normalized[0];
-    if (s === 'draft' || s === 'submitted' || s === 'approved') return s as WeekSummary['status'];
-  }
-  return 'mixed';
-}
-
 export function useMonthTimesheet() {
   const [currentMonth, setCurrentMonth] = useState(() => formatMonth(new Date()));
   const [monthData, setMonthData] = useState<MonthData | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingMonths, setPendingMonths] = useState<PendingMonth[]>([]);
   const addToast = useToastStore((s) => s.addToast);
 
   const loadMonth = useCallback(async (month: string) => {
@@ -57,9 +49,28 @@ export function useMonthTimesheet() {
     }
   }, [addToast]);
 
+  const loadPendingMonths = useCallback(async () => {
+    try {
+      const data = await monthlyTimesheetService.getPending();
+      setPendingMonths(data);
+    } catch {
+      // silently fail — not critical
+    }
+  }, []);
+
   useEffect(() => {
     loadMonth(currentMonth);
   }, [currentMonth, loadMonth]);
+
+  useEffect(() => {
+    loadPendingMonths();
+  }, [loadPendingMonths]);
+
+  // Current month status from API response
+  const currentMonthStatus: MonthlyTimesheetStatus | null = monthData?.monthlyTimesheet?.status ?? null;
+
+  // Month is editable if open, reopened, or no timesheet record exists yet (null = open)
+  const isMonthEditable = currentMonthStatus === null || currentMonthStatus === 'open' || currentMonthStatus === 'reopened';
 
   // Build calendar grid
   const calendarDays = useMemo((): CalendarDay[] => {
@@ -146,8 +157,6 @@ export function useMonthTimesheet() {
         entries: weekEntries,
         totalHours,
         targetHours: 40,
-        status: computeWeekStatus(weekEntries),
-        hasDraftEntries: weekEntries.some(e => e.status === 'draft'),
       });
 
       weekStart = addDays(weekStart, 7);
@@ -190,6 +199,12 @@ export function useMonthTimesheet() {
     setSelectedDate(formatDate(now));
   }
 
+  function goToMonth(year: number, month: number) {
+    const m = String(month).padStart(2, '0');
+    setCurrentMonth(`${year}-${m}`);
+    setSelectedDate(null);
+  }
+
   // CRUD
   const saveEntry = useCallback(async (data: UpsertEntryData) => {
     try {
@@ -215,42 +230,28 @@ export function useMonthTimesheet() {
     }
   }, [currentMonth, loadMonth, addToast]);
 
-  const submitEntry = useCallback(async (entryId: string) => {
+  const approveMonth = useCallback(async (userId: string, year: number, month: number) => {
     try {
-      const result = await timeEntryService.submitEntry(entryId);
+      await monthlyTimesheetService.approve(userId, year, month);
+      addToast('Mês aprovado com sucesso.', 'success');
       await loadMonth(currentMonth);
-      return result;
+      await loadPendingMonths();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao submeter apontamento.';
+      const message = err instanceof Error ? err.message : 'Erro ao aprovar mês.';
       addToast(message, 'error');
       throw err;
     }
-  }, [currentMonth, loadMonth, addToast]);
-
-  const submitWeek = useCallback(async (weekStartDate: string) => {
-    try {
-      const result = await timeEntryService.submitWeek(weekStartDate);
-      if (result.warnings.length > 0) {
-        result.warnings.forEach((w) => addToast(w, 'warning'));
-      }
-      addToast(`${result.submitted} registro(s) submetido(s) com sucesso.`, 'success');
-      await loadMonth(currentMonth);
-      return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao submeter semana.';
-      addToast(message, 'error');
-      throw err;
-    }
-  }, [currentMonth, loadMonth, addToast]);
+  }, [currentMonth, loadMonth, loadPendingMonths, addToast]);
 
   return {
     // State
-    currentMonth, monthData, selectedDate, isLoading,
+    currentMonth, monthData, selectedDate, isLoading, pendingMonths,
     // Derived
     calendarDays, selectedDayEntries, selectedWeekSummary, weekSummaries,
+    currentMonthStatus, isMonthEditable,
     // Navigation
-    setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentMonth,
+    setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentMonth, goToMonth,
     // CRUD
-    saveEntry, deleteEntry, submitEntry, submitWeek, reload: () => loadMonth(currentMonth),
+    saveEntry, deleteEntry, approveMonth, reload: () => loadMonth(currentMonth),
   };
 }

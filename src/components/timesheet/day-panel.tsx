@@ -1,4 +1,4 @@
-import { Plus, Send, Clock, X } from 'lucide-react';
+import { Plus, Clock, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { EntryCard } from './entry-card';
 import type { TimeEntry, WeekSummary } from '../../types/time-entry.types';
@@ -7,10 +7,10 @@ interface DayPanelProps {
   selectedDate: string;
   entries: TimeEntry[];
   weekSummary: WeekSummary | null;
+  isEditable?: boolean;
   onEdit: (entry: TimeEntry) => void;
   onDelete: (entryId: string) => void;
   onNewEntry: () => void;
-  onSubmitWeek: () => void;
   onClose: () => void;
 }
 
@@ -35,14 +35,13 @@ export function DayPanel({
   selectedDate,
   entries,
   weekSummary,
+  isEditable = true,
   onEdit,
   onDelete,
   onNewEntry,
-  onSubmitWeek,
   onClose,
 }: DayPanelProps) {
   const dayTotal = entries.reduce((sum, e) => sum + Number(e.hours), 0);
-  const canSubmit = weekSummary?.hasDraftEntries && weekSummary.status !== 'submitted' && weekSummary.status !== 'approved';
 
   return (
     <div className="rounded-xl border border-border bg-surface-1 p-4 space-y-4 animate-slide-in-right">
@@ -57,6 +56,11 @@ export function DayPanel({
               <span className="text-sm font-bold text-text-primary">
                 {formatHoursLabel(dayTotal)}
               </span>
+            )}
+            {isEditable && (
+              <Button variant="secondary" size="sm" onClick={onNewEntry}>
+                <Plus size={14} className="mr-1" /> Novo Apontamento
+              </Button>
             )}
             <button
               onClick={onClose}
@@ -74,11 +78,6 @@ export function DayPanel({
             <span className="text-xs text-text-tertiary">
               Semana: {formatHoursLabel(weekSummary.totalHours)} / {weekSummary.targetHours}h
             </span>
-            {canSubmit && (
-              <Button size="sm" onClick={onSubmitWeek}>
-                <Send size={12} className="mr-1" /> Submeter
-              </Button>
-            )}
           </div>
         )}
       </div>
@@ -90,7 +89,7 @@ export function DayPanel({
             <EntryCard
               key={entry.id}
               entry={entry}
-
+              isEditable={isEditable}
               onEdit={onEdit}
               onDelete={onDelete}
             />
@@ -100,14 +99,14 @@ export function DayPanel({
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <Clock size={32} className="text-text-muted mb-3" />
           <p className="text-sm text-text-tertiary mb-1">Nenhum apontamento</p>
-          <p className="text-xs text-text-muted">Clique abaixo para registrar suas horas</p>
+          {isEditable ? (
+            <p className="text-xs text-text-muted">Use o botão acima para registrar suas horas</p>
+          ) : (
+            <p className="text-xs text-text-muted">Este mes ja foi aprovado e nao permite novos apontamentos.</p>
+          )}
         </div>
       )}
 
-      {/* New entry button */}
-      <Button variant="secondary" size="sm" className="w-full" onClick={onNewEntry}>
-        <Plus size={14} className="mr-1" /> Novo Apontamento
-      </Button>
     </div>
   );
 }

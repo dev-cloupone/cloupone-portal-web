@@ -13,14 +13,6 @@ interface CalendarCellProps {
   onClick: (date: string) => void;
 }
 
-const STATUS_DOT_COLORS: Record<string, string> = {
-  draft: 'bg-text-muted',
-  submitted: 'bg-warning',
-  approved: 'bg-success',
-  rejected: 'bg-danger',
-  auto_approved: 'bg-success',
-};
-
 export function CalendarCell({
   date,
   dayNumber,
@@ -55,8 +47,8 @@ export function CalendarCell({
   if (totalHours >= 8) hoursClass = 'text-success';
   else if (totalHours > 0) hoursClass = 'text-warning';
 
-  // Limit dots to 5
-  const dots = entries.slice(0, 5);
+  // Show dots for entries (just indicators, no status colors)
+  const dotCount = Math.min(entries.length, 5);
 
   return (
     <button
@@ -74,12 +66,12 @@ export function CalendarCell({
         </span>
       )}
 
-      {dots.length > 0 && (
+      {dotCount > 0 && (
         <div className="flex gap-0.5 mt-auto pt-0.5">
-          {dots.map((entry, i) => (
+          {Array.from({ length: dotCount }).map((_, i) => (
             <span
               key={i}
-              className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT_COLORS[entry.status] ?? 'bg-text-muted'}`}
+              className="w-1.5 h-1.5 rounded-full bg-accent"
             />
           ))}
         </div>
@@ -92,5 +84,6 @@ function formatHours(hours: number): string {
   const h = Math.floor(hours);
   const m = Math.round((hours - h) * 60);
   if (m === 0) return `${h}h`;
+  if (h === 0) return `${m}min`;
   return `${h}h${m}`;
 }

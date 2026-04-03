@@ -1,15 +1,25 @@
-import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarDays, CheckCircle } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import type { MonthData, WeekSummary } from '../../types/time-entry.types';
+import type { MonthlyTimesheetStatus } from '../../types/monthly-timesheet.types';
 
 interface MonthHeaderProps {
   currentMonth: string;
   monthData: MonthData | null;
+  monthStatus?: MonthlyTimesheetStatus | null;
   selectedWeekSummary: WeekSummary | null;
   onPreviousMonth: () => void;
   onNextMonth: () => void;
   onToday: () => void;
+  onApproveMonth?: () => void;
 }
+
+const STATUS_CONFIG: Record<string, { label: string; variant: 'warning' | 'success' | 'default' }> = {
+  open: { label: 'Aberto', variant: 'warning' },
+  approved: { label: 'Aprovado', variant: 'success' },
+  reopened: { label: 'Reaberto', variant: 'default' },
+};
 
 function formatMonthLabel(month: string): string {
   const [yearStr, monthStr] = month.split('-');
@@ -47,18 +57,31 @@ function ProgressBar({ label, current, target }: { label: string; current: numbe
 export function MonthHeader({
   currentMonth,
   monthData,
+  monthStatus,
   selectedWeekSummary,
   onPreviousMonth,
   onNextMonth,
   onToday,
+  onApproveMonth,
 }: MonthHeaderProps) {
+  const statusCfg = monthStatus ? STATUS_CONFIG[monthStatus] : null;
+  const canApprove = monthStatus === 'open' || monthStatus === 'reopened';
+
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">
-          Apontamento de Horas
-        </h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">
+            Apontamento de Horas
+          </h2>
+          {statusCfg && <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>}
+        </div>
         <div className="flex items-center gap-2">
+          {canApprove && onApproveMonth && (
+            <Button size="sm" onClick={onApproveMonth}>
+              <CheckCircle size={14} className="mr-1" /> Aprovar mes
+            </Button>
+          )}
           <Button variant="ghost" size="sm" onClick={onPreviousMonth} aria-label="Mes anterior">
             <ChevronLeft size={16} />
           </Button>

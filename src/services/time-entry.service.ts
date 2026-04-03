@@ -18,49 +18,6 @@ export async function deleteEntry(id: string): Promise<void> {
   return api<void>(`/time-entries/${id}`, { method: 'DELETE' });
 }
 
-export async function submitWeek(weekStartDate: string): Promise<{ submitted: number; warnings: string[]; autoApproved: boolean }> {
-  return api<{ submitted: number; warnings: string[]; autoApproved: boolean }>('/time-entries/submit-week', {
-    method: 'POST',
-    body: JSON.stringify({ weekStartDate }),
-  });
-}
-
-export async function submitEntry(id: string): Promise<{ status: 'submitted' | 'auto_approved' }> {
-  return api<{ status: 'submitted' | 'auto_approved' }>(`/time-entries/${id}/submit`, { method: 'POST' });
-}
-
-export async function resubmitEntry(id: string): Promise<TimeEntry> {
-  return api<TimeEntry>(`/time-entries/${id}/resubmit`, { method: 'POST' });
-}
-
-// Gestor/Admin
-export async function listPending(params?: {
-  page?: number;
-  limit?: number;
-  consultantId?: string;
-}): Promise<PaginatedResponse<TimeEntry & { userName?: string; userEmail?: string }>> {
-  const query = new URLSearchParams();
-  if (params?.page) query.set('page', String(params.page));
-  if (params?.limit) query.set('limit', String(params.limit));
-  if (params?.consultantId) query.set('consultantId', params.consultantId);
-  const qs = query.toString();
-  return api(`/time-entries/pending${qs ? `?${qs}` : ''}`);
-}
-
-export async function approveEntries(entryIds: string[]): Promise<{ approved: number }> {
-  return api<{ approved: number }>('/time-entries/approve', {
-    method: 'POST',
-    body: JSON.stringify({ entryIds }),
-  });
-}
-
-export async function rejectEntry(id: string, comment: string): Promise<void> {
-  return api<void>(`/time-entries/${id}/reject`, {
-    method: 'POST',
-    body: JSON.stringify({ comment }),
-  });
-}
-
 export async function listTimeEntries(params?: {
   page?: number;
   limit?: number;
@@ -68,7 +25,6 @@ export async function listTimeEntries(params?: {
   projectId?: string;
   from?: string;
   to?: string;
-  status?: string;
 }): Promise<PaginatedResponse<TimeEntry>> {
   const query = new URLSearchParams();
   if (params?.page) query.set('page', String(params.page));
@@ -77,7 +33,6 @@ export async function listTimeEntries(params?: {
   if (params?.projectId) query.set('projectId', params.projectId);
   if (params?.from) query.set('from', params.from);
   if (params?.to) query.set('to', params.to);
-  if (params?.status) query.set('status', params.status);
   const qs = query.toString();
   return api(`/time-entries${qs ? `?${qs}` : ''}`);
 }

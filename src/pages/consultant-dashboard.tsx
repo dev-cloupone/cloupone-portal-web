@@ -51,19 +51,6 @@ const CHART_COLORS = {
 
 const PIE_COLORS = ['#3B82F6', '#2563EB', '#8b5cf6', '#f59e0b', '#f43f5e', '#38bdf8', '#a78bfa', '#fb7185'];
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: 'Rascunho',
-  submitted: 'Submetido',
-  approved: 'Aprovado',
-  rejected: 'Rejeitado',
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  draft: CHART_COLORS.textMuted,
-  submitted: CHART_COLORS.warning,
-  approved: CHART_COLORS.accent,
-  rejected: CHART_COLORS.danger,
-};
 
 const monthLabels: Record<string, string> = {
   '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr',
@@ -149,29 +136,6 @@ export default function ConsultantDashboardPage() {
               description="Total de horas no mes atual"
             />
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Status das Horas</CardTitle>
-                <Badge>Mes Atual</Badge>
-              </CardHeader>
-              <div className="space-y-2">
-                {data.statusBreakdown.map((s) => (
-                  <div key={s.status} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: STATUS_COLORS[s.status] || CHART_COLORS.textMuted }}
-                      />
-                      <span className="text-sm text-text-secondary">{STATUS_LABELS[s.status] || s.status}</span>
-                    </div>
-                    <span className="text-sm font-medium text-text-primary">{s.hours.toFixed(1)}h</span>
-                  </div>
-                ))}
-                {data.statusBreakdown.length === 0 && (
-                  <p className="py-4 text-center text-sm text-text-muted">Sem dados</p>
-                )}
-              </div>
-            </Card>
           </div>
 
           {/* Charts Row */}

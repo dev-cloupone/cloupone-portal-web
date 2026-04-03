@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Select } from '../ui/select';
 import { TimePicker } from '../ui/time-picker';
@@ -105,7 +105,7 @@ export function InlineEntryForm({
     }).then(res => setProjectTickets(res.data)).catch(() => setProjectTickets([]));
   }, [projectId]);
 
-  const isEditable = !entry || entry.status === 'draft' || entry.status === 'rejected';
+  const isEditable = true;
   const duration = useMemo(() => formatDuration(startTime, endTime), [startTime, endTime]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -171,16 +171,6 @@ export function InlineEntryForm({
       <p className="text-xs text-text-muted mb-4 capitalize">{dateDisplay}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Rejection comment */}
-        {entry?.status === 'rejected' && entry.rejectionComment && (
-          <div className="rounded-lg border border-danger/30 bg-danger/5 px-3.5 py-2.5">
-            <div className="flex items-center gap-1.5 mb-1">
-              <AlertTriangle size={12} className="text-danger" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-danger">Motivo da rejeicao</span>
-            </div>
-            <p className="text-sm text-text-primary">{entry.rejectionComment}</p>
-          </div>
-        )}
 
         {/* Time range */}
         <div className="grid grid-cols-2 gap-3">

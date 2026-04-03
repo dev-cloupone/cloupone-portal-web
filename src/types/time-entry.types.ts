@@ -11,15 +11,11 @@ export interface TimeEntry {
   endTime: string;
   hours: number | string;
   description?: string | null;
-  status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'auto_approved';
-  submittedAt?: string | null;
-  approvedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
   ticketId?: string | null;
   ticketCode?: string | null;
   ticketTitle?: string | null;
-  rejectionComment?: string | null;
 }
 
 export interface WeekData {
@@ -43,6 +39,12 @@ export interface MonthData {
   totalHours: number;
   targetHours: number;
   workingDays: number;
+  monthlyTimesheet: {
+    id: string;
+    status: 'open' | 'approved' | 'reopened';
+    approvedAt?: string | null;
+    reopenReason?: string | null;
+  };
 }
 
 export interface WeekSummary {
@@ -50,8 +52,6 @@ export interface WeekSummary {
   entries: TimeEntry[];
   totalHours: number;
   targetHours: number;
-  status: 'empty' | 'draft' | 'submitted' | 'approved' | 'auto_approved' | 'mixed';
-  hasDraftEntries: boolean;
 }
 
 export interface CalendarDay {

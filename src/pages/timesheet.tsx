@@ -5,8 +5,8 @@ import { MonthCalendar } from '../components/timesheet/month-calendar';
 import { MonthSummary } from '../components/timesheet/month-summary';
 import { DayPanel } from '../components/timesheet/day-panel';
 import { InlineEntryForm } from '../components/timesheet/inline-entry-form';
-import { SubmitDialog } from '../components/timesheet/submit-dialog';
-import { SubmitEntryDialog } from '../components/timesheet/submit-entry-dialog';
+import { PendingMonthsBanner } from '../components/timesheet/pending-months-banner';
+import { ApproveMonthModal } from '../components/timesheet/approve-month-modal';
 import { useMonthTimesheet } from '../hooks/use-month-timesheet';
 import { useNavItems } from '../hooks/use-nav-items';
 import { useAuth } from '../hooks/use-auth';
@@ -21,27 +21,27 @@ type PanelState =
   | { view: 'day-entries' }
   | { view: 'entry-form'; entry: TimeEntry | null };
 
+const MONTH_NAMES = [
+  '', 'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+
 export default function TimesheetPage() {
   const navItems = useNavItems();
   const { user } = useAuth();
   const {
-    currentMonth, monthData, selectedDate, isLoading,
+    currentMonth, monthData, selectedDate, isLoading, pendingMonths,
     calendarDays, selectedDayEntries, selectedWeekSummary, weekSummaries,
-    setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentMonth,
-    saveEntry, deleteEntry, submitEntry, submitWeek,
+    isMonthEditable, currentMonthStatus,
+    setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentMonth, goToMonth,
+    saveEntry, deleteEntry, approveMonth,
   } = useMonthTimesheet();
 
   const [categories, setCategories] = useState<ActivityCategory[]>([]);
   const [allocatedProjects, setAllocatedProjects] = useState<Array<{ projectId: string; projectName: string; clientName: string }>>([]);
   const [panelState, setPanelState] = useState<PanelState>({ view: 'month-summary' });
-
-  // Submit dialog
-  const [isSubmitOpen, setIsSubmitOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Submit entry dialog
-  const [submitEntryDialog, setSubmitEntryDialog] = useState<{ entryId: string } | null>(null);
-  const [isSubmittingEntry, setIsSubmittingEntry] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [approveTarget, setApproveTarget] = useState<{ year: number; month: number } | null>(null);
 
   // Load categories and allocated projects
   useEffect(() => {
@@ -77,17 +77,20 @@ export default function TimesheetPage() {
     setPanelState({ view: 'day-entries' });
   }
 
-  async function handleSubmitWeek() {
-    if (!selectedWeekSummary) return;
-    setIsSubmitting(true);
-    try {
-      await submitWeek(selectedWeekSummary.weekStartDate);
-      setIsSubmitOpen(false);
-    } catch {
-      // Error handled in hook
-    } finally {
-      setIsSubmitting(false);
-    }
+  function handleNavigateToMonth(year: number, month: number) {
+    goToMonth(year, month);
+    setPanelState({ view: 'month-summary' });
+  }
+
+  function handleOpenApproveModal(year: number, month: number) {
+    setApproveTarget({ year, month });
+    setShowApproveModal(true);
+  }
+
+  function handleApproveCurrentMonth() {
+    const [yearStr, monthStr] = currentMonth.split('-');
+    setApproveTarget({ year: parseInt(yearStr), month: parseInt(monthStr) });
+    setShowApproveModal(true);
   }
 
   // Existing entries for time suggestion in form
@@ -95,18 +98,28 @@ export default function TimesheetPage() {
     ? monthData?.entries.filter(e => e.date === selectedDate && e.id !== (panelState.view === 'entry-form' ? panelState.entry?.id : undefined)) ?? []
     : [];
 
-  const draftEntryCount = selectedWeekSummary?.entries.filter(e => e.status === 'draft').length ?? 0;
+  // Approve modal data
+  const approveMonthLabel = approveTarget ? `${MONTH_NAMES[approveTarget.month]}/${approveTarget.year}` : '';
 
   return (
     <SidebarLayout navItems={navItems} title="Apontamento">
       <div className="space-y-4">
+        {/* Pending months banner */}
+        <PendingMonthsBanner
+          pendingMonths={pendingMonths}
+          onApprove={handleOpenApproveModal}
+          onNavigate={handleNavigateToMonth}
+        />
+
         <MonthHeader
           currentMonth={currentMonth}
           monthData={monthData}
+          monthStatus={currentMonthStatus}
           selectedWeekSummary={selectedWeekSummary}
           onPreviousMonth={handlePreviousMonth}
           onNextMonth={handleNextMonth}
           onToday={handleGoToToday}
+          onApproveMonth={handleApproveCurrentMonth}
         />
 
         {/* Split View: 65% calendar / 35% panel */}
@@ -134,18 +147,17 @@ export default function TimesheetPage() {
           {/* Side Panel */}
           <div className="lg:w-[35%] w-full">
             {panelState.view === 'month-summary' && monthData && (
-              <MonthSummary monthData={monthData} weekSummaries={weekSummaries} />
+              <MonthSummary monthData={monthData} weekSummaries={weekSummaries} monthStatus={currentMonthStatus} />
             )}
             {panelState.view === 'day-entries' && selectedDate && (
               <DayPanel
                 selectedDate={selectedDate}
                 entries={selectedDayEntries}
                 weekSummary={selectedWeekSummary}
-
+                isEditable={isMonthEditable}
                 onEdit={(entry) => setPanelState({ view: 'entry-form', entry })}
                 onDelete={deleteEntry}
                 onNewEntry={() => setPanelState({ view: 'entry-form', entry: null })}
-                onSubmitWeek={() => setIsSubmitOpen(true)}
                 onClose={handleClosePanel}
               />
             )}
@@ -157,11 +169,8 @@ export default function TimesheetPage() {
                 categories={categories}
                 existingEntries={existingEntriesForForm}
                 onSave={async (data) => {
-                  const result = await saveEntry(data);
+                  await saveEntry(data);
                   setPanelState({ view: 'day-entries' });
-                  if (result?.id) {
-                    setSubmitEntryDialog({ entryId: result.id });
-                  }
                 }}
                 onCancel={() => setPanelState({ view: 'day-entries' })}
               />
@@ -170,34 +179,19 @@ export default function TimesheetPage() {
         </div>
       </div>
 
-      {/* Submit Entry Dialog */}
-      <SubmitEntryDialog
-        isOpen={!!submitEntryDialog}
-        loading={isSubmittingEntry}
-        onSubmit={async () => {
-          if (!submitEntryDialog) return;
-          setIsSubmittingEntry(true);
-          try {
-            await submitEntry(submitEntryDialog.entryId);
-            setSubmitEntryDialog(null);
-          } catch {
-            // Error handled in hook
-          } finally {
-            setIsSubmittingEntry(false);
+      {/* Approve month modal */}
+      <ApproveMonthModal
+        isOpen={showApproveModal}
+        onClose={() => setShowApproveModal(false)}
+        onConfirm={async () => {
+          if (approveTarget && user) {
+            await approveMonth(user.id, approveTarget.year, approveTarget.month);
           }
         }}
-        onKeepDraft={() => setSubmitEntryDialog(null)}
-      />
-
-      {/* Submit Dialog */}
-      <SubmitDialog
-        isOpen={isSubmitOpen}
-        onClose={() => setIsSubmitOpen(false)}
-        onConfirm={handleSubmitWeek}
-        totalHours={selectedWeekSummary?.totalHours ?? 0}
-        targetHours={selectedWeekSummary?.targetHours ?? 40}
-        entryCount={draftEntryCount}
-        isSubmitting={isSubmitting}
+        monthLabel={approveMonthLabel}
+        totalHours={monthData?.totalHours ?? 0}
+        targetHours={monthData?.targetHours ?? 0}
+        entryCount={monthData?.entries.length ?? 0}
       />
     </SidebarLayout>
   );

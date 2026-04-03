@@ -19,11 +19,11 @@ export async function getConsultant(userId: string): Promise<Consultant> {
   return api<Consultant>(`/consultants/${userId}`);
 }
 
-export async function createConsultant(data: { userId: string; hourlyRate: number; contractType: string; allowOverlappingEntries?: boolean; requiresApproval?: boolean }): Promise<Consultant> {
+export async function createConsultant(data: { userId: string; hourlyRate: number; contractType: string; allowOverlappingEntries?: boolean }): Promise<Consultant> {
   return api<Consultant>('/consultants', { method: 'POST', body: JSON.stringify(data) });
 }
 
-export async function updateConsultant(userId: string, data: { hourlyRate?: number; contractType?: string; allowOverlappingEntries?: boolean; requiresApproval?: boolean }): Promise<Consultant> {
+export async function updateConsultant(userId: string, data: { hourlyRate?: number; contractType?: string; allowOverlappingEntries?: boolean }): Promise<Consultant> {
   return api<Consultant>(`/consultants/${userId}`, { method: 'PATCH', body: JSON.stringify(data) });
 }
 

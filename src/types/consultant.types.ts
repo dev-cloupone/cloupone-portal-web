@@ -6,7 +6,6 @@ export interface Consultant {
   hourlyRate: number;
   contractType: 'clt' | 'pj' | 'horista';
   allowOverlappingEntries: boolean;
-  requiresApproval: boolean;
   createdAt: string;
   updatedAt: string;
 }

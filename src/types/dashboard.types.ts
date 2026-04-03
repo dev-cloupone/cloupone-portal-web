@@ -27,6 +27,5 @@ export interface ConsultantDashboardData {
   hoursThisMonth: number;
   weeklyTarget: number;
   projectBreakdown: Array<{ projectName: string; hours: number }>;
-  statusBreakdown: Array<{ status: string; hours: number }>;
   monthlyHistory: Array<{ month: string; hours: number }>;
 }

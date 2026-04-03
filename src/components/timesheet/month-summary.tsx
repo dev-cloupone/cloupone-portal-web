@@ -1,20 +1,21 @@
 import { Calendar, BarChart3 } from 'lucide-react';
+import { Badge } from '../ui/badge';
 import type { MonthData, WeekSummary } from '../../types/time-entry.types';
+import type { MonthlyTimesheetStatus } from '../../types/monthly-timesheet.types';
 
 interface MonthSummaryProps {
   monthData: MonthData;
   weekSummaries: WeekSummary[];
+  monthStatus?: MonthlyTimesheetStatus | null;
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  draft: { label: 'Rascunho', color: 'bg-text-muted' },
-  submitted: { label: 'Submetido', color: 'bg-warning' },
-  approved: { label: 'Aprovado', color: 'bg-success' },
-  rejected: { label: 'Rejeitado', color: 'bg-danger' },
-  auto_approved: { label: 'Aprovado automaticamente', color: 'bg-success' },
+const STATUS_CONFIG: Record<string, { label: string; variant: 'warning' | 'success' | 'default' }> = {
+  open: { label: 'Aberto', variant: 'warning' },
+  approved: { label: 'Aprovado', variant: 'success' },
+  reopened: { label: 'Reaberto', variant: 'default' },
 };
 
-export function MonthSummary({ monthData, weekSummaries }: MonthSummaryProps) {
+export function MonthSummary({ monthData, weekSummaries, monthStatus }: MonthSummaryProps) {
   const entries = monthData.entries;
 
   // Days worked
@@ -31,14 +32,18 @@ export function MonthSummary({ monthData, weekSummaries }: MonthSummaryProps) {
   }
   const projectBreakdown = Array.from(projectMap.values()).sort((a, b) => b.hours - a.hours);
 
-  // Breakdown by status
-  const statusCounts: Record<string, number> = {};
-  for (const e of entries) {
-    statusCounts[e.status] = (statusCounts[e.status] ?? 0) + 1;
-  }
+  const statusCfg = monthStatus ? STATUS_CONFIG[monthStatus] : null;
 
   return (
     <div className="rounded-xl border border-border bg-surface-1 p-4 space-y-5 animate-fade-in">
+      {/* Month status badge */}
+      {statusCfg && (
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Status do mes</span>
+          <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
+        </div>
+      )}
+
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard label="Total registrado" value={`${monthData.totalHours.toFixed(1)}h`} />
@@ -72,27 +77,6 @@ export function MonthSummary({ monthData, weekSummaries }: MonthSummaryProps) {
         </div>
       )}
 
-      {/* Status breakdown */}
-      {Object.keys(statusCounts).length > 0 && (
-        <div className="space-y-2">
-          <div className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Por Status
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {Object.entries(statusCounts).map(([status, count]) => {
-              const cfg = STATUS_LABELS[status];
-              if (!cfg) return null;
-              return (
-                <span key={status} className="flex items-center gap-1.5 text-xs text-text-secondary">
-                  <span className={`w-2 h-2 rounded-full ${cfg.color}`} />
-                  {cfg.label}: {count}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Week breakdown */}
       {weekSummaries.length > 0 && (
         <div className="space-y-2">
@@ -102,11 +86,9 @@ export function MonthSummary({ monthData, weekSummaries }: MonthSummaryProps) {
           <div className="space-y-1">
             {weekSummaries.map(w => {
               const weekLabel = new Date(w.weekStartDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-              const statusCfg = STATUS_LABELS[w.status] ?? STATUS_LABELS.draft;
               return (
                 <div key={w.weekStartDate} className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1.5 text-text-secondary">
-                    <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.color}`} />
+                  <span className="text-text-secondary">
                     Sem. {weekLabel}
                   </span>
                   <span className="text-text-tertiary">{w.totalHours.toFixed(1)}h / {w.targetHours}h</span>
