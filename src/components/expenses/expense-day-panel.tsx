@@ -57,6 +57,9 @@ export function ExpenseDayPanel({
                 {formatCurrency(dayTotal)}
               </span>
             )}
+            <Button variant="secondary" size="sm" onClick={onNewExpense}>
+              <Plus size={14} className="mr-1" /> Nova Despesa
+            </Button>
             <button
               onClick={onClose}
               className="p-0.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-3 transition-colors"
@@ -99,14 +102,10 @@ export function ExpenseDayPanel({
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <Receipt size={32} className="text-text-muted mb-3" />
           <p className="text-sm text-text-tertiary mb-1">Nenhuma despesa</p>
-          <p className="text-xs text-text-muted">Clique abaixo para registrar uma despesa</p>
+          <p className="text-xs text-text-muted">Use o botão acima para registrar uma despesa</p>
         </div>
       )}
 
-      {/* New expense button */}
-      <Button variant="secondary" size="sm" className="w-full" onClick={onNewExpense}>
-        <Plus size={14} className="mr-1" /> Nova Despesa
-      </Button>
     </div>
   );
 }
