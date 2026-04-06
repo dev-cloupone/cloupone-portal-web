@@ -3,11 +3,9 @@ import { Save } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { FileUpload } from '../components/ui/file-upload';
 import { useAuth } from '../hooks/use-auth';
 import { useNavItems } from '../hooks/use-nav-items';
-import { api, formatApiError, BASE_URL } from '../services/api';
-import * as uploadsService from '../services/uploads';
+import { api, formatApiError } from '../services/api';
 import * as loginHistoryService from '../services/login-history';
 import { MSG } from '../constants/messages';
 import type { LoginHistoryEntry } from '../types/login-history.types';
@@ -23,10 +21,6 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(
-    user?.avatarFileId ? `${BASE_URL}/uploads/download/${user.avatarFileId}` : undefined,
-  );
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [loginHistory, setLoginHistory] = useState<LoginHistoryEntry[]>([]);
 
   useEffect(() => {
@@ -89,31 +83,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleAvatarUpload = async (file: File) => {
-    setUploadingAvatar(true);
-    setError('');
-    try {
-      const result = await uploadsService.uploadAvatar(file);
-      setAvatarUrl(`${BASE_URL}${result.avatarUrl}`);
-      if (result.user) setUser(result.user);
-    } catch (err) {
-      setError(formatApiError(err));
-    } finally {
-      setUploadingAvatar(false);
-    }
-  };
-
-  const handleAvatarRemove = async () => {
-    setError('');
-    try {
-      const result = await uploadsService.removeAvatar();
-      setAvatarUrl(undefined);
-      if (result.user) setUser(result.user);
-    } catch (err) {
-      setError(formatApiError(err));
-    }
-  };
-
   const sidebarTitle = user?.role === 'super_admin' ? 'Admin' : 'Home';
 
   return (
@@ -124,21 +93,6 @@ export default function ProfilePage() {
       </div>
 
       <div className="max-w-xl space-y-8">
-        {/* Avatar */}
-        <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-text-primary">Avatar</h3>
-          <FileUpload
-            accept="image/jpeg,image/png,image/webp"
-            maxSize={5 * 1024 * 1024}
-            onUpload={handleAvatarUpload}
-            onError={setError}
-            preview
-            currentFileUrl={avatarUrl}
-            onRemove={handleAvatarRemove}
-            uploading={uploadingAvatar}
-          />
-        </div>
-
         {/* Profile Info */}
         <form onSubmit={handleProfileUpdate} className="space-y-6">
           <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">

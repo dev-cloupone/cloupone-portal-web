@@ -217,9 +217,9 @@ export default function ConsultantDashboardPage() {
                 />
                 <StatCard
                   title="Em Andamento"
-                  value={(ticketStats.byStatus.in_progress || 0) + (ticketStats.byStatus.in_review || 0)}
+                  value={(ticketStats.byStatus.in_analysis || 0) + (ticketStats.byStatus.awaiting_customer || 0) + (ticketStats.byStatus.awaiting_third_party || 0)}
                   icon={<PlayCircle size={20} />}
-                  description="Tickets em progresso ou revisao"
+                  description="Tickets em analise ou aguardando"
                 />
                 <StatCard
                   title="Novos esta Semana"

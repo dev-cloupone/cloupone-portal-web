@@ -10,9 +10,7 @@ import { ApproveMonthModal } from '../components/timesheet/approve-month-modal';
 import { useMonthTimesheet } from '../hooks/use-month-timesheet';
 import { useNavItems } from '../hooks/use-nav-items';
 import { useAuth } from '../hooks/use-auth';
-import * as activityCategoryService from '../services/activity-category.service';
 import * as consultantService from '../services/consultant.service';
-import type { ActivityCategory } from '../types/activity-category.types';
 import type { TimeEntry } from '../types/time-entry.types';
 import { Skeleton } from '../components/ui/skeleton';
 
@@ -37,7 +35,6 @@ export default function TimesheetPage() {
     saveEntry, deleteEntry, approveMonth,
   } = useMonthTimesheet();
 
-  const [categories, setCategories] = useState<ActivityCategory[]>([]);
   const [allocatedProjects, setAllocatedProjects] = useState<Array<{ projectId: string; projectName: string; clientName: string }>>([]);
   const [panelState, setPanelState] = useState<PanelState>({ view: 'month-summary' });
   const [showApproveModal, setShowApproveModal] = useState(false);
@@ -45,7 +42,6 @@ export default function TimesheetPage() {
 
   // Load categories and allocated projects
   useEffect(() => {
-    activityCategoryService.listCategories().then((res) => setCategories(res.data)).catch(() => {});
     if (user) {
       consultantService.listConsultantProjects(user.id).then((res) => setAllocatedProjects(res.data)).catch(() => {});
     }
@@ -181,7 +177,6 @@ export default function TimesheetPage() {
                 date={selectedDate}
                 entry={panelState.entry}
                 projects={allocatedProjects}
-                categories={categories}
                 existingEntries={existingEntriesForForm}
                 onSave={async (data) => {
                   await saveEntry(data);

@@ -15,25 +15,18 @@ import {
   type TicketPriority,
 } from '../../types/ticket.types';
 
-const STATUS_TRANSITIONS: Record<string, string[]> = {
-  open: ['in_analysis', 'in_progress', 'cancelled'],
-  in_analysis: ['in_progress', 'cancelled'],
-  in_progress: ['in_review', 'resolved', 'cancelled'],
-  in_review: ['in_progress', 'resolved', 'cancelled'],
-  resolved: ['closed', 'reopened'],
-  closed: ['reopened'],
-  reopened: ['in_analysis', 'in_progress', 'cancelled'],
-  cancelled: [],
-};
+const ALL_STATUSES = ['open', 'in_analysis', 'awaiting_customer', 'awaiting_third_party', 'finished'];
+
+const STATUS_TRANSITIONS: Record<string, string[]> = Object.fromEntries(
+  ALL_STATUSES.map((s) => [s, ALL_STATUSES.filter((t) => t !== s)])
+);
 
 const STATUS_ROLE_PERMISSIONS: Record<string, string[]> = {
   in_analysis: ['consultor', 'gestor', 'super_admin'],
-  in_progress: ['consultor', 'gestor', 'super_admin'],
-  in_review: ['consultor', 'gestor', 'super_admin'],
-  resolved: ['consultor', 'gestor', 'super_admin'],
-  closed: ['user', 'gestor', 'super_admin'],
-  reopened: ['user', 'gestor', 'super_admin'],
-  cancelled: ['gestor', 'super_admin'],
+  awaiting_customer: ['consultor', 'gestor', 'super_admin'],
+  awaiting_third_party: ['consultor', 'gestor', 'super_admin'],
+  finished: ['consultor', 'gestor', 'super_admin'],
+  open: ['user', 'gestor', 'super_admin'],
 };
 
 interface TimeEntryRow {
@@ -88,7 +81,7 @@ export function TicketSidebar({
   );
 
   const canChangePriority = ['consultor', 'gestor', 'super_admin'].includes(userRole);
-  const canChangeAssignee = ['gestor', 'super_admin'].includes(userRole);
+  const canChangeAssignee = ['consultor', 'gestor', 'super_admin'].includes(userRole);
 
   const priorityOptions = Object.entries(TICKET_PRIORITY_LABELS).map(([value, label]) => ({
     value,
@@ -146,11 +139,23 @@ export function TicketSidebar({
       <div className="space-y-2">
         <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Atribuido a</h4>
         {canChangeAssignee ? (
-          <Select
-            options={assigneeOptions}
-            value={ticket.assignedTo || ''}
-            onChange={(v) => onAssigneeChange(v || null)}
-          />
+          <>
+            <Select
+              options={assigneeOptions}
+              value={ticket.assignedTo || ''}
+              onChange={(v) => onAssigneeChange(v || null)}
+            />
+            {ticket.assignedTo !== userId && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full mt-1.5"
+                onClick={() => onAssigneeChange(userId)}
+              >
+                Atribuir a mim
+              </Button>
+            )}
+          </>
         ) : (
           <div className="flex items-center gap-2 text-sm text-text-secondary">
             <UserIcon size={14} className="text-text-muted" />

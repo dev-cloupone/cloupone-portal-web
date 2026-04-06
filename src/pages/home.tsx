@@ -55,13 +55,13 @@ export default function HomePage() {
 
   const isClient = user?.role === 'user';
   const openTickets = ticketStats
-    ? (ticketStats.byStatus.open || 0) + (ticketStats.byStatus.reopened || 0) + (ticketStats.byStatus.in_analysis || 0)
+    ? (ticketStats.byStatus.open || 0) + (ticketStats.byStatus.in_analysis || 0)
     : 0;
   const inProgressTickets = ticketStats
-    ? (ticketStats.byStatus.in_progress || 0) + (ticketStats.byStatus.in_review || 0)
+    ? (ticketStats.byStatus.awaiting_customer || 0) + (ticketStats.byStatus.awaiting_third_party || 0)
     : 0;
   const resolvedTickets = ticketStats
-    ? (ticketStats.byStatus.resolved || 0) + (ticketStats.byStatus.closed || 0)
+    ? (ticketStats.byStatus.finished || 0)
     : 0;
 
   return (
@@ -86,13 +86,13 @@ export default function HomePage() {
               description="Tickets aguardando atendimento"
             />
             <StatCard
-              title="Em Andamento"
+              title="Aguardando"
               value={inProgressTickets}
               icon={<PlayCircle size={20} />}
-              description="Tickets em progresso"
+              description="Tickets aguardando retorno"
             />
             <StatCard
-              title="Resolvidos"
+              title="Finalizados"
               value={resolvedTickets}
               icon={<CheckCircle2 size={20} />}
               description="Tickets finalizados"

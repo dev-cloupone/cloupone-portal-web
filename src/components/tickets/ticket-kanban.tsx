@@ -24,25 +24,18 @@ import {
 } from '../../types/ticket.types';
 import type { TicketFilterValues } from './ticket-filters';
 
-const STATUS_TRANSITIONS: Record<string, string[]> = {
-  open: ['in_analysis', 'in_progress', 'cancelled'],
-  in_analysis: ['in_progress', 'cancelled'],
-  in_progress: ['in_review', 'resolved', 'cancelled'],
-  in_review: ['in_progress', 'resolved', 'cancelled'],
-  resolved: ['closed', 'reopened'],
-  closed: ['reopened'],
-  reopened: ['in_analysis', 'in_progress', 'cancelled'],
-  cancelled: [],
-};
+const ALL_STATUSES = ['open', 'in_analysis', 'awaiting_customer', 'awaiting_third_party', 'finished'];
+
+const STATUS_TRANSITIONS: Record<string, string[]> = Object.fromEntries(
+  ALL_STATUSES.map((s) => [s, ALL_STATUSES.filter((t) => t !== s)])
+);
 
 const KANBAN_COLUMNS: TicketStatus[] = [
   'open',
   'in_analysis',
-  'in_progress',
-  'in_review',
-  'resolved',
-  'closed',
-  'reopened',
+  'awaiting_customer',
+  'awaiting_third_party',
+  'finished',
 ];
 
 interface TicketKanbanProps {

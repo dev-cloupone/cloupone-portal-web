@@ -30,6 +30,7 @@ const AdminProjectsPage = lazy(() => import('./pages/admin/projects'));
 const AdminConsultantsPage = lazy(() => import('./pages/admin/consultants'));
 const AdminActivityCategoriesPage = lazy(() => import('./pages/admin/activity-categories'));
 const AdminExpenseCategoriesPage = lazy(() => import('./pages/admin/expense-categories'));
+const AdminProjectPhasesPage = lazy(() => import('./pages/admin/project-phases'));
 
 // Timesheet (consultor + gestor + super_admin)
 const TimesheetPage = lazy(() => import('./pages/timesheet'));
@@ -118,6 +119,7 @@ export default function App() {
                     <Route path="consultants" element={<AdminConsultantsPage />} />
                     <Route path="activity-categories" element={<AdminActivityCategoriesPage />} />
                     <Route path="expense-categories" element={<AdminExpenseCategoriesPage />} />
+                    <Route path="projects/:id/phases" element={<AdminProjectPhasesPage />} />
                     <Route path="reports" element={<AdminReportsPage />} />
                   </Routes>
                 </RoleGuard>

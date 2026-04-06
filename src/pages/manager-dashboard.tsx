@@ -12,9 +12,40 @@ import { SkeletonCard } from '../components/ui/skeleton';
 import { useNavItems } from '../hooks/use-nav-items';
 import * as dashboardService from '../services/dashboard.service';
 import { ticketService } from '../services/ticket.service';
+import { api } from '../services/api';
 import { formatApiError } from '../services/api';
 import type { ManagerDashboardData } from '../types/dashboard.types';
 import type { TicketStats } from '../types/ticket.types';
+import { ProgressBar } from '../components/phases/progress-bar';
+
+interface PhasesDashboard {
+  alertSubphases: Array<{
+    subphaseId: string;
+    subphaseName: string;
+    phaseName: string;
+    projectName: string;
+    estimatedHours: number;
+    actualHours: number;
+    percentage: number;
+    endDate: string | null;
+  }>;
+  overdueSubphases: Array<{
+    subphaseId: string;
+    subphaseName: string;
+    phaseName: string;
+    projectName: string;
+    estimatedHours: number;
+    actualHours: number;
+    percentage: number;
+    endDate: string | null;
+  }>;
+  projectSummaries: Array<{
+    projectId: string;
+    projectName: string;
+    totalPhases: number;
+    subphases: { planned: number; in_progress: number; completed: number };
+  }>;
+}
 
 interface StatCardProps {
   title: string;
@@ -63,6 +94,7 @@ export default function ManagerDashboardPage() {
   const navigate = useNavigate();
   const [data, setData] = useState<ManagerDashboardData | null>(null);
   const [ticketStats, setTicketStats] = useState<TicketStats | null>(null);
+  const [phasesData, setPhasesData] = useState<PhasesDashboard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,12 +102,14 @@ export default function ManagerDashboardPage() {
     try {
       setIsLoading(true);
       setError(null);
-      const [result, stats] = await Promise.all([
+      const [result, stats, phases] = await Promise.all([
         dashboardService.getManagerDashboard(),
         ticketService.getStats().catch(() => null),
+        api<PhasesDashboard>('/dashboard/phases').catch(() => null),
       ]);
       setData(result);
       setTicketStats(stats);
+      setPhasesData(phases);
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -266,7 +300,7 @@ export default function ManagerDashboardPage() {
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                   title="Tickets Abertos"
-                  value={(ticketStats.byStatus.open || 0) + (ticketStats.byStatus.reopened || 0) + (ticketStats.byStatus.in_analysis || 0) + (ticketStats.byStatus.in_progress || 0) + (ticketStats.byStatus.in_review || 0)}
+                  value={(ticketStats.byStatus.open || 0) + (ticketStats.byStatus.in_analysis || 0) + (ticketStats.byStatus.awaiting_customer || 0) + (ticketStats.byStatus.awaiting_third_party || 0)}
                   icon={<Ticket size={20} />}
                   description="Tickets ativos no sistema"
                 />
@@ -283,11 +317,98 @@ export default function ManagerDashboardPage() {
                   description="Tickets com prioridade critica"
                 />
                 <StatCard
-                  title="Resolvidos"
-                  value={(ticketStats.byStatus.resolved || 0) + (ticketStats.byStatus.closed || 0)}
+                  title="Finalizados"
+                  value={(ticketStats.byStatus.finished || 0)}
                   icon={<CheckSquare size={20} />}
-                  description="Tickets resolvidos ou fechados"
+                  description="Tickets finalizados"
                 />
+              </div>
+            </div>
+          )}
+
+          {/* Phases Dashboard */}
+          {phasesData && (phasesData.alertSubphases.length > 0 || phasesData.overdueSubphases.length > 0 || phasesData.projectSummaries.length > 0) && (
+            <div className="mt-8">
+              <h3 className="mb-4 text-lg font-semibold text-text-primary">Fases e Subfases</h3>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                {/* Alert Subphases */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Subfases em Alerta</CardTitle>
+                    <Badge variant="warning">&gt; 80%</Badge>
+                  </CardHeader>
+                  {phasesData.alertSubphases.length > 0 ? (
+                    <div className="space-y-3">
+                      {phasesData.alertSubphases.slice(0, 5).map((sp) => (
+                        <div key={sp.subphaseId} className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-text-primary truncate">{sp.subphaseName}</p>
+                              <p className="text-xs text-text-tertiary truncate">{sp.projectName} / {sp.phaseName}</p>
+                            </div>
+                          </div>
+                          <ProgressBar estimated={sp.estimatedHours} actual={sp.actualHours} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="py-4 text-center text-sm text-text-muted">Nenhuma subfase em alerta</p>
+                  )}
+                </Card>
+
+                {/* Overdue Subphases */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Subfases Atrasadas</CardTitle>
+                    <Badge variant="danger">Prazo expirado</Badge>
+                  </CardHeader>
+                  {phasesData.overdueSubphases.length > 0 ? (
+                    <div className="space-y-3">
+                      {phasesData.overdueSubphases.slice(0, 5).map((sp) => (
+                        <div key={sp.subphaseId} className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-text-primary truncate">{sp.subphaseName}</p>
+                              <p className="text-xs text-text-tertiary truncate">{sp.projectName} / {sp.phaseName}</p>
+                            </div>
+                            {sp.endDate && (
+                              <span className="text-xs text-danger shrink-0">Venceu {sp.endDate}</span>
+                            )}
+                          </div>
+                          <ProgressBar estimated={sp.estimatedHours} actual={sp.actualHours} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="py-4 text-center text-sm text-text-muted">Nenhuma subfase atrasada</p>
+                  )}
+                </Card>
+
+                {/* Project Overview */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Visao Geral</CardTitle>
+                    <Badge>Por Projeto</Badge>
+                  </CardHeader>
+                  {phasesData.projectSummaries.length > 0 ? (
+                    <div className="space-y-3">
+                      {phasesData.projectSummaries.map((ps) => (
+                        <div key={ps.projectId}>
+                          <p className="text-sm font-medium text-text-primary mb-1">{ps.projectName}</p>
+                          <div className="flex gap-2 text-xs">
+                            <span className="text-text-tertiary">{ps.totalPhases} fases</span>
+                            <span className="text-text-muted">|</span>
+                            <span className="text-text-tertiary">{ps.subphases.planned} planejadas</span>
+                            <span className="text-warning">{ps.subphases.in_progress} em andamento</span>
+                            <span className="text-accent">{ps.subphases.completed} concluídas</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="py-4 text-center text-sm text-text-muted">Nenhum projeto com fases</p>
+                  )}
+                </Card>
               </div>
             </div>
           )}

@@ -4,12 +4,9 @@ import { TICKET_STATUS_LABELS, type TicketStatus } from '../../types/ticket.type
 const statusConfig: Record<TicketStatus, { variant: 'default' | 'success' | 'warning' | 'danger'; className?: string }> = {
   open: { variant: 'default', className: 'bg-blue-100 text-blue-700 border-blue-200' },
   in_analysis: { variant: 'warning' },
-  in_progress: { variant: 'default', className: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
-  in_review: { variant: 'default', className: 'bg-purple-100 text-purple-700 border-purple-200' },
-  resolved: { variant: 'success' },
-  closed: { variant: 'default' },
-  reopened: { variant: 'warning', className: 'bg-orange-100 text-orange-700 border-orange-200' },
-  cancelled: { variant: 'danger' },
+  awaiting_customer: { variant: 'default', className: 'bg-orange-100 text-orange-700 border-orange-200' },
+  awaiting_third_party: { variant: 'default', className: 'bg-purple-100 text-purple-700 border-purple-200' },
+  finished: { variant: 'success' },
 };
 
 interface TicketStatusBadgeProps {

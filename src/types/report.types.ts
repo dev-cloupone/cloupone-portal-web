@@ -111,12 +111,9 @@ export interface EnhancedClientEntry {
 export interface TicketStatusSummary {
   open: number;
   in_analysis: number;
-  in_progress: number;
-  in_review: number;
-  resolved: number;
-  closed: number;
-  reopened: number;
-  cancelled: number;
+  awaiting_customer: number;
+  awaiting_third_party: number;
+  finished: number;
 }
 
 export interface TicketTypeSummary {

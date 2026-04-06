@@ -38,9 +38,9 @@ export function EntryCard({ entry, isEditable = true, onEdit, onDelete }: EntryC
       {/* Project + Client */}
       <div>
         <p className="text-sm font-medium text-text-primary">{entry.projectName}</p>
-        {(entry.clientName || entry.categoryName) && (
+        {entry.clientName && (
           <p className="text-xs text-text-tertiary">
-            {[entry.clientName, entry.categoryName].filter(Boolean).join(' \u00b7 ')}
+            {entry.clientName}
           </p>
         )}
       </div>

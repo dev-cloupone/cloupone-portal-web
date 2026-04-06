@@ -4,9 +4,10 @@ import { Button } from '../ui/button';
 import { Select } from '../ui/select';
 import { TimePicker } from '../ui/time-picker';
 import type { TimeEntry, UpsertEntryData } from '../../types/time-entry.types';
-import type { ActivityCategory } from '../../types/activity-category.types';
 import type { Ticket } from '../../types/ticket.types';
 import { ticketService } from '../../services/ticket.service';
+import * as phaseService from '../../services/phase.service';
+import type { AvailableSubphase } from '../../types/phase.types';
 
 interface AllocatedProject {
   projectId: string;
@@ -18,7 +19,6 @@ interface InlineEntryFormProps {
   date: string;
   entry?: TimeEntry | null;
   projects: AllocatedProject[];
-  categories: ActivityCategory[];
   existingEntries?: TimeEntry[];
   onSave: (data: UpsertEntryData) => Promise<void>;
   onCancel: () => void;
@@ -55,17 +55,17 @@ export function InlineEntryForm({
   date,
   entry = null,
   projects,
-  categories,
   existingEntries = [],
   onSave,
   onCancel,
 }: InlineEntryFormProps) {
   const [projectId, setProjectId] = useState('');
-  const [categoryId, setCategoryId] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [description, setDescription] = useState('');
   const [ticketId, setTicketId] = useState('');
+  const [subphaseId, setSubphaseId] = useState('');
+  const [availableSubphases, setAvailableSubphases] = useState<AvailableSubphase[]>([]);
   const [projectTickets, setProjectTickets] = useState<Ticket[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
@@ -74,23 +74,34 @@ export function InlineEntryForm({
   useEffect(() => {
     if (entry) {
       setProjectId(entry.projectId);
-      setCategoryId(entry.categoryId || '');
       setStartTime(entry.startTime.slice(0, 5));
       setEndTime(entry.endTime.slice(0, 5));
       setDescription(entry.description || '');
       setTicketId(entry.ticketId || '');
+      setSubphaseId(entry.subphaseId || '');
     } else {
       const filteredExisting = existingEntries.filter(e => e.date === date);
       const suggested = suggestStartTime(filteredExisting);
       setProjectId(projects.length === 1 ? projects[0].projectId : '');
-      setCategoryId('');
       setStartTime(suggested);
       setEndTime('');
       setDescription('');
       setTicketId('');
+      setSubphaseId('');
     }
     setError('');
   }, [entry, date, existingEntries, projects]);
+
+  // Load available subphases when project changes
+  useEffect(() => {
+    if (!projectId) {
+      setAvailableSubphases([]);
+      return;
+    }
+    phaseService.listAvailableSubphases(projectId)
+      .then(res => setAvailableSubphases(res.data))
+      .catch(() => setAvailableSubphases([]));
+  }, [projectId]);
 
   // Load tickets when project changes
   useEffect(() => {
@@ -100,7 +111,7 @@ export function InlineEntryForm({
     }
     ticketService.list({
       projectId,
-      status: 'open,in_analysis,in_progress,in_review',
+      status: 'open,in_analysis,awaiting_customer,awaiting_third_party',
       limit: 100,
     }).then(res => setProjectTickets(res.data)).catch(() => setProjectTickets([]));
   }, [projectId]);
@@ -118,12 +129,12 @@ export function InlineEntryForm({
       await onSave({
         id: entry?.id,
         projectId,
-        categoryId: categoryId || null,
         date,
         startTime,
         endTime,
         description: description || undefined,
         ticketId: ticketId || null,
+        subphaseId: subphaseId || null,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar registro.');
@@ -136,10 +147,6 @@ export function InlineEntryForm({
     value: p.projectId,
     label: `${p.projectName} (${p.clientName})`,
   }));
-
-  const categoryOptions = categories
-    .filter(c => c.isActive)
-    .map(c => ({ value: c.id, label: `${c.name}${c.isBillable ? '' : ' (nao faturavel)'}` }));
 
   const ticketOptions = projectTickets.map(t => ({
     value: t.id,
@@ -200,6 +207,7 @@ export function InlineEntryForm({
           onChange={(v) => {
             setProjectId(v);
             setTicketId('');
+            setSubphaseId('');
           }}
           options={projectOptions}
           placeholder="Selecione um projeto"
@@ -207,14 +215,62 @@ export function InlineEntryForm({
           required
         />
 
-        <Select
-          label="Categoria"
-          value={categoryId}
-          onChange={setCategoryId}
-          options={categoryOptions}
-          placeholder="Selecione uma categoria"
-          disabled={!isEditable}
-        />
+        {projectId && (
+          <div className="space-y-1.5">
+            {(() => {
+              const opts = availableSubphases.map(sp => ({
+                value: sp.id,
+                label: `${sp.phaseName} → ${sp.name}`,
+              }));
+              const currentNotInList = subphaseId && !availableSubphases.find(sp => sp.id === subphaseId);
+              if (currentNotInList) {
+                opts.unshift({ value: subphaseId, label: `Subfase anterior (não disponível)` });
+              }
+              return (
+                <Select
+                  label="Subfase"
+                  value={subphaseId}
+                  onChange={setSubphaseId}
+                  options={opts}
+                  placeholder={opts.length === 0
+                    ? 'Nenhuma subfase disponível'
+                    : 'Selecione uma subfase'}
+                  disabled={opts.length === 0}
+                  required={!entry}
+                />
+              );
+            })()}
+            {subphaseId && !availableSubphases.find(sp => sp.id === subphaseId) && (
+              <div className="rounded-lg bg-warning-muted border border-warning/20 px-3 py-2">
+                <p className="text-xs text-warning">
+                  Você não está mais vinculado a esta subfase. Selecione outra ou solicite ao gestor.
+                </p>
+              </div>
+            )}
+            {availableSubphases.length === 0 && !subphaseId && (
+              <p className="text-xs text-warning">
+                Nenhuma subfase em andamento com você vinculado. Solicite ao gestor.
+              </p>
+            )}
+            {(() => {
+              const selected = availableSubphases.find(sp => sp.id === subphaseId);
+              if (!selected || !selected.consultantEstimatedHours) return null;
+              const estimated = Number(selected.consultantEstimatedHours);
+              const actual = selected.consultantActualHours;
+              const pct = estimated > 0 ? (actual / estimated) * 100 : 0;
+              if (pct < 80) return null;
+              return (
+                <div className={`rounded-lg border px-3 py-2 ${pct >= 100 ? 'bg-danger-muted border-danger/20' : 'bg-warning-muted border-warning/20'}`}>
+                  <p className={`text-xs ${pct >= 100 ? 'text-danger' : 'text-warning'}`}>
+                    {pct >= 100
+                      ? `Horas estimadas excedidas: ${actual.toFixed(1)}h de ${estimated.toFixed(1)}h (${pct.toFixed(0)}%)`
+                      : `Próximo do limite: ${actual.toFixed(1)}h de ${estimated.toFixed(1)}h (${pct.toFixed(0)}%)`}
+                  </p>
+                </div>
+              );
+            })()}
+          </div>
+        )}
 
         {ticketOptions.length > 0 && (
           <Select

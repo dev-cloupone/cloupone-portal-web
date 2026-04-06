@@ -1,6 +1,6 @@
 export type TicketType = 'bug' | 'improvement' | 'initiative';
 export type TicketPriority = 'low' | 'medium' | 'high' | 'critical';
-export type TicketStatus = 'open' | 'in_analysis' | 'in_progress' | 'in_review' | 'resolved' | 'closed' | 'reopened' | 'cancelled';
+export type TicketStatus = 'open' | 'in_analysis' | 'awaiting_customer' | 'awaiting_third_party' | 'finished';
 
 export interface Ticket {
   id: string;
@@ -124,10 +124,7 @@ export const TICKET_PRIORITY_LABELS: Record<TicketPriority, string> = {
 export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
   open: 'Aberto',
   in_analysis: 'Em Analise',
-  in_progress: 'Em Andamento',
-  in_review: 'Em Revisao',
-  resolved: 'Resolvido',
-  closed: 'Fechado',
-  reopened: 'Reaberto',
-  cancelled: 'Cancelado',
+  awaiting_customer: 'Aguardando Retorno do Cliente',
+  awaiting_third_party: 'Aguardando Terceiro',
+  finished: 'Finalizado',
 };

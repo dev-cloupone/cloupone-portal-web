@@ -16,6 +16,7 @@ export interface TimeEntry {
   ticketId?: string | null;
   ticketCode?: string | null;
   ticketTitle?: string | null;
+  subphaseId?: string | null;
 }
 
 export interface WeekData {
@@ -73,4 +74,5 @@ export interface UpsertEntryData {
   endTime: string;
   description?: string;
   ticketId?: string | null;
+  subphaseId?: string | null;
 }

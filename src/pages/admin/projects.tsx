@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, XCircle, UserPlus, UserMinus } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { Plus, Pencil, XCircle, UserPlus, UserMinus, Layers } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -33,6 +34,7 @@ const emptyForm = { name: '', description: '', clientId: '', billingRate: '', bu
 
 export default function ProjectsPage() {
   const navItems = useNavItems();
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [clientsList, setClientsList] = useState<Client[]>([]);
   const [consultantsList, setConsultantsList] = useState<Consultant[]>([]);
@@ -256,6 +258,7 @@ export default function ProjectsPage() {
               <TableCell>
                 <div className="flex gap-2">
                   <button onClick={() => openEdit(p)} className="text-accent hover:text-accent-hover" title="Editar"><Pencil size={16} /></button>
+                  <button onClick={() => navigate(`/admin/projects/${p.id}/phases`)} className="text-accent hover:text-accent-hover" title="Fases"><Layers size={16} /></button>
                   <button onClick={() => openAllocations(p)} className="text-accent hover:text-accent-hover" title="Consultores"><UserPlus size={16} /></button>
                   {p.isActive && (
                     <button onClick={() => handleDeactivate(p)} className="text-danger hover:text-danger/80" title="Desativar"><XCircle size={16} /></button>

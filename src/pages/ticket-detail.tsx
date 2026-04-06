@@ -98,7 +98,7 @@ export default function TicketDetailPage() {
       const t = await loadTicket();
       await Promise.all([loadComments(), loadHistory(), loadAttachments(), loadTimeEntries()]);
 
-      if (t && ['gestor', 'super_admin'].includes(user?.role || '')) {
+      if (t && ['consultor', 'gestor', 'super_admin'].includes(user?.role || '')) {
         try {
           const result = await listAllocations(t.projectId);
           setConsultants(result.data.map((a) => ({ value: a.userId, label: a.userName })));
