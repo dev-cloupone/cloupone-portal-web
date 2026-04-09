@@ -72,7 +72,7 @@ export default function ReportsPage() {
       const [clientResult, consultantResult, projectResult, categoryResult] = await Promise.all([
         clientService.listClients({ page: 1, limit: 100 }),
         consultantService.listConsultants({ page: 1, limit: 100 }),
-        projectService.listProjects({ page: 1, limit: 200 }),
+        projectService.listProjects({ page: 1, limit: 100 }),
         expenseCategoryService.listCategories(),
       ]);
       setClients(clientResult.data);
