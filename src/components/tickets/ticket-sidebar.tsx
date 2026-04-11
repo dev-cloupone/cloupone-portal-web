@@ -1,47 +1,16 @@
 import { Calendar, Clock, Eye, EyeOff, User as UserIcon } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Select } from '../ui/select';
-import { TicketStatusBadge } from './ticket-status-badge';
 import { TicketPriorityBadge } from './ticket-priority-badge';
 import { TicketTypeBadge } from './ticket-type-badge';
 import { TicketAttachments } from './ticket-attachments';
 import { TicketTimeEntries } from './ticket-time-entries';
 import {
-  TICKET_STATUS_LABELS,
   TICKET_PRIORITY_LABELS,
   type Ticket,
   type TicketAttachment,
-  type TicketStatus,
   type TicketPriority,
 } from '../../types/ticket.types';
-
-const ALL_STATUSES = ['open', 'in_analysis', 'awaiting_customer', 'awaiting_third_party', 'finished'];
-
-const STATUS_TRANSITIONS: Record<string, string[]> = Object.fromEntries(
-  ALL_STATUSES.map((s) => [s, ALL_STATUSES.filter((t) => t !== s)])
-);
-
-const STATUS_ROLE_PERMISSIONS: Record<string, string[]> = {
-  in_analysis: ['consultor', 'gestor', 'super_admin'],
-  awaiting_customer: ['consultor', 'gestor', 'super_admin'],
-  awaiting_third_party: ['consultor', 'gestor', 'super_admin'],
-  finished: ['consultor', 'gestor', 'super_admin'],
-  open: ['gestor', 'super_admin'],
-};
-
-function canClientTransition(fromStatus: string, toStatus: string): boolean {
-  if (toStatus === 'finished') return true;
-  if (toStatus === 'in_analysis' && fromStatus === 'awaiting_customer') return true;
-  return false;
-}
-
-function getActionLabel(targetStatus: TicketStatus, role: string): string {
-  if (role === 'user') {
-    if (targetStatus === 'finished') return 'Encerrar chamado';
-    if (targetStatus === 'in_analysis') return 'Devolver para análise';
-  }
-  return TICKET_STATUS_LABELS[targetStatus];
-}
 
 interface TimeEntryRow {
   id: string;
@@ -55,10 +24,11 @@ interface TicketSidebarProps {
   ticket: Ticket;
   userRole: string;
   userId: string;
+  isInternalUser: boolean;
+  isFinished: boolean;
   attachments: TicketAttachment[];
   timeEntries: TimeEntryRow[];
   consultants: { value: string; label: string }[];
-  onStatusChange: (status: TicketStatus) => void;
   onPriorityChange: (priority: TicketPriority) => void;
   onAssigneeChange: (userId: string | null) => void;
   onAttachmentUpload: (file: File) => Promise<void>;
@@ -80,24 +50,19 @@ export function TicketSidebar({
   ticket,
   userRole,
   userId,
+  isInternalUser,
+  isFinished,
   attachments,
   timeEntries,
   consultants,
-  onStatusChange,
   onPriorityChange,
   onAssigneeChange,
   onAttachmentUpload,
   onAttachmentRemove,
   uploading,
 }: TicketSidebarProps) {
-  const allowedTransitions = (STATUS_TRANSITIONS[ticket.status] || []).filter((s) => {
-    if ((STATUS_ROLE_PERMISSIONS[s] || []).includes(userRole)) return true;
-    if (userRole === 'user' && canClientTransition(ticket.status, s)) return true;
-    return false;
-  });
-
-  const canChangePriority = ['consultor', 'gestor', 'super_admin'].includes(userRole);
-  const canChangeAssignee = ['consultor', 'gestor', 'super_admin'].includes(userRole);
+  const canChangePriority = !isFinished && ['consultor', 'gestor', 'super_admin'].includes(userRole);
+  const canChangeAssignee = !isFinished && ['consultor', 'gestor', 'super_admin'].includes(userRole);
 
   const priorityOptions = Object.entries(TICKET_PRIORITY_LABELS).map(([value, label]) => ({
     value,
@@ -111,26 +76,6 @@ export function TicketSidebar({
 
   return (
     <div className="space-y-6">
-      {/* Status */}
-      <div className="space-y-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Status</h4>
-        <TicketStatusBadge status={ticket.status} />
-        {allowedTransitions.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {allowedTransitions.map((status) => (
-              <Button
-                key={status}
-                variant="secondary"
-                size="sm"
-                onClick={() => onStatusChange(status as TicketStatus)}
-              >
-                {getActionLabel(status as TicketStatus, userRole)}
-              </Button>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Priority */}
       <div className="space-y-2">
         <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Prioridade</h4>
@@ -211,7 +156,7 @@ export function TicketSidebar({
       )}
 
       {/* Estimated hours */}
-      {ticket.estimatedHours != null && (
+      {isInternalUser && ticket.estimatedHours != null && (
         <div className="space-y-1">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Estimativa</h4>
           <div className="flex items-center gap-2">
@@ -252,12 +197,16 @@ export function TicketSidebar({
           a.uploadedBy === userId || ['gestor', 'super_admin'].includes(userRole)
         }
         uploading={uploading}
+        readOnly={isFinished}
       />
 
-      <hr className="border-border" />
-
-      {/* Time entries */}
-      <TicketTimeEntries entries={timeEntries} estimatedHours={ticket.estimatedHours} />
+      {isInternalUser && (
+        <>
+          <hr className="border-border" />
+          {/* Time entries */}
+          <TicketTimeEntries entries={timeEntries} estimatedHours={ticket.estimatedHours} />
+        </>
+      )}
     </div>
   );
 }

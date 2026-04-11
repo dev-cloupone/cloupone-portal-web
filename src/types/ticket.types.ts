@@ -44,7 +44,7 @@ export interface TicketHistoryEntry {
   userName: string;
   field: string;
   oldValue: string | null;
-  newValue: string;
+  newValue: string | null;
   createdAt: string;
 }
 

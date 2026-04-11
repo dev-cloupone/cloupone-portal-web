@@ -10,6 +10,7 @@ interface TicketAttachmentsProps {
   onRemove: (attachmentId: string) => Promise<void>;
   canRemove: (attachment: TicketAttachment) => boolean;
   uploading?: boolean;
+  readOnly?: boolean;
 }
 
 function formatFileSize(bytes: number): string {
@@ -25,7 +26,7 @@ function getFileIcon(mimeType: string) {
   return <FileText size={16} />;
 }
 
-export function TicketAttachments({ attachments, onUpload, onRemove, canRemove, uploading }: TicketAttachmentsProps) {
+export function TicketAttachments({ attachments, onUpload, onRemove, canRemove, uploading, readOnly }: TicketAttachmentsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -44,21 +45,25 @@ export function TicketAttachments({ attachments, onUpload, onRemove, canRemove, 
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Anexos</h4>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-        >
-          <Paperclip size={14} className="mr-1.5" />
-          {uploading ? 'Enviando...' : 'Anexar'}
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          onChange={handleFileChange}
-          className="hidden"
-        />
+        {!readOnly && (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              <Paperclip size={14} className="mr-1.5" />
+              {uploading ? 'Enviando...' : 'Anexar'}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </>
+        )}
       </div>
 
       {attachments.length === 0 ? (
@@ -89,7 +94,7 @@ export function TicketAttachments({ attachments, onUpload, onRemove, canRemove, 
                 >
                   <Download size={14} />
                 </a>
-                {canRemove(attachment) && (
+                {!readOnly && canRemove(attachment) && (
                   <button
                     type="button"
                     onClick={() => onRemove(attachment.id)}

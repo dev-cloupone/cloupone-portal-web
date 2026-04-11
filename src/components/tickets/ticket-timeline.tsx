@@ -102,6 +102,27 @@ export function TicketTimeline({ comments, history }: TicketTimelineProps) {
 
         const entry = item.data;
         const fieldLabel = FIELD_LABELS[entry.field] || entry.field;
+
+        if (entry.field === 'description') {
+          return (
+            <div
+              key={`history-${entry.id}`}
+              className="flex items-start gap-3 py-2 px-4"
+            >
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-3 text-text-muted mt-0.5">
+                <History size={12} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-text-muted">
+                  <span className="font-medium text-text-secondary">{entry.userName}</span>
+                  {' editou a descricao'}
+                </p>
+              </div>
+              <span className="text-[11px] text-text-muted shrink-0">{formatDateTime(entry.createdAt)}</span>
+            </div>
+          );
+        }
+
         return (
           <div
             key={`history-${entry.id}`}

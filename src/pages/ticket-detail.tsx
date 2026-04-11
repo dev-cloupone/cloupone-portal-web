@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import ReactMarkdown from 'react-markdown';
 import { ArrowLeft } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { Skeleton } from '../components/ui/skeleton';
-import { TicketStatusBadge } from '../components/tickets/ticket-status-badge';
+import { TicketStatusButton } from '../components/tickets/ticket-status-button';
 import { TicketTimeline } from '../components/tickets/ticket-timeline';
 import { TicketCommentForm } from '../components/tickets/ticket-comment-form';
 import { TicketSidebar } from '../components/tickets/ticket-sidebar';
+import { TicketDescription } from '../components/tickets/ticket-description';
 import { ticketService } from '../services/ticket.service';
 import { listAllocations } from '../services/project.service';
 import { formatApiError } from '../services/api';
@@ -96,7 +96,11 @@ export default function TicketDetailPage() {
     async function loadAll() {
       setLoading(true);
       const t = await loadTicket();
-      await Promise.all([loadComments(), loadHistory(), loadAttachments(), loadTimeEntries()]);
+      const promises: Promise<unknown>[] = [loadComments(), loadHistory(), loadAttachments()];
+      if (user?.role !== 'user') {
+        promises.push(loadTimeEntries());
+      }
+      await Promise.all(promises);
 
       if (t && ['consultor', 'gestor', 'super_admin'].includes(user?.role || '')) {
         try {
@@ -171,6 +175,19 @@ export default function TicketDetailPage() {
     }
   }
 
+  async function handleDescriptionSave(description: string) {
+    if (!id) return;
+    try {
+      const updated = await ticketService.update(id, { description });
+      setTicket(updated);
+      await loadHistory();
+      addToast('Descricao atualizada', 'success');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+      throw err;
+    }
+  }
+
   async function handleAttachmentRemove(attachmentId: string) {
     if (!id) return;
     try {
@@ -183,6 +200,7 @@ export default function TicketDetailPage() {
   }
 
   const isInternalUser = user?.role !== 'user';
+  const isFinished = ticket?.status === 'finished';
 
   if (loading) {
     return (
@@ -240,7 +258,11 @@ export default function TicketDetailPage() {
             <span className="mx-2 text-text-muted">—</span>
             {ticket.title}
           </h2>
-          <TicketStatusBadge status={ticket.status} />
+          <TicketStatusButton
+            status={ticket.status}
+            userRole={user?.role || 'user'}
+            onChange={handleStatusChange}
+          />
           {isInternalUser && !ticket.isVisibleToClient && (
             <span className="inline-flex items-center rounded-md bg-surface-3 px-2 py-0.5 text-xs font-medium text-text-muted border border-border">
               Interno
@@ -254,14 +276,11 @@ export default function TicketDetailPage() {
         {/* Main column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Description */}
-          {ticket.description && (
-            <div className="rounded-xl border border-border bg-surface-1 p-6">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">Descricao</h3>
-              <div className="prose prose-sm max-w-none text-text-secondary [&_a]:text-accent [&_code]:bg-surface-3 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-surface-3 [&_pre]:p-3 [&_pre]:rounded-lg">
-                <ReactMarkdown>{ticket.description}</ReactMarkdown>
-              </div>
-            </div>
-          )}
+          <TicketDescription
+            description={ticket.description}
+            canEdit={ticket.status !== 'finished'}
+            onSave={handleDescriptionSave}
+          />
 
           {/* Metadata fields by type */}
           {metadata && Object.keys(metadata).length > 0 && (
@@ -349,10 +368,16 @@ export default function TicketDetailPage() {
           </div>
 
           {/* Comment form */}
-          <TicketCommentForm
-            onSubmit={handleCommentSubmit}
-            canMarkInternal={isInternalUser}
-          />
+          {!isFinished ? (
+            <TicketCommentForm
+              onSubmit={handleCommentSubmit}
+              canMarkInternal={isInternalUser}
+            />
+          ) : (
+            <div className="rounded-xl border border-dashed border-border p-4 text-center text-sm text-text-muted">
+              Ticket finalizado &mdash; comentarios desativados.
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -362,10 +387,11 @@ export default function TicketDetailPage() {
               ticket={ticket}
               userRole={user?.role || 'user'}
               userId={user?.id || ''}
+              isInternalUser={isInternalUser}
+              isFinished={isFinished}
               attachments={attachments}
               timeEntries={timeEntries}
               consultants={consultants}
-              onStatusChange={handleStatusChange}
               onPriorityChange={handlePriorityChange}
               onAssigneeChange={handleAssigneeChange}
               onAttachmentUpload={handleAttachmentUpload}
