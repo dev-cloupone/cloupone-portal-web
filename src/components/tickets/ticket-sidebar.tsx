@@ -73,6 +73,15 @@ export function TicketSidebar({
     { value: '', label: 'Sem atribuicao' },
     ...consultants,
   ];
+  if (
+    ticket.assignedTo &&
+    !assigneeOptions.some((o) => o.value === ticket.assignedTo)
+  ) {
+    assigneeOptions.push({
+      value: ticket.assignedTo,
+      label: ticket.assignedToName || ticket.assignedTo,
+    });
+  }
 
   return (
     <div className="space-y-6">
