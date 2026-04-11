@@ -14,9 +14,10 @@ import type { TicketType, CreateTicketData } from '../types/ticket.types';
 
 const typeOptions = [
   { value: '', label: 'Selecione o tipo' },
-  { value: 'bug', label: 'Bug' },
-  { value: 'improvement', label: 'Melhoria' },
-  { value: 'initiative', label: 'Iniciativa' },
+  { value: 'system_error', label: 'Erro de sistema' },
+  { value: 'question', label: 'Dúvida' },
+  { value: 'improvement', label: 'Solicitação de melhoria' },
+  { value: 'security', label: 'Segurança/Acesso' },
 ];
 
 const priorityOptions = [

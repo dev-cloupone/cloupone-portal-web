@@ -117,9 +117,10 @@ export interface TicketStatusSummary {
 }
 
 export interface TicketTypeSummary {
-  bug: number;
+  system_error: number;
+  question: number;
   improvement: number;
-  initiative: number;
+  security: number;
 }
 
 export interface EnhancedClientReportData {

@@ -286,9 +286,10 @@ export default function TicketDetailPage() {
           {metadata && Object.keys(metadata).length > 0 && (
             <div className="rounded-xl border border-border bg-surface-1 p-6">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">
-                {ticket.type === 'bug' && 'Detalhes do Bug'}
-                {ticket.type === 'improvement' && 'Detalhes da Melhoria'}
-                {ticket.type === 'initiative' && 'Detalhes da Iniciativa'}
+                {ticket.type === 'system_error' && 'Detalhes do Erro'}
+                {ticket.type === 'question' && 'Detalhes da Dúvida'}
+                {ticket.type === 'improvement' && 'Detalhes da Solicitação'}
+                {ticket.type === 'security' && 'Detalhes de Segurança/Acesso'}
               </h3>
               <div className="space-y-4">
                 {metadata.stepsToReproduce && (
