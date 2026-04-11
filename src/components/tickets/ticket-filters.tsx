@@ -27,7 +27,8 @@ interface TicketFiltersProps {
 }
 
 const statusOptions = [
-  { value: '', label: 'Todos os status' },
+  { value: 'active', label: 'Nao finalizados' },
+  { value: 'all', label: 'Todos os status' },
   ...Object.entries(TICKET_STATUS_LABELS).map(([value, label]) => ({ value, label })),
 ];
 
@@ -43,14 +44,20 @@ const priorityOptions = [
 
 const emptyFilters: TicketFilterValues = {
   projectId: '',
-  status: '',
+  status: 'active',
   type: '',
   priority: '',
   search: '',
 };
 
 function hasActiveFilters(values: TicketFilterValues): boolean {
-  return Object.values(values).some((v) => v !== '');
+  return (
+    values.projectId !== '' ||
+    values.type !== '' ||
+    values.priority !== '' ||
+    values.search !== '' ||
+    values.status !== 'active'
+  );
 }
 
 export function TicketFilters({ values, onChange, projects }: TicketFiltersProps) {

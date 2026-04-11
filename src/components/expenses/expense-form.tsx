@@ -102,7 +102,7 @@ export function ExpenseForm({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await apiFetch('/uploads', { method: 'POST', body: formData });
+      const res = await apiFetch('/uploads/expenses', { method: 'POST', body: formData });
       const data = await res.json();
       setReceiptFileId(data.id);
       setReceiptUrl(data.url);

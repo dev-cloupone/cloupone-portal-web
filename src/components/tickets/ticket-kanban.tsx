@@ -61,7 +61,7 @@ export function TicketKanban({ filters, onTicketUpdated }: TicketKanbanProps) {
       const result = await ticketService.list({
         limit: 100,
         projectId: filters.projectId || undefined,
-        status: filters.status || undefined,
+        status: filters.status && filters.status !== 'active' && filters.status !== 'all' ? filters.status : undefined,
         type: (filters.type as Ticket['type']) || undefined,
         priority: (filters.priority as Ticket['priority']) || undefined,
         search: filters.search || undefined,

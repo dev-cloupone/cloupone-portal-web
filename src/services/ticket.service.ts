@@ -42,7 +42,7 @@ export const ticketService = {
   },
 
   async addAttachment(ticketId: string, file: File): Promise<TicketAttachment> {
-    const uploaded = await uploadFile(file);
+    const uploaded = await uploadFile(file, 'tickets');
     return api(`/tickets/${ticketId}/attachments`, {
       method: 'POST',
       body: JSON.stringify({ fileId: uploaded.id }),

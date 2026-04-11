@@ -35,13 +35,21 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('pt-BR');
 }
 
+const NOT_FINISHED_STATUSES = 'open,in_analysis,awaiting_customer,awaiting_third_party';
+
 const emptyFilters: TicketFilterValues = {
   projectId: '',
-  status: '',
+  status: 'active',
   type: '',
   priority: '',
   search: '',
 };
+
+function resolveStatusParam(status: string): string | undefined {
+  if (status === 'active') return NOT_FINISHED_STATUSES;
+  if (status === 'all') return undefined;
+  return status || undefined;
+}
 
 export default function TicketsPage() {
   const navItems = useNavItems();
@@ -63,7 +71,7 @@ export default function TicketsPage() {
         page,
         limit,
         projectId: filters.projectId || undefined,
-        status: filters.status || undefined,
+        status: resolveStatusParam(filters.status),
         type: (filters.type as Ticket['type']) || undefined,
         priority: (filters.priority as Ticket['priority']) || undefined,
         search: filters.search || undefined,
@@ -110,6 +118,7 @@ export default function TicketsPage() {
   }
 
   const isInternalUser = user?.role !== 'user';
+  const effectiveViewMode: ViewMode = isInternalUser ? viewMode : 'list';
 
   return (
     <SidebarLayout navItems={navItems} title="Atendimento">
@@ -121,24 +130,26 @@ export default function TicketsPage() {
           </p>
         </div>
         <div className="flex gap-3 items-center">
-          <div className="flex rounded-lg border border-border bg-surface-2 p-0.5">
-            <button
-              type="button"
-              onClick={() => handleViewModeChange('list')}
-              className={`rounded-md px-2.5 py-1.5 text-sm transition-colors ${viewMode === 'list' ? 'bg-surface-3 text-text-primary font-medium' : 'text-text-muted hover:text-text-secondary'}`}
-              title="Visualizar como lista"
-            >
-              <List size={16} />
-            </button>
-            <button
-              type="button"
-              onClick={() => handleViewModeChange('kanban')}
-              className={`rounded-md px-2.5 py-1.5 text-sm transition-colors ${viewMode === 'kanban' ? 'bg-surface-3 text-text-primary font-medium' : 'text-text-muted hover:text-text-secondary'}`}
-              title="Visualizar como kanban"
-            >
-              <LayoutGrid size={16} />
-            </button>
-          </div>
+          {isInternalUser && (
+            <div className="flex rounded-lg border border-border bg-surface-2 p-0.5">
+              <button
+                type="button"
+                onClick={() => handleViewModeChange('list')}
+                className={`rounded-md px-2.5 py-1.5 text-sm transition-colors ${viewMode === 'list' ? 'bg-surface-3 text-text-primary font-medium' : 'text-text-muted hover:text-text-secondary'}`}
+                title="Visualizar como lista"
+              >
+                <List size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleViewModeChange('kanban')}
+                className={`rounded-md px-2.5 py-1.5 text-sm transition-colors ${viewMode === 'kanban' ? 'bg-surface-3 text-text-primary font-medium' : 'text-text-muted hover:text-text-secondary'}`}
+                title="Visualizar como kanban"
+              >
+                <LayoutGrid size={16} />
+              </button>
+            </div>
+          )}
           <Button onClick={() => navigate('/tickets/new')}>
             <Plus size={16} className="mr-2" /> Novo Ticket
           </Button>
@@ -155,7 +166,7 @@ export default function TicketsPage() {
         </div>
       )}
 
-      {viewMode === 'list' ? (
+      {effectiveViewMode === 'list' ? (
         <>
           {loading ? (
             <div className="space-y-3">
