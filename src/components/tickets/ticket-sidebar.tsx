@@ -29,6 +29,20 @@ const STATUS_ROLE_PERMISSIONS: Record<string, string[]> = {
   open: ['user', 'gestor', 'super_admin'],
 };
 
+function canClientTransition(fromStatus: string, toStatus: string): boolean {
+  if (toStatus === 'finished') return true;
+  if (toStatus === 'in_analysis' && fromStatus === 'awaiting_customer') return true;
+  return false;
+}
+
+function getActionLabel(targetStatus: TicketStatus, role: string): string {
+  if (role === 'user') {
+    if (targetStatus === 'finished') return 'Encerrar chamado';
+    if (targetStatus === 'in_analysis') return 'Devolver para análise';
+  }
+  return TICKET_STATUS_LABELS[targetStatus];
+}
+
 interface TimeEntryRow {
   id: string;
   userName?: string;
@@ -76,9 +90,11 @@ export function TicketSidebar({
   onAttachmentRemove,
   uploading,
 }: TicketSidebarProps) {
-  const allowedTransitions = (STATUS_TRANSITIONS[ticket.status] || []).filter(
-    (s) => (STATUS_ROLE_PERMISSIONS[s] || []).includes(userRole)
-  );
+  const allowedTransitions = (STATUS_TRANSITIONS[ticket.status] || []).filter((s) => {
+    if ((STATUS_ROLE_PERMISSIONS[s] || []).includes(userRole)) return true;
+    if (userRole === 'user' && canClientTransition(ticket.status, s)) return true;
+    return false;
+  });
 
   const canChangePriority = ['consultor', 'gestor', 'super_admin'].includes(userRole);
   const canChangeAssignee = ['consultor', 'gestor', 'super_admin'].includes(userRole);
@@ -108,7 +124,7 @@ export function TicketSidebar({
                 size="sm"
                 onClick={() => onStatusChange(status as TicketStatus)}
               >
-                {TICKET_STATUS_LABELS[status as TicketStatus]}
+                {getActionLabel(status as TicketStatus, userRole)}
               </Button>
             ))}
           </div>
