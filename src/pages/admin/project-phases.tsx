@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, Plus, Pencil, Trash2, Users, ChevronDown, ChevronRight, Play, CheckCircle, UserPlus, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2, Users, ChevronDown, ChevronRight, Play, CheckCircle, UserPlus, Clock, Undo2, RotateCcw } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
 import { IconButton } from '../../components/ui/icon-button';
@@ -66,11 +66,9 @@ export default function ProjectPhasesPage() {
     });
   }
 
-  async function handleStatusChange(subphase: ProjectSubphase) {
-    const next = subphase.status === 'planned' ? 'in_progress' : subphase.status === 'in_progress' ? 'completed' : null;
-    if (!next) return;
+  async function handleStatusChange(subphase: ProjectSubphase, newStatus: string) {
     try {
-      await updateSubphaseStatus(subphase.id, next);
+      await updateSubphaseStatus(subphase.id, newStatus);
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
@@ -206,14 +204,29 @@ export default function ProjectPhasesPage() {
                             </div>
                             <div className="flex items-center gap-1">
                               {sp.status === 'planned' && (
-                                <IconButton onClick={() => handleStatusChange(sp)} aria-label="Iniciar">
+                                <IconButton onClick={() => handleStatusChange(sp, 'in_progress')} aria-label="Iniciar" title="Iniciar">
                                   <Play size={14} />
                                 </IconButton>
                               )}
                               {sp.status === 'in_progress' && (
-                                <IconButton onClick={() => handleStatusChange(sp)} aria-label="Concluir">
-                                  <CheckCircle size={14} />
-                                </IconButton>
+                                <>
+                                  <IconButton onClick={() => handleStatusChange(sp, 'planned')} aria-label="Voltar para Planejada" title="Voltar para Planejada">
+                                    <Undo2 size={14} />
+                                  </IconButton>
+                                  <IconButton onClick={() => handleStatusChange(sp, 'completed')} aria-label="Concluir" title="Concluir">
+                                    <CheckCircle size={14} />
+                                  </IconButton>
+                                </>
+                              )}
+                              {sp.status === 'completed' && (
+                                <>
+                                  <IconButton onClick={() => handleStatusChange(sp, 'in_progress')} aria-label="Voltar para Em Andamento" title="Voltar para Em Andamento">
+                                    <Undo2 size={14} />
+                                  </IconButton>
+                                  <IconButton onClick={() => handleStatusChange(sp, 'planned')} aria-label="Voltar para Planejada" title="Voltar para Planejada">
+                                    <RotateCcw size={14} />
+                                  </IconButton>
+                                </>
                               )}
                               <IconButton onClick={() => setTimeEntriesModal({
                                 open: true,
