@@ -111,16 +111,18 @@ export default function App() {
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['super_admin', 'gestor']}>
                   <Routes>
-                    <Route path="dashboard" element={<AdminDashboardPage />} />
-                    <Route path="users" element={<AdminUsersPage />} />
-                    <Route path="settings" element={<AdminSettingsPage />} />
-                    <Route path="clients" element={<AdminClientsPage />} />
+                    {/* super_admin only */}
+                    <Route path="dashboard" element={<RoleGuard allowedRoles={['super_admin']}><AdminDashboardPage /></RoleGuard>} />
+                    <Route path="users" element={<RoleGuard allowedRoles={['super_admin']}><AdminUsersPage /></RoleGuard>} />
+                    <Route path="settings" element={<RoleGuard allowedRoles={['super_admin']}><AdminSettingsPage /></RoleGuard>} />
+                    <Route path="clients" element={<RoleGuard allowedRoles={['super_admin']}><AdminClientsPage /></RoleGuard>} />
+                    <Route path="consultants" element={<RoleGuard allowedRoles={['super_admin']}><AdminConsultantsPage /></RoleGuard>} />
+                    <Route path="activity-categories" element={<RoleGuard allowedRoles={['super_admin']}><AdminActivityCategoriesPage /></RoleGuard>} />
+                    <Route path="expense-categories" element={<RoleGuard allowedRoles={['super_admin']}><AdminExpenseCategoriesPage /></RoleGuard>} />
+                    <Route path="reports" element={<RoleGuard allowedRoles={['super_admin']}><AdminReportsPage /></RoleGuard>} />
+                    {/* super_admin + gestor */}
                     <Route path="projects" element={<AdminProjectsPage />} />
-                    <Route path="consultants" element={<AdminConsultantsPage />} />
-                    <Route path="activity-categories" element={<AdminActivityCategoriesPage />} />
-                    <Route path="expense-categories" element={<AdminExpenseCategoriesPage />} />
                     <Route path="projects/:id/phases" element={<AdminProjectPhasesPage />} />
-                    <Route path="reports" element={<AdminReportsPage />} />
                   </Routes>
                 </RoleGuard>
               </ProtectedRoute>
@@ -144,7 +146,7 @@ export default function App() {
             path="/manager-dashboard"
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['gestor', 'super_admin']}>
+                <RoleGuard allowedRoles={['super_admin']}>
                   <ManagerDashboardPage />
                 </RoleGuard>
               </ProtectedRoute>

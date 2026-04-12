@@ -15,6 +15,7 @@ import * as clientService from '../../services/client.service';
 import * as consultantService from '../../services/consultant.service';
 import { formatApiError } from '../../services/api';
 import { useNavItems } from '../../hooks/use-nav-items';
+import { useAuth } from '../../hooks/use-auth';
 import type { Project, ProjectAllocation } from '../../types/project.types';
 import type { Client } from '../../types/client.types';
 import type { Consultant } from '../../types/consultant.types';
@@ -35,6 +36,8 @@ const emptyForm = { name: '', description: '', clientId: '', billingRate: '', bu
 export default function ProjectsPage() {
   const navItems = useNavItems();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super_admin';
   const [projects, setProjects] = useState<Project[]>([]);
   const [clientsList, setClientsList] = useState<Client[]>([]);
   const [consultantsList, setConsultantsList] = useState<Consultant[]>([]);
@@ -202,7 +205,7 @@ export default function ProjectsPage() {
       <Input label="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
       <Input label="Descrição" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
       <Select label="Cliente" options={clientOptions} value={form.clientId} onChange={(v) => setForm({ ...form, clientId: v })} placeholder="Selecione um cliente" required />
-      <Input label="Taxa/Hora (R$)" type="number" step="0.01" value={form.billingRate} onChange={(e) => setForm({ ...form, billingRate: e.target.value })} required />
+      {isSuperAdmin && <Input label="Taxa/Hora (R$)" type="number" step="0.01" value={form.billingRate} onChange={(e) => setForm({ ...form, billingRate: e.target.value })} required />}
       <div className="grid grid-cols-2 gap-4">
         <Input label="Horas Orçamento" type="number" value={form.budgetHours} onChange={(e) => setForm({ ...form, budgetHours: e.target.value })} />
         <Select label="Tipo Orçamento" options={budgetTypeOptions} value={form.budgetType} onChange={(v) => setForm({ ...form, budgetType: v })} />
@@ -242,7 +245,7 @@ export default function ProjectsPage() {
             <TableHeader>Nome</TableHeader>
             <TableHeader>Cliente</TableHeader>
             <TableHeader>Status</TableHeader>
-            <TableHeader>Taxa/h</TableHeader>
+            {isSuperAdmin && <TableHeader>Taxa/h</TableHeader>}
             <TableHeader>Orçamento</TableHeader>
             <TableHeader>Ações</TableHeader>
           </TableRow>
@@ -253,13 +256,13 @@ export default function ProjectsPage() {
               <TableCell className="font-medium">{p.name}</TableCell>
               <TableCell>{p.clientName || '—'}</TableCell>
               <TableCell>{statusBadge(p.status)}</TableCell>
-              <TableCell>R$ {Number(p.billingRate).toFixed(2)}</TableCell>
+              {isSuperAdmin && <TableCell>R$ {Number(p.billingRate).toFixed(2)}</TableCell>}
               <TableCell>{p.budgetHours ? `${p.budgetHours}h (${p.budgetType === 'monthly' ? 'mensal' : 'total'})` : '—'}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <button onClick={() => openEdit(p)} className="text-accent hover:text-accent-hover" title="Editar"><Pencil size={16} /></button>
                   <button onClick={() => navigate(`/admin/projects/${p.id}/phases`)} className="text-accent hover:text-accent-hover" title="Fases"><Layers size={16} /></button>
-                  <button onClick={() => openAllocations(p)} className="text-accent hover:text-accent-hover" title="Consultores"><UserPlus size={16} /></button>
+                  <button onClick={() => openAllocations(p)} className="text-accent hover:text-accent-hover" title="Equipe"><UserPlus size={16} /></button>
                   {p.isActive && (
                     <button onClick={() => handleDeactivate(p)} className="text-danger hover:text-danger/80" title="Desativar"><XCircle size={16} /></button>
                   )}
@@ -297,7 +300,7 @@ export default function ProjectsPage() {
       </Modal>
 
       {/* Allocations Modal */}
-      <Modal isOpen={!!allocProject} onClose={() => setAllocProject(null)} title={`Consultores — ${allocProject?.name || ''}`}>
+      <Modal isOpen={!!allocProject} onClose={() => setAllocProject(null)} title={`Equipe — ${allocProject?.name || ''}`}>
         <div className="space-y-4">
           <div className="flex gap-2">
             <div className="flex-1">
@@ -305,7 +308,7 @@ export default function ProjectsPage() {
                 options={availableConsultants.map((c) => ({ value: c.userId, label: `${c.userName} (${c.userEmail})` }))}
                 value={allocUserId}
                 onChange={setAllocUserId}
-                placeholder="Selecione um consultor"
+                placeholder="Selecione um membro"
               />
             </div>
             <Button onClick={handleAddAllocation} disabled={!allocUserId}><UserPlus size={16} /></Button>
@@ -325,7 +328,7 @@ export default function ProjectsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-text-muted">Nenhum consultor alocado.</p>
+            <p className="text-sm text-text-muted">Nenhum membro alocado.</p>
           )}
         </div>
       </Modal>

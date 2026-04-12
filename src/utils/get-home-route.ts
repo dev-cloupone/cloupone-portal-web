@@ -9,7 +9,7 @@ export function getHomeRoute(user: User): string {
     case 'super_admin':
       return '/admin/dashboard';
     case 'gestor':
-      return '/admin/dashboard';
+      return '/admin/projects';
     case 'consultor':
       return '/timesheet';
     case 'user':

@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import * as phaseService from '../services/phase.service';
 import type {
   ProjectPhase, CreatePhaseData, UpdatePhaseData,
-  CreateSubphaseData, UpdateSubphaseData,
+  CreateSubphaseData, UpdateSubphaseData, ClonePhasesRequest,
 } from '../types/phase.types';
 import { useToastStore } from '../stores/toast.store';
 import { formatApiError } from '../services/api';
@@ -99,6 +99,12 @@ export function useProjectPhases(projectId: string) {
     await loadPhases();
   }, [loadPhases]);
 
+  const clonePhasesAction = useCallback(async (data: ClonePhasesRequest) => {
+    await phaseService.clonePhases(projectId, data);
+    addToast('Fases clonadas com sucesso', 'success');
+    await loadPhases();
+  }, [projectId, addToast, loadPhases]);
+
   const loadConsultantsAction = useCallback(async (phaseId: string) => {
     const result = await phaseService.loadConsultants(phaseId);
     addToast(`${result.loaded} vínculos criados`, 'success');
@@ -122,5 +128,6 @@ export function useProjectPhases(projectId: string) {
     removeConsultant,
     updateConsultantHours,
     loadConsultants: loadConsultantsAction,
+    clonePhases: clonePhasesAction,
   };
 }
