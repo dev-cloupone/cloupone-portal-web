@@ -98,6 +98,31 @@ export interface PhaseTimeEntriesResponse {
   };
 }
 
+// --- Clone ---
+
+export interface ClonableProject {
+  id: string;
+  name: string;
+  clientName: string;
+  phases: Array<{
+    id: string;
+    name: string;
+    subphases: Array<{
+      id: string;
+      name: string;
+      estimatedHours: number | null;
+    }>;
+  }>;
+}
+
+export interface ClonePhasesRequest {
+  sourceProjectId: string;
+  phases: Array<{
+    phaseId: string;
+    subphaseIds: string[];
+  }>;
+}
+
 // --- Create/Update data ---
 
 export interface CreatePhaseData {

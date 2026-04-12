@@ -3,6 +3,7 @@ import type {
   ProjectPhase, ProjectSubphase, SubphaseConsultant,
   CreatePhaseData, UpdatePhaseData, CreateSubphaseData, UpdateSubphaseData,
   AvailableSubphase, PhaseTimeEntriesResponse,
+  ClonableProject, ClonePhasesRequest,
 } from '../types/phase.types';
 
 // --- Fases ---
@@ -108,6 +109,19 @@ export async function getPhaseTimeEntries(
   if (params?.limit) query.set('limit', String(params.limit));
   const qs = query.toString();
   return api<PhaseTimeEntriesResponse>(`/phases/${phaseId}/time-entries${qs ? `?${qs}` : ''}`);
+}
+
+// --- Clone de Fases ---
+
+export async function getClonableProjects(projectId: string): Promise<{ data: ClonableProject[] }> {
+  return api<{ data: ClonableProject[] }>(`/projects/${projectId}/phases/clonable-projects`);
+}
+
+export async function clonePhases(projectId: string, data: ClonePhasesRequest): Promise<void> {
+  await api(`/projects/${projectId}/phases/clone`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
 // --- Subfases disponíveis para apontamento ---

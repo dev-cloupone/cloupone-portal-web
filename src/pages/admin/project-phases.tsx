@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, Plus, Pencil, Trash2, Users, ChevronDown, ChevronRight, Play, CheckCircle, UserPlus, Clock, Undo2, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2, Users, ChevronDown, ChevronRight, Play, CheckCircle, UserPlus, Clock, Undo2, RotateCcw, Copy } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
 import { IconButton } from '../../components/ui/icon-button';
@@ -13,6 +13,7 @@ import { SubphaseFormModal } from '../../components/phases/subphase-form-modal';
 import { LoadConsultantsModal } from '../../components/phases/load-consultants-modal';
 import { SubphaseConsultantsModal } from '../../components/phases/subphase-consultants-modal';
 import { TimeEntriesModal } from '../../components/phases/time-entries-modal';
+import { ClonePhasesModal } from '../../components/phases/clone-phases-modal';
 import * as projectService from '../../services/project.service';
 import { formatApiError } from '../../services/api';
 import { useToastStore } from '../../stores/toast.store';
@@ -29,7 +30,7 @@ export default function ProjectPhasesPage() {
     phases, loading, loadPhases,
     createPhase, updatePhase, deletePhase,
     createSubphase, updateSubphase, deleteSubphase,
-    updateSubphaseStatus, loadConsultants,
+    updateSubphaseStatus, loadConsultants, clonePhases,
   } = useProjectPhases(projectId!);
 
   const [projectName, setProjectName] = useState('');
@@ -41,6 +42,7 @@ export default function ProjectPhasesPage() {
   const [subphaseModal, setSubphaseModal] = useState<{ open: boolean; phaseId: string; subphase?: ProjectSubphase | null }>({ open: false, phaseId: '' });
   const [loadModal, setLoadModal] = useState<{ open: boolean; phase?: ProjectPhase | null }>({ open: false });
   const [consultantsModal, setConsultantsModal] = useState<{ open: boolean; subphaseId: string; subphaseName: string }>({ open: false, subphaseId: '', subphaseName: '' });
+  const [cloneModal, setCloneModal] = useState(false);
   const [timeEntriesModal, setTimeEntriesModal] = useState<{
     open: boolean;
     title: string;
@@ -109,9 +111,14 @@ export default function ProjectPhasesPage() {
       {!loading && phases.length === 0 && (
         <div className="text-center py-12">
           <p className="text-text-tertiary mb-4">Nenhuma fase cadastrada</p>
-          <Button onClick={() => setPhaseModal({ open: true })}>
-            <Plus size={16} className="mr-1.5" /> Criar primeira fase
-          </Button>
+          <div className="flex items-center justify-center gap-3">
+            <Button onClick={() => setPhaseModal({ open: true })}>
+              <Plus size={16} className="mr-1.5" /> Criar primeira fase
+            </Button>
+            <Button variant="secondary" onClick={() => setCloneModal(true)}>
+              <Copy size={16} className="mr-1.5" /> Clonar de outro projeto
+            </Button>
+          </div>
         </div>
       )}
 
@@ -315,6 +322,12 @@ export default function ProjectPhasesPage() {
         consultants={timeEntriesModal.consultants}
         subphases={timeEntriesModal.subphases}
         onClose={() => setTimeEntriesModal({ open: false, title: '', consultants: [], subphases: [] })}
+      />
+      <ClonePhasesModal
+        isOpen={cloneModal}
+        projectId={projectId!}
+        onClone={clonePhases}
+        onClose={() => setCloneModal(false)}
       />
     </SidebarLayout>
   );
