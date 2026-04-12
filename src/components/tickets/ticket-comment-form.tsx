@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { Send, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../ui/button';
+import { MarkdownEditor } from '../shared/markdown-editor';
 
 interface TicketCommentFormProps {
   onSubmit: (content: string, isInternal: boolean) => Promise<void>;
@@ -35,23 +35,13 @@ export function TicketCommentForm({ onSubmit, canMarkInternal }: TicketCommentFo
           isInternal ? 'border-warning/50 bg-warning-muted/20' : 'border-border bg-surface-1'
         }`}
       >
-        {showPreview ? (
-          <div className="min-h-[100px] px-4 py-3 prose prose-sm max-w-none text-text-secondary [&_a]:text-accent [&_code]:bg-surface-3 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-surface-3 [&_pre]:p-3 [&_pre]:rounded-lg">
-            {content.trim() ? (
-              <ReactMarkdown>{content}</ReactMarkdown>
-            ) : (
-              <p className="text-text-muted italic">Nada para visualizar</p>
-            )}
-          </div>
-        ) : (
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={3}
-            placeholder={isInternal ? 'Adicionar nota interna...' : 'Adicionar comentario...'}
-            className="w-full resize-none rounded-xl bg-transparent px-4 py-3 text-sm text-text-primary focus:outline-none placeholder:text-text-muted"
-          />
-        )}
+        <MarkdownEditor
+          value={content}
+          onChange={setContent}
+          rows={3}
+          preview={showPreview}
+          placeholder={isInternal ? 'Adicionar nota interna...' : 'Adicionar comentario...'}
+        />
 
         <div className="flex items-center justify-between border-t border-border/50 px-3 py-2">
           <div className="flex items-center gap-3">

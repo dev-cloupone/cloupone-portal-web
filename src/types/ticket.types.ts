@@ -1,4 +1,4 @@
-export type TicketType = 'bug' | 'improvement' | 'initiative';
+export type TicketType = 'system_error' | 'question' | 'improvement' | 'security';
 export type TicketPriority = 'low' | 'medium' | 'high' | 'critical';
 export type TicketStatus = 'open' | 'in_analysis' | 'awaiting_customer' | 'awaiting_third_party' | 'finished';
 
@@ -44,7 +44,7 @@ export interface TicketHistoryEntry {
   userName: string;
   field: string;
   oldValue: string | null;
-  newValue: string;
+  newValue: string | null;
   createdAt: string;
 }
 
@@ -109,9 +109,10 @@ export interface ListTicketParams {
 }
 
 export const TICKET_TYPE_LABELS: Record<TicketType, string> = {
-  bug: 'Bug',
-  improvement: 'Melhoria',
-  initiative: 'Iniciativa',
+  system_error: 'Erro de sistema',
+  question: 'Dúvida',
+  improvement: 'Solicitação de melhoria',
+  security: 'Segurança/Acesso',
 };
 
 export const TICKET_PRIORITY_LABELS: Record<TicketPriority, string> = {

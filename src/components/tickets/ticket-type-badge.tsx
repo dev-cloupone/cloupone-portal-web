@@ -1,11 +1,12 @@
-import { Bug, Sparkles, Lightbulb } from 'lucide-react';
+import { AlertTriangle, HelpCircle, Sparkles, ShieldAlert } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { TICKET_TYPE_LABELS, type TicketType } from '../../types/ticket.types';
 
 const typeConfig: Record<TicketType, { variant: 'default' | 'success' | 'warning' | 'danger'; icon: React.ReactNode; className?: string }> = {
-  bug: { variant: 'danger', icon: <Bug size={12} /> },
+  system_error: { variant: 'danger', icon: <AlertTriangle size={12} /> },
+  question: { variant: 'default', icon: <HelpCircle size={12} />, className: 'bg-amber-100 text-amber-700 border-amber-200' },
   improvement: { variant: 'default', icon: <Sparkles size={12} />, className: 'bg-blue-100 text-blue-700 border-blue-200' },
-  initiative: { variant: 'success', icon: <Lightbulb size={12} /> },
+  security: { variant: 'default', icon: <ShieldAlert size={12} />, className: 'bg-purple-100 text-purple-700 border-purple-200' },
 };
 
 interface TicketTypeBadgeProps {
