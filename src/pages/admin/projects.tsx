@@ -262,7 +262,7 @@ export default function ProjectsPage() {
                 <div className="flex gap-2">
                   <button onClick={() => openEdit(p)} className="text-accent hover:text-accent-hover" title="Editar"><Pencil size={16} /></button>
                   <button onClick={() => navigate(`/admin/projects/${p.id}/phases`)} className="text-accent hover:text-accent-hover" title="Fases"><Layers size={16} /></button>
-                  <button onClick={() => openAllocations(p)} className="text-accent hover:text-accent-hover" title="Consultores"><UserPlus size={16} /></button>
+                  <button onClick={() => openAllocations(p)} className="text-accent hover:text-accent-hover" title="Equipe"><UserPlus size={16} /></button>
                   {p.isActive && (
                     <button onClick={() => handleDeactivate(p)} className="text-danger hover:text-danger/80" title="Desativar"><XCircle size={16} /></button>
                   )}
@@ -300,7 +300,7 @@ export default function ProjectsPage() {
       </Modal>
 
       {/* Allocations Modal */}
-      <Modal isOpen={!!allocProject} onClose={() => setAllocProject(null)} title={`Consultores — ${allocProject?.name || ''}`}>
+      <Modal isOpen={!!allocProject} onClose={() => setAllocProject(null)} title={`Equipe — ${allocProject?.name || ''}`}>
         <div className="space-y-4">
           <div className="flex gap-2">
             <div className="flex-1">
@@ -308,7 +308,7 @@ export default function ProjectsPage() {
                 options={availableConsultants.map((c) => ({ value: c.userId, label: `${c.userName} (${c.userEmail})` }))}
                 value={allocUserId}
                 onChange={setAllocUserId}
-                placeholder="Selecione um consultor"
+                placeholder="Selecione um membro"
               />
             </div>
             <Button onClick={handleAddAllocation} disabled={!allocUserId}><UserPlus size={16} /></Button>
@@ -328,7 +328,7 @@ export default function ProjectsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-text-muted">Nenhum consultor alocado.</p>
+            <p className="text-sm text-text-muted">Nenhum membro alocado.</p>
           )}
         </div>
       </Modal>
