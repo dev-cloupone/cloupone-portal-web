@@ -12,7 +12,7 @@ export function getHomeRoute(user: User): string {
       return '/admin/projects';
     case 'consultor':
       return '/timesheet';
-    case 'user':
+    case 'client':
       return '/tickets';
     default:
       return '/home';

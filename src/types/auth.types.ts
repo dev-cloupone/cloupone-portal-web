@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'super_admin' | 'gestor' | 'consultor' | 'user';
+  role: 'super_admin' | 'gestor' | 'consultor' | 'client';
   mustChangePassword?: boolean;
   avatarFileId?: string | null;
   clientId?: string | null;

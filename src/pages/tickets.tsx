@@ -117,7 +117,7 @@ export default function TicketsPage() {
     loadTickets();
   }
 
-  const isInternalUser = user?.role !== 'user';
+  const isInternalUser = user?.role !== 'client';
   const effectiveViewMode: ViewMode = isInternalUser ? viewMode : 'list';
 
   return (
