@@ -97,7 +97,7 @@ export default function TicketDetailPage() {
       setLoading(true);
       const t = await loadTicket();
       const promises: Promise<unknown>[] = [loadComments(), loadHistory(), loadAttachments()];
-      if (user?.role !== 'user') {
+      if (user?.role !== 'client') {
         promises.push(loadTimeEntries());
       }
       await Promise.all(promises);
@@ -199,7 +199,7 @@ export default function TicketDetailPage() {
     }
   }
 
-  const isInternalUser = user?.role !== 'user';
+  const isInternalUser = user?.role !== 'client';
   const isFinished = ticket?.status === 'finished';
 
   if (loading) {
@@ -260,7 +260,7 @@ export default function TicketDetailPage() {
           </h2>
           <TicketStatusButton
             status={ticket.status}
-            userRole={user?.role || 'user'}
+            userRole={user?.role || 'client'}
             onChange={handleStatusChange}
           />
           {isInternalUser && !ticket.isVisibleToClient && (
@@ -386,7 +386,7 @@ export default function TicketDetailPage() {
           <div className="rounded-xl border border-border bg-surface-1 p-6 lg:sticky lg:top-6">
             <TicketSidebar
               ticket={ticket}
-              userRole={user?.role || 'user'}
+              userRole={user?.role || 'client'}
               userId={user?.id || ''}
               isInternalUser={isInternalUser}
               isFinished={isFinished}

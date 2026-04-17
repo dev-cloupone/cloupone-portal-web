@@ -30,13 +30,13 @@ function canClientTransition(from: TicketStatus, to: TicketStatus): boolean {
 }
 
 function canTransition(from: TicketStatus, to: TicketStatus, role: string): boolean {
-  if (role === 'user') return canClientTransition(from, to);
+  if (role === 'client') return canClientTransition(from, to);
   return STATUS_ROLE_PERMISSIONS[to]?.includes(role) ?? false;
 }
 
 function getActionLabel(_from: TicketStatus, to: TicketStatus, role: string): string {
-  if (role === 'user' && to === 'finished') return 'Encerrar chamado';
-  if (role === 'user' && to === 'in_analysis') return 'Devolver para analise';
+  if (role === 'client' && to === 'finished') return 'Encerrar chamado';
+  if (role === 'client' && to === 'in_analysis') return 'Devolver para analise';
   return TICKET_STATUS_LABELS[to];
 }
 

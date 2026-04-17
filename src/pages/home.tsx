@@ -48,12 +48,12 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (user?.role === 'user') {
+    if (user?.role === 'client') {
       void loadStats();
     }
   }, [user?.role, loadStats]);
 
-  const isClient = user?.role === 'user';
+  const isClient = user?.role === 'client';
   const openTickets = ticketStats
     ? (ticketStats.byStatus.open || 0) + (ticketStats.byStatus.in_analysis || 0)
     : 0;

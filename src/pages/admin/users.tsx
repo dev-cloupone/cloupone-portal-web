@@ -20,7 +20,7 @@ const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
   gestor: 'Gestor',
   consultor: 'Consultor',
-  user: 'Usuario',
+  client: 'Cliente',
 };
 
 export default function UsersPage() {
@@ -30,8 +30,8 @@ export default function UsersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [error, setError] = useState('');
-  const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', role: 'user', clientId: '' });
-  const [editForm, setEditForm] = useState({ name: '', email: '', role: 'user', clientId: '' });
+  const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', role: 'client', clientId: '' });
+  const [editForm, setEditForm] = useState({ name: '', email: '', role: 'client', clientId: '' });
   const { page, limit, meta, setMeta, goToPage } = usePagination({ initialLimit: 20 });
 
   useEffect(() => {
@@ -56,16 +56,20 @@ export default function UsersPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    if (createForm.role === 'client' && !createForm.clientId) {
+      setError('Selecione um cliente.');
+      return;
+    }
     try {
       await adminService.createUser({
         name: createForm.name,
         email: createForm.email,
         password: createForm.password,
         role: createForm.role,
-        clientId: createForm.role === 'user' && createForm.clientId ? createForm.clientId : null,
+        clientId: createForm.role === 'client' && createForm.clientId ? createForm.clientId : null,
       });
       setIsCreateModalOpen(false);
-      setCreateForm({ name: '', email: '', password: '', role: 'user', clientId: '' });
+      setCreateForm({ name: '', email: '', password: '', role: 'client', clientId: '' });
       await loadData();
     } catch (err) {
       setError(formatApiError(err));
@@ -76,12 +80,16 @@ export default function UsersPage() {
     e.preventDefault();
     if (!editingUser) return;
     setError('');
+    if (editForm.role === 'client' && !editForm.clientId) {
+      setError('Selecione um cliente.');
+      return;
+    }
     try {
       await adminService.updateUser(editingUser.id, {
         name: editForm.name,
         email: editForm.email,
         role: editForm.role,
-        clientId: editForm.role === 'user' && editForm.clientId ? editForm.clientId : null,
+        clientId: editForm.role === 'client' && editForm.clientId ? editForm.clientId : null,
       });
       setEditingUser(null);
       await loadData();
@@ -112,7 +120,7 @@ export default function UsersPage() {
   }
 
   function openCreate() {
-    setCreateForm({ name: '', email: '', password: '', role: 'user', clientId: '' });
+    setCreateForm({ name: '', email: '', password: '', role: 'client', clientId: '' });
     setError('');
     setIsCreateModalOpen(true);
   }
@@ -223,16 +231,17 @@ export default function UsersPage() {
               onChange={(e) => setCreateForm({ ...createForm, role: e.target.value, clientId: '' })}
               className="block w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary"
             >
-              <option value="user">Usuario</option>
+              <option value="client">Cliente</option>
               <option value="consultor">Consultor</option>
               <option value="gestor">Gestor</option>
               <option value="super_admin">Super Admin</option>
             </select>
           </div>
-          {createForm.role === 'user' && (
+          {createForm.role === 'client' && (
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">Cliente</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">Cliente *</label>
               <select
+                required
                 value={createForm.clientId}
                 onChange={(e) => setCreateForm({ ...createForm, clientId: e.target.value })}
                 className="block w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary"
@@ -279,16 +288,17 @@ export default function UsersPage() {
               onChange={(e) => setEditForm({ ...editForm, role: e.target.value, clientId: '' })}
               className="block w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary"
             >
-              <option value="user">Usuario</option>
+              <option value="client">Cliente</option>
               <option value="consultor">Consultor</option>
               <option value="gestor">Gestor</option>
               <option value="super_admin">Super Admin</option>
             </select>
           </div>
-          {editForm.role === 'user' && (
+          {editForm.role === 'client' && (
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">Cliente</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">Cliente *</label>
               <select
+                required
                 value={editForm.clientId}
                 onChange={(e) => setEditForm({ ...editForm, clientId: e.target.value })}
                 className="block w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary"

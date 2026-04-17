@@ -3,7 +3,7 @@ export interface Consultant {
   userId: string;
   userName: string;
   userEmail: string;
-  userRole?: 'super_admin' | 'gestor' | 'consultor' | 'user';
+  userRole?: 'super_admin' | 'gestor' | 'consultor' | 'client';
   hourlyRate: number;
   contractType: 'clt' | 'pj' | 'horista';
   allowOverlappingEntries: boolean;

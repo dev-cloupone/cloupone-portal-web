@@ -1,4 +1,11 @@
 import { Users, UserCheck, Shield } from 'lucide-react';
+
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: 'Super Admin',
+  gestor: 'Gestor',
+  consultor: 'Consultor',
+  client: 'Cliente',
+};
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Card, CardHeader, CardTitle } from '../../components/ui/card';
 import { SkeletonCard } from '../../components/ui/skeleton';
@@ -83,7 +90,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge variant={user.role === 'super_admin' ? 'warning' : 'default'}>
-                          {user.role === 'super_admin' ? 'Super Admin' : 'Usuario'}
+                          {ROLE_LABELS[user.role] || user.role}
                         </Badge>
                         <span className="text-xs text-text-muted">
                           {new Date(user.createdAt).toLocaleDateString('pt-BR')}

@@ -176,7 +176,7 @@ export function TicketSidebar({
       )}
 
       {/* Visibility */}
-      {userRole !== 'user' && (
+      {userRole !== 'client' && (
         <div className="space-y-1">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Visibilidade</h4>
           <div className="flex items-center gap-2 text-sm">
