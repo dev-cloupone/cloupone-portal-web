@@ -102,7 +102,7 @@ export function DayPanel({
           {isEditable ? (
             <p className="text-xs text-text-muted">Use o botão acima para registrar suas horas</p>
           ) : (
-            <p className="text-xs text-text-muted">Este mes ja foi aprovado e nao permite novos apontamentos.</p>
+            <p className="text-xs text-text-muted">Este mês já foi aprovado e não permite novos apontamentos.</p>
           )}
         </div>
       )}

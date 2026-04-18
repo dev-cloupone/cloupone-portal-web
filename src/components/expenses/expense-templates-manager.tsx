@@ -149,7 +149,7 @@ export function ExpenseTemplatesManager({
 
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-              Descricao
+              Descrição
             </label>
             <textarea
               value={description}
@@ -157,7 +157,7 @@ export function ExpenseTemplatesManager({
               rows={2}
               maxLength={500}
               className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none resize-none"
-              placeholder="Descricao padrao..."
+              placeholder="Descrição padrão..."
             />
           </div>
 

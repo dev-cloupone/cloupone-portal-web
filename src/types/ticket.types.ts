@@ -117,14 +117,14 @@ export const TICKET_TYPE_LABELS: Record<TicketType, string> = {
 
 export const TICKET_PRIORITY_LABELS: Record<TicketPriority, string> = {
   low: 'Baixa',
-  medium: 'Media',
+  medium: 'Média',
   high: 'Alta',
-  critical: 'Critica',
+  critical: 'Crítica',
 };
 
 export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
   open: 'Aberto',
-  in_analysis: 'Em Analise',
+  in_analysis: 'Em Análise',
   awaiting_customer: 'Aguardando Retorno do Cliente',
   awaiting_third_party: 'Aguardando Terceiro',
   finished: 'Finalizado',

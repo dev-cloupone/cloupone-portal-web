@@ -23,8 +23,8 @@ export default function ResetPasswordPage() {
           <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-danger/10 border border-danger/20">
             <div className="h-3 w-3 rounded-full bg-danger" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Link Invalido</h2>
-          <p className="text-sm text-text-tertiary">Este link de redefinicao de senha e invalido.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Link Inválido</h2>
+          <p className="text-sm text-text-tertiary">Este link de redefinição de senha é inválido.</p>
           <Button variant="secondary" onClick={() => navigate('/forgot-password')}>
             Solicitar novo link
           </Button>

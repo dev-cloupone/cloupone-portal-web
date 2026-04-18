@@ -16,7 +16,7 @@ interface MonthDetailProps {
 }
 
 const MONTH_NAMES = [
-  '', 'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+  '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
@@ -76,7 +76,7 @@ export function MonthDetail({ timesheet, entries, isLoading, onBack, onApprove, 
         <div className="flex items-center gap-2">
           {canApprove && (
             <Button size="sm" onClick={onApprove}>
-              Aprovar mes
+              Aprovar mês
             </Button>
           )}
           {canReopen && (
@@ -115,7 +115,7 @@ export function MonthDetail({ timesheet, entries, isLoading, onBack, onApprove, 
                 <TableHeader>Projeto</TableHeader>
                 <TableHeader>Categoria</TableHeader>
                 <TableHeader className="text-right">Horas</TableHeader>
-                <TableHeader>Descricao</TableHeader>
+                <TableHeader>Descrição</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -159,7 +159,7 @@ export function MonthDetail({ timesheet, entries, isLoading, onBack, onApprove, 
           <div className="flex items-center gap-2">
             {canApprove && (
               <Button size="sm" onClick={onApprove}>
-                Aprovar mes
+                Aprovar mês
               </Button>
             )}
             {canReopen && (

@@ -79,10 +79,10 @@ export function MonthHeader({
         <div className="flex items-center gap-2">
           {canApprove && onApproveMonth && (
             <Button size="sm" onClick={onApproveMonth}>
-              <CheckCircle size={14} className="mr-1" /> Aprovar mes
+              <CheckCircle size={14} className="mr-1" /> Aprovar mês
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onPreviousMonth} aria-label="Mes anterior">
+          <Button variant="ghost" size="sm" onClick={onPreviousMonth} aria-label="Mês anterior">
             <ChevronLeft size={16} />
           </Button>
           <span className="text-sm font-semibold text-text-primary min-w-[140px] text-center">
@@ -100,7 +100,7 @@ export function MonthHeader({
       {monthData && (
         <div className="space-y-2">
           <ProgressBar
-            label="Mes"
+            label="Mês"
             current={monthData.totalHours}
             target={monthData.targetHours}
           />

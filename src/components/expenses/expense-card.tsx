@@ -84,7 +84,7 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit }: ExpenseCa
         <div className="rounded-lg border border-danger/30 bg-danger/5 px-3 py-2">
           <div className="flex items-center gap-1.5 mb-1">
             <AlertTriangle size={12} className="text-danger" />
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-danger">Motivo da rejeicao</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-danger">Motivo da rejeição</span>
           </div>
           <p className="text-xs text-text-primary">{expense.rejectionComment}</p>
         </div>

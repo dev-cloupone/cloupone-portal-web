@@ -30,7 +30,7 @@ export function FileUpload({
 
   function validateFile(file: File): string | null {
     if (maxSize && file.size > maxSize) {
-      return `Arquivo muito grande. Maximo: ${Math.round(maxSize / 1024 / 1024)}MB`;
+      return `Arquivo muito grande. Máximo: ${Math.round(maxSize / 1024 / 1024)}MB`;
     }
     if (accept && accept !== '*') {
       const acceptedTypes = accept.split(',').map((t) => t.trim());
@@ -41,7 +41,7 @@ export function FileUpload({
         return file.type === type;
       });
       if (!isValid) {
-        return 'Tipo de arquivo nao permitido.';
+        return 'Tipo de arquivo não permitido.';
       }
     }
     return null;
@@ -144,7 +144,7 @@ export function FileUpload({
               Arraste um arquivo ou <span className="text-accent">clique para selecionar</span>
             </p>
             <p className="mt-1 text-[10px] text-text-muted">
-              Maximo {Math.round(maxSize / 1024 / 1024)}MB
+              Máximo {Math.round(maxSize / 1024 / 1024)}MB
             </p>
           </>
         )}

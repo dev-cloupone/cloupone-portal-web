@@ -130,10 +130,10 @@ export default function ConsultantDashboardPage() {
             </Card>
 
             <StatCard
-              title="Horas no Mes"
+              title="Horas no Mês"
               value={`${data.hoursThisMonth.toFixed(1)}h`}
               icon={<Clock size={20} />}
-              description="Total de horas no mes atual"
+              description="Total de horas no mês atual"
             />
 
           </div>
@@ -143,8 +143,8 @@ export default function ConsultantDashboardPage() {
             {/* Project Breakdown Pie */}
             <Card>
               <CardHeader>
-                <CardTitle>Distribuicao por Projeto</CardTitle>
-                <Badge>Mes Atual</Badge>
+                <CardTitle>Distribuição por Projeto</CardTitle>
+                <Badge>Mês Atual</Badge>
               </CardHeader>
               {data.projectBreakdown.length > 0 ? (
                 <div className="h-64">
@@ -179,8 +179,8 @@ export default function ConsultantDashboardPage() {
             {/* Monthly History */}
             <Card>
               <CardHeader>
-                <CardTitle>Historico Mensal</CardTitle>
-                <Badge>Ultimos 6 Meses</Badge>
+                <CardTitle>Histórico Mensal</CardTitle>
+                <Badge>Últimos 6 Meses</Badge>
               </CardHeader>
               {data.monthlyHistory.length > 0 ? (
                 <div className="h-64">
@@ -219,13 +219,13 @@ export default function ConsultantDashboardPage() {
                   title="Em Andamento"
                   value={(ticketStats.byStatus.in_analysis || 0) + (ticketStats.byStatus.awaiting_customer || 0) + (ticketStats.byStatus.awaiting_third_party || 0)}
                   icon={<PlayCircle size={20} />}
-                  description="Tickets em analise ou aguardando"
+                  description="Tickets em análise ou aguardando"
                 />
                 <StatCard
                   title="Novos esta Semana"
                   value={ticketStats.recentlyOpened}
                   icon={<Clock size={20} />}
-                  description="Tickets abertos nos ultimos 7 dias"
+                  description="Tickets abertos nos últimos 7 dias"
                 />
               </div>
             </div>
@@ -252,7 +252,7 @@ export default function ConsultantDashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-text-primary">
-                      Voce tem {ticketStats.myAssigned} ticket{ticketStats.myAssigned !== 1 ? 's' : ''} atribuido{ticketStats.myAssigned !== 1 ? 's' : ''}
+                      Você tem {ticketStats.myAssigned} ticket{ticketStats.myAssigned !== 1 ? 's' : ''} atribuído{ticketStats.myAssigned !== 1 ? 's' : ''}
                     </p>
                     <p className="text-xs text-text-tertiary">Veja seus tickets e atualize o andamento</p>
                   </div>

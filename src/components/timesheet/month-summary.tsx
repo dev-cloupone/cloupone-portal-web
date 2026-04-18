@@ -39,7 +39,7 @@ export function MonthSummary({ monthData, weekSummaries, monthStatus }: MonthSum
       {/* Month status badge */}
       {statusCfg && (
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Status do mes</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Status do mês</span>
           <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
         </div>
       )}
@@ -49,7 +49,7 @@ export function MonthSummary({ monthData, weekSummaries, monthStatus }: MonthSum
         <StatCard label="Total registrado" value={`${monthData.totalHours.toFixed(1)}h`} />
         <StatCard label="Meta mensal" value={`${monthData.targetHours}h`} />
         <StatCard label="Dias trabalhados" value={String(daysWorked)} />
-        <StatCard label="Media diaria" value={`${avgDaily.toFixed(1)}h`} />
+        <StatCard label="Média diária" value={`${avgDaily.toFixed(1)}h`} />
       </div>
 
       {/* Project breakdown */}
@@ -102,7 +102,7 @@ export function MonthSummary({ monthData, weekSummaries, monthStatus }: MonthSum
       {/* Hint */}
       <div className="flex items-center gap-2 text-xs text-text-muted pt-2 border-t border-border">
         <Calendar size={14} />
-        <span>Selecione um dia no calendario para ver detalhes</span>
+        <span>Selecione um dia no calendário para ver detalhes</span>
       </div>
     </div>
   );

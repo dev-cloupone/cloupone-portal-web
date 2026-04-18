@@ -13,7 +13,7 @@ import * as consultantService from '../services/consultant.service';
 import type { MonthlyTimesheet } from '../types/monthly-timesheet.types';
 
 const MONTH_NAMES = [
-  '', 'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+  '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
@@ -62,7 +62,7 @@ export default function ApprovalsPage() {
   // If viewing detail, show month-detail view
   if (detail) {
     return (
-      <SidebarLayout navItems={navItems} title="Aprovacoes">
+      <SidebarLayout navItems={navItems} title="Aprovações">
         <MonthDetail
           timesheet={detail.timesheet}
           entries={detail.entries}
@@ -83,10 +83,10 @@ export default function ApprovalsPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Aprovacoes">
+    <SidebarLayout navItems={navItems} title="Aprovações">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Aprovacoes Mensais</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Aprovações Mensais</h2>
           <p className="text-sm text-text-muted mt-1">
             {pendingCount} mes{pendingCount !== 1 ? 'es' : ''} pendente{pendingCount !== 1 ? 's' : ''}
           </p>

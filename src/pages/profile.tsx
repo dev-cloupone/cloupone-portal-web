@@ -96,7 +96,7 @@ export default function ProfilePage() {
         {/* Profile Info */}
         <form onSubmit={handleProfileUpdate} className="space-y-6">
           <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
-            <h3 className="text-sm font-semibold text-text-primary">Informacoes Pessoais</h3>
+            <h3 className="text-sm font-semibold text-text-primary">Informações Pessoais</h3>
             <Input
               label="Nome"
               value={name}

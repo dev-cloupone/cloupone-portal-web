@@ -36,7 +36,7 @@ function canTransition(from: TicketStatus, to: TicketStatus, role: string): bool
 
 function getActionLabel(_from: TicketStatus, to: TicketStatus, role: string): string {
   if (role === 'client' && to === 'finished') return 'Encerrar chamado';
-  if (role === 'client' && to === 'in_analysis') return 'Devolver para analise';
+  if (role === 'client' && to === 'in_analysis') return 'Devolver para análise';
   return TICKET_STATUS_LABELS[to];
 }
 
@@ -71,7 +71,7 @@ export function TicketStatusButton({ status, userRole, onChange }: TicketStatusB
   async function handleSelect(to: TicketStatus) {
     setOpen(false);
     if (to === 'finished') {
-      if (!window.confirm('Tem certeza? Apos finalizado, o ticket nao podera mais ser editado.')) {
+      if (!window.confirm('Tem certeza? Após finalizado, o ticket não poderá mais ser editado.')) {
         return;
       }
     }

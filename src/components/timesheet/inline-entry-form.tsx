@@ -182,7 +182,7 @@ export function InlineEntryForm({
         {/* Time range */}
         <div className="grid grid-cols-2 gap-3">
           <TimePicker
-            label="Inicio"
+            label="Início"
             value={startTime}
             onChange={setStartTime}
             disabled={!isEditable}
@@ -197,7 +197,7 @@ export function InlineEntryForm({
 
         {duration && (
           <div className="text-xs text-text-muted">
-            Duracao: <span className="font-medium text-text-secondary">{duration}</span>
+            Duração: <span className="font-medium text-text-secondary">{duration}</span>
           </div>
         )}
 
@@ -285,7 +285,7 @@ export function InlineEntryForm({
 
         <div className="space-y-1.5">
           <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Descricao
+            Descrição
           </label>
           <textarea
             value={description}

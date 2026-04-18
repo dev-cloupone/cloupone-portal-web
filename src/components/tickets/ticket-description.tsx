@@ -45,7 +45,7 @@ export function TicketDescription({ description, canEdit, onSave }: TicketDescri
     return (
       <div className="rounded-xl border border-border bg-surface-1 p-6">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Descricao</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Descrição</h3>
           {canEdit && (
             <button
               type="button"
@@ -70,7 +70,7 @@ export function TicketDescription({ description, canEdit, onSave }: TicketDescri
 
   return (
     <div className="rounded-xl border border-border bg-surface-1 p-6">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">Descricao</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">Descrição</h3>
       <div className="rounded-xl border border-border bg-surface-1">
         <MarkdownEditor
           value={draft}

@@ -10,7 +10,7 @@ interface PendingMonthsBannerProps {
 }
 
 const MONTH_NAMES = [
-  '', 'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+  '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
@@ -37,8 +37,8 @@ export function PendingMonthsBanner({ pendingMonths, onApprove, onNavigate, canA
               <div className="min-w-0">
                 <p className="text-sm text-text-primary">
                   {isReopened
-                    ? `O mes de ${label} foi reaberto.`
-                    : `O mes de ${label} ainda nao foi aprovado.`}
+                    ? `O mês de ${label} foi reaberto.`
+                    : `O mês de ${label} ainda não foi aprovado.`}
                 </p>
                 {isReopened && pm.reopenReason && (
                   <p className="text-xs text-text-secondary mt-0.5 truncate">
@@ -50,11 +50,11 @@ export function PendingMonthsBanner({ pendingMonths, onApprove, onNavigate, canA
             <div className="flex items-center gap-2 shrink-0">
               {!isReopened && (!canApproveMonth || canApproveMonth(pm.year, pm.month)) && (
                 <Button size="sm" onClick={() => onApprove(pm.year, pm.month)}>
-                  <CheckCircle size={14} className="mr-1" /> Aprovar mes
+                  <CheckCircle size={14} className="mr-1" /> Aprovar mês
                 </Button>
               )}
               <Button size="sm" variant="ghost" onClick={() => onNavigate(pm.year, pm.month)}>
-                <Eye size={14} className="mr-1" /> Ver mes
+                <Eye size={14} className="mr-1" /> Ver mês
               </Button>
             </div>
           </div>

@@ -214,7 +214,7 @@ export function ExpenseForm({
           <div className="rounded-lg border border-danger/30 bg-danger/5 px-3.5 py-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <AlertTriangle size={12} className="text-danger" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-danger">Motivo da rejeicao</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-danger">Motivo da rejeição</span>
             </div>
             <p className="text-sm text-text-primary">{expense.rejectionComment}</p>
           </div>
@@ -288,7 +288,7 @@ export function ExpenseForm({
         {/* Description */}
         <div className="space-y-1.5">
           <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Descricao
+            Descrição
           </label>
           <textarea
             value={description}

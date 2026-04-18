@@ -21,11 +21,11 @@ const typeOptions = [
 ];
 
 const priorityOptions = [
-  { value: '', label: 'Media (padrao)' },
+  { value: '', label: 'Média (padrão)' },
   { value: 'low', label: 'Baixa' },
-  { value: 'medium', label: 'Media' },
+  { value: 'medium', label: 'Média' },
   { value: 'high', label: 'Alta' },
-  { value: 'critical', label: 'Critica' },
+  { value: 'critical', label: 'Crítica' },
 ];
 
 interface FormState {
@@ -155,7 +155,7 @@ export default function TicketNewPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
         <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">Informacoes Basicas</h3>
+          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">Informações Básicas</h3>
 
           <Select
             label="Projeto"
@@ -174,7 +174,7 @@ export default function TicketNewPage() {
           />
 
           <Input
-            label="Titulo"
+            label="Título"
             value={form.title}
             onChange={(e) => update('title', e.target.value)}
             placeholder="Descreva brevemente o ticket..."
@@ -189,7 +189,7 @@ export default function TicketNewPage() {
           />
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">Descricao</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">Descrição</label>
             <textarea
               value={form.description}
               onChange={(e) => update('description', e.target.value)}
