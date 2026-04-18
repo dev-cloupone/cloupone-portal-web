@@ -154,7 +154,7 @@ export default function UsersPage() {
             <TableHeader>Cliente</TableHeader>
             <TableHeader>Status</TableHeader>
             <TableHeader>Criado em</TableHeader>
-            <TableHeader>Acoes</TableHeader>
+            <TableHeader>Ações</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>

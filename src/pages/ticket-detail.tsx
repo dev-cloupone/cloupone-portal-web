@@ -144,7 +144,7 @@ export default function TicketDetailPage() {
       const updated = await ticketService.update(id, { assignedTo });
       setTicket(updated);
       await loadHistory();
-      addToast('Atribuicao atualizada', 'success');
+      addToast('Atribuição atualizada', 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
@@ -155,7 +155,7 @@ export default function TicketDetailPage() {
     try {
       await ticketService.addComment(id, { content, isInternal });
       await loadComments();
-      addToast('Comentario adicionado', 'success');
+      addToast('Comentário adicionado', 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
@@ -181,7 +181,7 @@ export default function TicketDetailPage() {
       const updated = await ticketService.update(id, { description });
       setTicket(updated);
       await loadHistory();
-      addToast('Descricao atualizada', 'success');
+      addToast('Descrição atualizada', 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
       throw err;
@@ -225,7 +225,7 @@ export default function TicketDetailPage() {
     return (
       <SidebarLayout navItems={navItems} title="Atendimento">
         <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-danger mb-4">{error || 'Ticket nao encontrado'}</p>
+          <p className="text-danger mb-4">{error || 'Ticket não encontrado'}</p>
           <button
             type="button"
             onClick={() => navigate('/tickets')}

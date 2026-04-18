@@ -229,7 +229,7 @@ export default function ExpenseApprovalsPage() {
     <SidebarLayout navItems={navItems} title="Aprov. Despesas">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Aprovacao de Despesas</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Aprovação de Despesas</h2>
           <p className="text-sm text-text-muted mt-1">
             {totalPending} despesa{totalPending !== 1 ? 's' : ''} pendente{totalPending !== 1 ? 's' : ''}
             {totalPending > 0 && ` — Total: ${formatCurrency(totalAmount)}`}
@@ -367,7 +367,7 @@ export default function ExpenseApprovalsPage() {
       >
         <div className="space-y-4">
           <p className="text-sm text-text-secondary">
-            Informe o motivo da rejeicao. O consultor sera notificado e podera corrigir a despesa.
+            Informe o motivo da rejeição. O consultor será notificado e poderá corrigir a despesa.
           </p>
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
@@ -378,7 +378,7 @@ export default function ExpenseApprovalsPage() {
               onChange={(e) => setRejectComment(e.target.value)}
               rows={3}
               maxLength={500}
-              placeholder="Descreva o motivo da rejeicao..."
+              placeholder="Descreva o motivo da rejeição..."
               className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
             />
           </div>
@@ -424,9 +424,9 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
               <TableHeader>Projeto</TableHeader>
               <TableHeader>Categoria</TableHeader>
               <TableHeader className="text-right">Valor</TableHeader>
-              <TableHeader>Descricao</TableHeader>
+              <TableHeader>Descrição</TableHeader>
               <TableHeader>Comprov.</TableHeader>
-              <TableHeader className="w-24">Acoes</TableHeader>
+              <TableHeader className="w-24">Ações</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>

@@ -39,10 +39,10 @@ export function ReopenMonthModal({ isOpen, onClose, onConfirm, monthLabel }: Reo
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Reabrir Mes">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Reabrir Mês">
       <div className="space-y-4">
         <p className="text-sm text-text-secondary">
-          Reabrir o mes <strong>{monthLabel}</strong> permitira que o consultor edite seus apontamentos novamente.
+          Reabrir o mês <strong>{monthLabel}</strong> permitirá que o consultor edite seus apontamentos novamente.
         </p>
 
         <div className="space-y-1.5">

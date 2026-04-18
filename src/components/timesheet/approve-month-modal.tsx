@@ -25,7 +25,7 @@ export function ApproveMonthModal({
 
   const warnings: string[] = [];
   if (totalHours < targetHours) {
-    warnings.push(`Total de horas (${totalHours.toFixed(1)}h) esta abaixo da meta mensal (${targetHours}h).`);
+    warnings.push(`Total de horas (${totalHours.toFixed(1)}h) está abaixo da meta mensal (${targetHours}h).`);
   }
 
   async function handleConfirm() {
@@ -41,7 +41,7 @@ export function ApproveMonthModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Aprovar Mes">
+    <Modal isOpen={isOpen} onClose={onClose} title="Aprovar Mês">
       <div className="space-y-4">
         <p className="text-sm text-text-secondary">
           Tem certeza que deseja aprovar seus apontamentos de{' '}
@@ -72,7 +72,7 @@ export function ApproveMonthModal({
         )}
 
         <p className="text-xs text-text-muted">
-          Apos a aprovacao, os registros nao poderao ser editados ate que um gestor reabra o mes.
+          Após a aprovação, os registros não poderão ser editados até que um gestor reabra o mês.
         </p>
 
         <div className="modal-actions">

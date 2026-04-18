@@ -186,7 +186,7 @@ export default function TicketsPage() {
                 <TableHead>
                   <TableRow>
                     <TableHeader>Codigo</TableHeader>
-                    <TableHeader>Titulo</TableHeader>
+                    <TableHeader>Título</TableHeader>
                     <TableHeader>Tipo</TableHeader>
                     <TableHeader>Prioridade</TableHeader>
                     <TableHeader>Status</TableHeader>

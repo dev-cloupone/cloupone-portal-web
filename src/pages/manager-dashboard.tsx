@@ -125,7 +125,7 @@ export default function ManagerDashboardPage() {
     <SidebarLayout navItems={navItems} title="Dashboard">
       <div className="mb-6">
         <h2 className="text-2xl font-bold tracking-tight text-text-primary">Dashboard do Gestor</h2>
-        <p className="mt-1 text-sm text-text-tertiary">Visao geral de horas e projetos do mes atual</p>
+        <p className="mt-1 text-sm text-text-tertiary">Visão geral de horas e projetos do mês atual</p>
       </div>
 
       {isLoading ? (
@@ -141,7 +141,7 @@ export default function ManagerDashboardPage() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              title="Horas no Mes"
+              title="Horas no Mês"
               value={`${data.totalHoursThisMonth.toFixed(1)}h`}
               icon={<Clock size={20} />}
               description="Horas submetidas + aprovadas"
@@ -150,16 +150,16 @@ export default function ManagerDashboardPage() {
               title="Horas Aprovadas"
               value={`${data.totalHoursApproved.toFixed(1)}h`}
               icon={<CheckSquare size={20} />}
-              description="Horas ja aprovadas no mes"
+              description="Horas já aprovadas no mês"
             />
             <StatCard
               title="Horas Pendentes"
               value={`${data.totalHoursPending.toFixed(1)}h`}
               icon={<TrendingUp size={20} />}
-              description="Aguardando aprovacao"
+              description="Aguardando aprovação"
             />
             <StatCard
-              title="Aprovacoes Pendentes"
+              title="Aprovações Pendentes"
               value={data.pendingApprovalCount}
               icon={<AlertTriangle size={20} />}
               description="Apontamentos a aprovar"
@@ -172,7 +172,7 @@ export default function ManagerDashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Horas por Projeto</CardTitle>
-                <Badge>Mes Atual</Badge>
+                <Badge>Mês Atual</Badge>
               </CardHeader>
               {data.hoursByProject.length > 0 ? (
                 <div className="h-64">
@@ -204,7 +204,7 @@ export default function ManagerDashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Horas por Consultor</CardTitle>
-                <Badge>Mes Atual</Badge>
+                <Badge>Mês Atual</Badge>
               </CardHeader>
               {data.hoursByConsultant.length > 0 ? (
                 <div className="h-64">
@@ -238,8 +238,8 @@ export default function ManagerDashboardPage() {
             {/* Monthly Trend */}
             <Card>
               <CardHeader>
-                <CardTitle>Tendencia Mensal</CardTitle>
-                <Badge>Ultimos 6 Meses</Badge>
+                <CardTitle>Tendência Mensal</CardTitle>
+                <Badge>Últimos 6 Meses</Badge>
               </CardHeader>
               {data.monthlyTrend.length > 0 ? (
                 <div className="h-64">
@@ -265,7 +265,7 @@ export default function ManagerDashboardPage() {
             {/* Budget Alerts */}
             <Card>
               <CardHeader>
-                <CardTitle>Alertas de Orcamento</CardTitle>
+                <CardTitle>Alertas de Orçamento</CardTitle>
                 <Badge variant="warning">Projetos &gt; 80%</Badge>
               </CardHeader>
               {data.budgetAlerts.length > 0 ? (
@@ -288,7 +288,7 @@ export default function ManagerDashboardPage() {
                   ))}
                 </div>
               ) : (
-                <p className="py-8 text-center text-sm text-text-muted">Nenhum projeto acima de 80% do orcamento</p>
+                <p className="py-8 text-center text-sm text-text-muted">Nenhum projeto acima de 80% do orçamento</p>
               )}
             </Card>
           </div>
@@ -305,16 +305,16 @@ export default function ManagerDashboardPage() {
                   description="Tickets ativos no sistema"
                 />
                 <StatCard
-                  title="Sem Atribuicao"
+                  title="Sem Atribuição"
                   value={ticketStats.unassigned}
                   icon={<UserX2 size={20} />}
-                  description="Tickets sem consultor atribuido"
+                  description="Tickets sem consultor atribuído"
                 />
                 <StatCard
-                  title="Criticos"
+                  title="Críticos"
                   value={ticketStats.byPriority.critical || 0}
                   icon={<AlertOctagon size={20} />}
-                  description="Tickets com prioridade critica"
+                  description="Tickets com prioridade crítica"
                 />
                 <StatCard
                   title="Finalizados"
@@ -387,7 +387,7 @@ export default function ManagerDashboardPage() {
                 {/* Project Overview */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Visao Geral</CardTitle>
+                    <CardTitle>Visão Geral</CardTitle>
                     <Badge>Por Projeto</Badge>
                   </CardHeader>
                   {phasesData.projectSummaries.length > 0 ? (
@@ -420,7 +420,7 @@ export default function ManagerDashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-text-primary">
-                      Voce tem {data.pendingApprovalCount} apontamento{data.pendingApprovalCount !== 1 ? 's' : ''} aguardando aprovacao
+                      Você tem {data.pendingApprovalCount} apontamento{data.pendingApprovalCount !== 1 ? 's' : ''} aguardando aprovação
                     </p>
                     <p className="text-xs text-text-tertiary">Clique para revisar e aprovar</p>
                   </div>
@@ -428,7 +428,7 @@ export default function ManagerDashboardPage() {
                     onClick={() => navigate('/approvals')}
                     className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface-0 transition-colors hover:bg-accent-hover"
                   >
-                    Ver Aprovacoes
+                    Ver Aprovações
                   </button>
                 </div>
               </Card>
@@ -438,7 +438,7 @@ export default function ManagerDashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-text-primary">
-                      {ticketStats.unassigned} ticket{ticketStats.unassigned !== 1 ? 's' : ''} sem atribuicao
+                      {ticketStats.unassigned} ticket{ticketStats.unassigned !== 1 ? 's' : ''} sem atribuição
                     </p>
                     <p className="text-xs text-text-tertiary">Atribua consultores para iniciar o atendimento</p>
                   </div>

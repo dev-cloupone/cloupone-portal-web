@@ -75,7 +75,7 @@ export default function SettingsPage() {
   return (
     <SidebarLayout navItems={navItems} title="Admin">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Configuracoes da Plataforma</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Configurações da Plataforma</h2>
         <p className="text-sm text-text-tertiary mt-1">Gerencie as configuracoes gerais do sistema</p>
       </div>
 
@@ -85,7 +85,7 @@ export default function SettingsPage() {
           <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
             <h3 className="text-sm font-semibold text-text-primary">Geral</h3>
             <Input label="Nome do App" value={form.app_name} onChange={(e) => setForm({ ...form, app_name: e.target.value })} placeholder="Nome da aplicacao" />
-            <Input label="Descricao" value={form.app_description} onChange={(e) => setForm({ ...form, app_description: e.target.value })} placeholder="Descricao breve" />
+            <Input label="Descrição" value={form.app_description} onChange={(e) => setForm({ ...form, app_description: e.target.value })} placeholder="Descrição breve" />
           </div>
 
           {/* Registration & Security */}
@@ -206,7 +206,7 @@ export default function SettingsPage() {
           )}
           {success && (
             <div className="rounded-lg bg-success-muted border border-success/20 px-3 py-2">
-              <p className="text-xs text-success">Configuracoes salvas com sucesso!</p>
+              <p className="text-xs text-success">Configurações salvas com sucesso!</p>
             </div>
           )}
 

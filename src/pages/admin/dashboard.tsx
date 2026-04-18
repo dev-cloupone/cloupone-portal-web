@@ -43,7 +43,7 @@ export default function DashboardPage() {
     <SidebarLayout navItems={navItems} title="Admin">
       <div className="mb-6">
         <h2 className="text-2xl font-bold tracking-tight text-text-primary">Painel</h2>
-        <p className="mt-1 text-sm text-text-tertiary">Visao geral do sistema</p>
+        <p className="mt-1 text-sm text-text-tertiary">Visão geral do sistema</p>
       </div>
 
       {isLoading ? (

@@ -56,7 +56,7 @@ export default function ChangePasswordFirstPage() {
   };
 
   return (
-    <AuthLayout subtitle="Voce precisa alterar sua senha antes de continuar">
+    <AuthLayout subtitle="Você precisa alterar sua senha antes de continuar">
       <form onSubmit={handleSubmit} className="space-y-5">
         <Input
           label="Senha Atual"

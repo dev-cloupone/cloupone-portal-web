@@ -358,7 +358,7 @@ export default function ReportsPage() {
           )}
 
           <DateInput
-            label="Data Inicio"
+            label="Data Início"
             value={dateRange.from}
             onChange={(e) => setDateRange((prev) => ({ ...prev, from: e.target.value }))}
           />
@@ -450,7 +450,7 @@ export default function ReportsPage() {
                   <TableHeader>Data</TableHeader>
                   <TableHeader>Consultor</TableHeader>
                   <TableHeader>Atividade</TableHeader>
-                  <TableHeader>Descricao</TableHeader>
+                  <TableHeader>Descrição</TableHeader>
                   <TableHeader className="text-right">Horas</TableHeader>
                 </TableRow>
               </TableHead>
@@ -529,7 +529,7 @@ export default function ReportsPage() {
                 <TableHead>
                   <TableRow>
                     <TableHeader>Ticket</TableHeader>
-                    <TableHeader>Titulo</TableHeader>
+                    <TableHeader>Título</TableHeader>
                     <TableHeader>Tipo</TableHeader>
                     <TableHeader className="text-right">Estimado</TableHeader>
                     <TableHeader className="text-right">Realizado</TableHeader>
@@ -675,7 +675,7 @@ export default function ReportsPage() {
                 <TableHead>
                   <TableRow>
                     <TableHeader>Codigo</TableHeader>
-                    <TableHeader>Titulo</TableHeader>
+                    <TableHeader>Título</TableHeader>
                     <TableHeader>Tipo</TableHeader>
                     <TableHeader>Status</TableHeader>
                     <TableHeader className="text-right">Estimado</TableHeader>
@@ -708,7 +708,7 @@ export default function ReportsPage() {
                   <TableHeader>Consultor</TableHeader>
                   <TableHeader>Ticket</TableHeader>
                   <TableHeader>Atividade</TableHeader>
-                  <TableHeader>Descricao</TableHeader>
+                  <TableHeader>Descrição</TableHeader>
                   <TableHeader className="text-right">Horas</TableHeader>
                 </TableRow>
               </TableHead>
@@ -786,7 +786,7 @@ export default function ReportsPage() {
                   <TableHeader>Consultor</TableHeader>
                   <TableHeader>Projeto</TableHeader>
                   <TableHeader>Categoria</TableHeader>
-                  <TableHeader>Descricao</TableHeader>
+                  <TableHeader>Descrição</TableHeader>
                   <TableHeader className="text-right">Valor</TableHeader>
                 </TableRow>
               </TableHead>
