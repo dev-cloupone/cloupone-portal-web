@@ -10,8 +10,8 @@ function getBaseUrl(): string {
     return 'http://localhost:3001/api';
   }
 
-  if (import.meta.env.PROD && !url.startsWith('https://')) {
-    throw new Error('VITE_API_URL must use HTTPS in production');
+  if (import.meta.env.PROD && !url.startsWith('https://') && !url.startsWith('http://localhost')) {
+    console.warn('VITE_API_URL should use HTTPS in production');
   }
 
   return url;
