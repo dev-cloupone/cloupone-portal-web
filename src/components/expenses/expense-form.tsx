@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, AlertTriangle, Paperclip, Upload, Bookmark, Settings } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { ArrowLeft, AlertTriangle, Paperclip, Upload, Settings } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Select } from '../ui/select';
-import type { Expense, UpsertExpenseData, ExpenseCategory, ExpenseTemplate } from '../../types/expense.types';
+import type { Expense, UpsertExpenseData, ProjectExpenseCategory, ExpenseTemplate } from '../../types/expense.types';
+import type { ProjectAllocation } from '../../types/project.types';
 import { apiFetch, BASE_URL } from '../../services/api';
+import { useAuth } from '../../hooks/use-auth';
 
 interface AllocatedProject {
   projectId: string;
@@ -15,10 +17,15 @@ interface ExpenseFormProps {
   date: string;
   expense?: Expense | null;
   projects: AllocatedProject[];
-  categories: ExpenseCategory[];
+  categoriesByProject: Record<string, ProjectExpenseCategory[]>;
+  allocationsByProject?: Record<string, ProjectAllocation[]>;
   templates?: ExpenseTemplate[];
+  /** Project IDs that have the current date in an open period. */
+  openProjectIds?: Set<string>;
+  contextConsultantUserId?: string | null;
+  contextProjectId?: string | null;
   onSave: (data: UpsertExpenseData) => Promise<void>;
-  onSaveAsTemplate?: (data: { name: string; expenseCategoryId?: string | null; description?: string; amount?: string; requiresReimbursement?: boolean }) => Promise<void>;
+  onProjectChange?: (projectId: string) => void;
   onManageTemplates?: () => void;
   onCancel: () => void;
 }
@@ -27,62 +34,124 @@ export function ExpenseForm({
   date,
   expense = null,
   projects,
-  categories,
+  categoriesByProject,
+  allocationsByProject = {},
   templates = [],
+  openProjectIds,
+  contextConsultantUserId,
+  contextProjectId,
   onSave,
-  onSaveAsTemplate,
+  onProjectChange,
   onManageTemplates,
   onCancel,
 }: ExpenseFormProps) {
+  const { user } = useAuth();
+  const isGestorOrAdmin = user?.role === 'gestor' || user?.role === 'super_admin';
+
   const [projectId, setProjectId] = useState('');
+  const [consultantUserId, setConsultantUserId] = useState('');
   const [expenseCategoryId, setExpenseCategoryId] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const [kmQuantity, setKmQuantity] = useState('');
+  const [clientChargeAmount, setClientChargeAmount] = useState('');
   const [receiptFileId, setReceiptFileId] = useState<string | null>(null);
   const [_receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [requiresReimbursement, setRequiresReimbursement] = useState(true);
+  const [isChargeManuallySet, setIsChargeManuallySet] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
-  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
-  const [templateName, setTemplateName] = useState('');
-  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
 
   // Initialize form
   useEffect(() => {
     if (expense) {
       setProjectId(expense.projectId);
+      setConsultantUserId(expense.consultantUserId || '');
       setExpenseCategoryId(expense.expenseCategoryId || '');
-      setDescription(expense.description);
+      setDescription(expense.description || '');
       setAmount(expense.amount);
+      setKmQuantity(expense.kmQuantity || '');
+      setClientChargeAmount(expense.clientChargeAmount || '');
       setReceiptFileId(expense.receiptFileId);
       setReceiptUrl(expense.receiptUrl);
       setRequiresReimbursement(expense.requiresReimbursement);
+      setIsChargeManuallySet(expense.clientChargeAmountManuallySet ?? false);
     } else {
-      setProjectId(projects.length === 1 ? projects[0].projectId : '');
+      setProjectId(contextProjectId || (projects.length === 1 ? projects[0].projectId : ''));
+      setConsultantUserId(contextConsultantUserId || '');
       setExpenseCategoryId('');
       setDescription('');
       setAmount('');
+      setKmQuantity('');
+      setClientChargeAmount('');
       setReceiptFileId(null);
       setReceiptUrl(null);
-      setRequiresReimbursement(true);
+      setRequiresReimbursement(user?.role === 'consultor');
+      setIsChargeManuallySet(false);
     }
     setError('');
-    setShowSaveTemplate(false);
-  }, [expense, date, projects]);
+  }, [expense, date, projects, user?.role, contextConsultantUserId, contextProjectId]);
 
-  const isEditable = !expense || expense.status === 'draft' || expense.status === 'rejected';
+  // Categories for the selected project
+  const categories = useMemo(() => {
+    if (!projectId) return [];
+    return categoriesByProject[projectId] ?? [];
+  }, [projectId, categoriesByProject]);
+
+  // Allocations for the selected project (gestor/admin: consultant selector)
+  const projectAllocations = useMemo(() => {
+    if (!projectId || !isGestorOrAdmin) return [];
+    return allocationsByProject[projectId] ?? [];
+  }, [projectId, isGestorOrAdmin, allocationsByProject]);
+
+  // Reset category and consultant when project changes
+  useEffect(() => {
+    if (expenseCategoryId && categories.length > 0) {
+      const exists = categories.find(c => c.id === expenseCategoryId);
+      if (!exists) setExpenseCategoryId('');
+    }
+    if (consultantUserId && projectAllocations.length > 0) {
+      const exists = projectAllocations.find(a => a.userId === consultantUserId);
+      if (!exists) setConsultantUserId('');
+    }
+  }, [categories, expenseCategoryId, projectAllocations, consultantUserId]);
+
+  const isEditable = !expense || expense.status !== 'approved';
+  const isContextMode = !!(contextConsultantUserId && contextProjectId);
 
   const selectedCategory = categories.find(c => c.id === expenseCategoryId);
+  const isKmCategory = selectedCategory?.isKmCategory ?? false;
   const isOverBudget = selectedCategory?.maxAmount && amount && Number(amount) > Number(selectedCategory.maxAmount);
   const needsReceipt = selectedCategory?.requiresReceipt && !receiptFileId;
+
+  // Auto-calculate amount for KM categories
+  useEffect(() => {
+    if (isKmCategory && kmQuantity && selectedCategory?.kmRate) {
+      const computed = (Number(kmQuantity) * Number(selectedCategory.kmRate)).toFixed(2);
+      setAmount(computed);
+    }
+  }, [isKmCategory, kmQuantity, selectedCategory?.kmRate]);
+
+  // Default client charge = amount (unless manually set)
+  useEffect(() => {
+    if (!isChargeManuallySet && amount) {
+      setClientChargeAmount(amount);
+    }
+  }, [amount, isChargeManuallySet]);
 
   function handleApplyTemplate(templateId: string) {
     if (!templateId) return;
     const template = templates.find(t => t.id === templateId);
     if (!template) return;
 
-    if (template.expenseCategoryId) setExpenseCategoryId(template.expenseCategoryId);
+    if (template.expenseCategoryId) {
+      // Template references a global category template ID — resolve to project category
+      const projectCategory = categories.find(c => c.templateId === template.expenseCategoryId);
+      if (projectCategory) {
+        setExpenseCategoryId(projectCategory.id);
+      }
+    }
     if (template.description) setDescription(template.description);
     if (template.amount) setAmount(template.amount);
     setRequiresReimbursement(template.requiresReimbursement);
@@ -115,7 +184,13 @@ export function ExpenseForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!projectId || !description.trim() || !amount) return;
+    if (!projectId || !amount) return;
+    if (isGestorOrAdmin && !consultantUserId) return;
+    if (isKmCategory && !kmQuantity) return;
+    if (needsReceipt) {
+      setError('Esta categoria exige comprovante. Anexe um comprovante antes de salvar.');
+      return;
+    }
 
     setIsSaving(true);
     setError('');
@@ -123,10 +198,13 @@ export function ExpenseForm({
       await onSave({
         id: expense?.id,
         projectId,
+        consultantUserId: isGestorOrAdmin && consultantUserId ? consultantUserId : null,
         expenseCategoryId: expenseCategoryId || null,
         date,
-        description: description.trim(),
+        description: description.trim() || null,
         amount,
+        kmQuantity: isKmCategory ? kmQuantity : null,
+        clientChargeAmount: isGestorOrAdmin ? clientChargeAmount || null : null,
         receiptFileId,
         requiresReimbursement,
       });
@@ -137,29 +215,16 @@ export function ExpenseForm({
     }
   }
 
-  async function handleSaveAsTemplate() {
-    if (!templateName.trim() || !onSaveAsTemplate) return;
-    setIsSavingTemplate(true);
-    try {
-      await onSaveAsTemplate({
-        name: templateName.trim(),
-        expenseCategoryId: expenseCategoryId || null,
-        description: description.trim() || undefined,
-        amount: amount || undefined,
-        requiresReimbursement,
-      });
-      setShowSaveTemplate(false);
-      setTemplateName('');
-    } catch {
-      setError('Erro ao salvar template.');
-    } finally {
-      setIsSavingTemplate(false);
-    }
-  }
+  const projectOptions = projects
+    .filter(p => !openProjectIds || openProjectIds.has(p.projectId))
+    .map(p => ({
+      value: p.projectId,
+      label: `${p.projectName} (${p.clientName})`,
+    }));
 
-  const projectOptions = projects.map(p => ({
-    value: p.projectId,
-    label: `${p.projectName} (${p.clientName})`,
+  const consultantOptions = projectAllocations.map(a => ({
+    value: a.userId,
+    label: `${a.userName} (${a.userEmail})`,
   }));
 
   const categoryOptions = categories
@@ -181,6 +246,7 @@ export function ExpenseForm({
   });
 
   const title = expense ? 'Editar Despesa' : 'Nova Despesa';
+  const isReimbursementEditable = isEditable && (user?.role !== 'consultor' || !expense);
 
   return (
     <div className="rounded-xl border border-border bg-surface-1 p-4 animate-slide-in-right">
@@ -234,20 +300,33 @@ export function ExpenseForm({
         <Select
           label="Projeto"
           value={projectId}
-          onChange={setProjectId}
+          onChange={(v) => { setProjectId(v); onProjectChange?.(v); }}
           options={projectOptions}
           placeholder="Selecione um projeto"
-          disabled={!isEditable}
+          disabled={!isEditable || isContextMode}
           required
         />
+
+        {/* Consultant selector (gestor/admin only) */}
+        {isGestorOrAdmin && projectId && (
+          <Select
+            label="Consultor"
+            value={consultantUserId}
+            onChange={setConsultantUserId}
+            options={consultantOptions}
+            placeholder={consultantOptions.length === 0 ? 'Nenhum consultor alocado' : 'Selecione o consultor'}
+            disabled={!isEditable || consultantOptions.length === 0 || isContextMode}
+            required
+          />
+        )}
 
         <Select
           label="Categoria"
           value={expenseCategoryId}
           onChange={setExpenseCategoryId}
           options={categoryOptions}
-          placeholder="Selecione uma categoria"
-          disabled={!isEditable}
+          placeholder={projectId ? 'Selecione uma categoria' : 'Selecione um projeto primeiro'}
+          disabled={!isEditable || !projectId}
         />
 
         {/* Category info */}
@@ -256,9 +335,32 @@ export function ExpenseForm({
             {selectedCategory.maxAmount && (
               <span>Teto: R$ {Number(selectedCategory.maxAmount).toFixed(2)}</span>
             )}
+            {selectedCategory.isKmCategory && selectedCategory.kmRate && (
+              <span className="text-accent">R$ {Number(selectedCategory.kmRate).toFixed(2)} por km</span>
+            )}
             {selectedCategory.requiresReceipt && (
               <span className="text-warning">Exige comprovante</span>
             )}
+          </div>
+        )}
+
+        {/* KM Quantity (only for KM categories) */}
+        {isKmCategory && (
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+              Quantidade de KM
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              min="0.1"
+              value={kmQuantity}
+              onChange={(e) => setKmQuantity(e.target.value)}
+              disabled={!isEditable}
+              required
+              className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none disabled:opacity-40"
+              placeholder="0.0"
+            />
           </div>
         )}
 
@@ -273,11 +375,14 @@ export function ExpenseForm({
             min="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            disabled={!isEditable}
+            disabled={!isEditable || isKmCategory}
             required
             className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none disabled:opacity-40"
             placeholder="0.00"
           />
+          {isKmCategory && (
+            <p className="text-xs text-text-muted">Valor calculado automaticamente com base no KM</p>
+          )}
           {isOverBudget && (
             <p className="text-xs text-warning flex items-center gap-1">
               <AlertTriangle size={10} /> Acima do teto da categoria
@@ -285,10 +390,30 @@ export function ExpenseForm({
           )}
         </div>
 
-        {/* Description */}
+        {/* Client charge amount (gestor/admin only) */}
+        {isGestorOrAdmin && (
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+              Valor de cobrança ao cliente (R$)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={clientChargeAmount}
+              onChange={(e) => { setClientChargeAmount(e.target.value); setIsChargeManuallySet(true); }}
+              disabled={!isEditable}
+              className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none disabled:opacity-40"
+              placeholder="0.00"
+            />
+            <p className="text-xs text-text-muted">Default = valor da despesa. Edite para definir manualmente.</p>
+          </div>
+        )}
+
+        {/* Description (optional) */}
         <div className="space-y-1.5">
           <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Descrição
+            Descrição (opcional)
           </label>
           <textarea
             value={description}
@@ -296,7 +421,6 @@ export function ExpenseForm({
             rows={3}
             maxLength={500}
             disabled={!isEditable}
-            required
             className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none resize-none disabled:opacity-40"
             placeholder="Descreva a despesa..."
           />
@@ -347,7 +471,7 @@ export function ExpenseForm({
             id="requiresReimbursement"
             checked={requiresReimbursement}
             onChange={(e) => setRequiresReimbursement(e.target.checked)}
-            disabled={!isEditable}
+            disabled={!isReimbursementEditable}
             className="h-4 w-4 rounded border-border text-accent focus:ring-accent bg-surface-2"
           />
           <label htmlFor="requiresReimbursement" className="text-sm text-text-secondary">
@@ -366,56 +490,12 @@ export function ExpenseForm({
             Cancelar
           </Button>
           {isEditable && (
-            <Button type="submit" disabled={isSaving || !projectId || !description.trim() || !amount} className="flex-1">
+            <Button type="submit" disabled={isSaving || !projectId || !amount || (isKmCategory && !kmQuantity) || !!needsReceipt || (isGestorOrAdmin && !consultantUserId)} className="flex-1">
               {isSaving ? 'Salvando...' : 'Salvar'}
             </Button>
           )}
         </div>
 
-        {/* Save as template */}
-        {onSaveAsTemplate && isEditable && (expenseCategoryId || description || amount) && (
-          <div className="border-t border-border pt-3">
-            {!showSaveTemplate ? (
-              <button
-                type="button"
-                onClick={() => setShowSaveTemplate(true)}
-                className="flex items-center gap-1.5 text-xs text-text-tertiary hover:text-accent transition-colors"
-              >
-                <Bookmark size={12} /> Salvar como template
-              </button>
-            ) : (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                  maxLength={100}
-                  placeholder="Nome do template..."
-                  className="block w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    type="button"
-                    onClick={() => { setShowSaveTemplate(false); setTemplateName(''); }}
-                    disabled={isSavingTemplate}
-                    className="flex-1 text-xs"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleSaveAsTemplate}
-                    disabled={isSavingTemplate || !templateName.trim()}
-                    className="flex-1 text-xs"
-                  >
-                    {isSavingTemplate ? 'Salvando...' : 'Salvar Template'}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </form>
     </div>
   );

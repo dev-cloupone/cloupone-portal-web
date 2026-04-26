@@ -122,7 +122,7 @@ export default function ClientsPage() {
         <Input placeholder="Buscar por nome..." value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
-      {error && (
+      {error && !isCreateOpen && !editing && (
         <div className="mb-4 rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">
           <p className="text-xs text-danger whitespace-pre-line">{error}</p>
         </div>
@@ -163,23 +163,23 @@ export default function ClientsPage() {
       </Table>
       {meta && <PaginationControls meta={meta} onPageChange={goToPage} />}
 
-      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Novo Cliente">
+      <Modal isOpen={isCreateOpen} onClose={() => { setIsCreateOpen(false); setError(''); }} title="Novo Cliente">
         <form onSubmit={handleCreate} className="space-y-4">
           {formFields}
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setIsCreateOpen(false); setError(''); }}>Cancelar</Button>
             <Button type="submit">Criar</Button>
           </div>
         </form>
       </Modal>
 
-      <Modal isOpen={!!editing} onClose={() => setEditing(null)} title="Editar Cliente">
+      <Modal isOpen={!!editing} onClose={() => { setEditing(null); setError(''); }} title="Editar Cliente">
         <form onSubmit={handleUpdate} className="space-y-4">
           {formFields}
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setEditing(null); setError(''); }}>Cancelar</Button>
             <Button type="submit">Salvar</Button>
           </div>
         </form>

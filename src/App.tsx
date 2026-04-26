@@ -28,9 +28,10 @@ const AdminSettingsPage = lazy(() => import('./pages/admin/settings'));
 const AdminClientsPage = lazy(() => import('./pages/admin/clients'));
 const AdminProjectsPage = lazy(() => import('./pages/admin/projects'));
 const AdminConsultantsPage = lazy(() => import('./pages/admin/consultants'));
-const AdminActivityCategoriesPage = lazy(() => import('./pages/admin/activity-categories'));
 const AdminExpenseCategoriesPage = lazy(() => import('./pages/admin/expense-categories'));
 const AdminProjectPhasesPage = lazy(() => import('./pages/admin/project-phases'));
+const AdminProjectExpensesConfigPage = lazy(() => import('./pages/admin/project-expenses-config'));
+const AdminProjectExpenseCategoriesConfigPage = lazy(() => import('./pages/admin/project-expense-categories-config'));
 
 // Timesheet (consultor + gestor + super_admin)
 const TimesheetPage = lazy(() => import('./pages/timesheet'));
@@ -46,6 +47,9 @@ const ExpenseApprovalsPage = lazy(() => import('./pages/expense-approvals'));
 
 // Expense Reimbursements (gestor + super_admin)
 const ExpenseReimbursementsPage = lazy(() => import('./pages/expense-reimbursements'));
+
+// Expense Report (gestor + super_admin)
+const ExpenseReportPage = lazy(() => import('./pages/expense-report'));
 
 // Dashboards
 const ManagerDashboardPage = lazy(() => import('./pages/manager-dashboard'));
@@ -117,12 +121,13 @@ export default function App() {
                     <Route path="settings" element={<RoleGuard allowedRoles={['super_admin']}><AdminSettingsPage /></RoleGuard>} />
                     <Route path="clients" element={<RoleGuard allowedRoles={['super_admin']}><AdminClientsPage /></RoleGuard>} />
                     <Route path="consultants" element={<RoleGuard allowedRoles={['super_admin']}><AdminConsultantsPage /></RoleGuard>} />
-                    <Route path="activity-categories" element={<RoleGuard allowedRoles={['super_admin']}><AdminActivityCategoriesPage /></RoleGuard>} />
                     <Route path="expense-categories" element={<RoleGuard allowedRoles={['super_admin']}><AdminExpenseCategoriesPage /></RoleGuard>} />
                     <Route path="reports" element={<RoleGuard allowedRoles={['super_admin']}><AdminReportsPage /></RoleGuard>} />
                     {/* super_admin + gestor */}
                     <Route path="projects" element={<AdminProjectsPage />} />
                     <Route path="projects/:id/phases" element={<AdminProjectPhasesPage />} />
+                    <Route path="projects/:id/expenses" element={<AdminProjectExpensesConfigPage />} />
+                    <Route path="projects/:id/expense-categories" element={<AdminProjectExpenseCategoriesConfigPage />} />
                   </Routes>
                 </RoleGuard>
               </ProtectedRoute>
@@ -208,6 +213,18 @@ export default function App() {
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['gestor', 'super_admin']}>
                   <ExpenseReimbursementsPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Expense Report (gestor + super_admin) */}
+          <Route
+            path="/expense-report"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['gestor', 'super_admin']}>
+                  <ExpenseReportPage />
                 </RoleGuard>
               </ProtectedRoute>
             }

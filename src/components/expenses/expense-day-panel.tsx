@@ -1,5 +1,7 @@
-import { Plus, Send, Receipt, X } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Receipt, X } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Modal } from '../ui/modal';
 import { ExpenseCard } from './expense-card';
 import type { Expense, ExpenseWeekSummary } from '../../types/expense.types';
 
@@ -7,11 +9,13 @@ interface ExpenseDayPanelProps {
   selectedDate: string;
   expenses: Expense[];
   weekSummary: ExpenseWeekSummary | null;
+  isDayInOpenPeriod: boolean;
+  isConsultantMode?: boolean;
   onEdit: (expense: Expense) => void;
   onDelete: (expenseId: string) => void;
   onResubmit: (expenseId: string) => void;
+  onRevertExpense?: (expenseId: string) => Promise<void>;
   onNewExpense: () => void;
-  onSubmitWeek: () => void;
   onClose: () => void;
 }
 
@@ -33,15 +37,31 @@ export function ExpenseDayPanel({
   selectedDate,
   expenses,
   weekSummary,
+  isDayInOpenPeriod,
+  isConsultantMode,
   onEdit,
   onDelete,
   onResubmit,
+  onRevertExpense,
   onNewExpense,
-  onSubmitWeek,
   onClose,
 }: ExpenseDayPanelProps) {
   const dayTotal = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
-  const canSubmit = weekSummary?.hasDraftExpenses && weekSummary.status !== 'submitted' && weekSummary.status !== 'approved';
+  const [revertingExpense, setRevertingExpense] = useState<Expense | null>(null);
+  const [isReverting, setIsReverting] = useState(false);
+
+  const handleRevert = async () => {
+    if (!revertingExpense || !onRevertExpense) return;
+    setIsReverting(true);
+    try {
+      await onRevertExpense(revertingExpense.id);
+      setRevertingExpense(null);
+    } catch {
+      // toast handled in hook
+    } finally {
+      setIsReverting(false);
+    }
+  };
 
   return (
     <div className="rounded-xl border border-border bg-surface-1 p-4 space-y-4 animate-slide-in-right">
@@ -57,9 +77,11 @@ export function ExpenseDayPanel({
                 {formatCurrency(dayTotal)}
               </span>
             )}
-            <Button variant="secondary" size="sm" onClick={onNewExpense}>
-              <Plus size={14} className="mr-1" /> Nova Despesa
-            </Button>
+            {isDayInOpenPeriod && (
+              <Button variant="secondary" size="sm" onClick={onNewExpense}>
+                <Plus size={14} className="mr-1" /> Nova Despesa
+              </Button>
+            )}
             <button
               onClick={onClose}
               className="p-0.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-3 transition-colors"
@@ -76,16 +98,17 @@ export function ExpenseDayPanel({
             <span className="text-xs text-text-tertiary">
               Semana: {formatCurrency(weekSummary.totalAmount)} ({weekSummary.expenseCount} despesa{weekSummary.expenseCount !== 1 ? 's' : ''})
             </span>
-            {canSubmit && (
-              <Button size="sm" onClick={onSubmitWeek}>
-                <Send size={12} className="mr-1" /> Submeter
-              </Button>
-            )}
           </div>
         )}
       </div>
 
       {/* Expenses list */}
+      {!isDayInOpenPeriod && expenses.length === 0 && (
+        <div className="rounded-lg bg-surface-2 border border-border px-3 py-2">
+          <p className="text-xs text-text-muted">Nenhum período aberto para esta data. Solicite ao gestor a abertura da semana.</p>
+        </div>
+      )}
+
       {expenses.length > 0 ? (
         <div className="space-y-2">
           {expenses.map(expense => (
@@ -95,17 +118,37 @@ export function ExpenseDayPanel({
               onEdit={onEdit}
               onDelete={onDelete}
               onResubmit={onResubmit}
+              onRevert={onRevertExpense ? (e) => setRevertingExpense(e) : undefined}
+              isConsultantMode={isConsultantMode}
             />
           ))}
         </div>
-      ) : (
+      ) : isDayInOpenPeriod ? (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <Receipt size={32} className="text-text-muted mb-3" />
           <p className="text-sm text-text-tertiary mb-1">Nenhuma despesa</p>
           <p className="text-xs text-text-muted">Use o botão acima para registrar uma despesa</p>
         </div>
-      )}
+      ) : null}
 
+      {/* Revert confirmation modal */}
+      <Modal
+        isOpen={!!revertingExpense}
+        onClose={() => setRevertingExpense(null)}
+        title="Reverter Despesa"
+      >
+        <p className="text-sm text-text-secondary mb-4">
+          Reverter despesa &ldquo;{revertingExpense?.description || revertingExpense?.categoryName || 'Sem descrição'}&rdquo; de <strong>Aprovada</strong> para <strong>Criada</strong>?
+        </p>
+        <div className="flex items-center gap-2 justify-end">
+          <Button variant="ghost" size="sm" onClick={() => setRevertingExpense(null)} disabled={isReverting}>
+            Cancelar
+          </Button>
+          <Button variant="danger" size="sm" onClick={handleRevert} disabled={isReverting}>
+            {isReverting ? 'Revertendo...' : 'Reverter'}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { ExpenseCalendarCell } from './expense-calendar-cell';
+import { ExpenseCalendarLegend } from './expense-calendar-legend';
 import type { ExpenseCalendarDay } from '../../types/expense.types';
 
 interface ExpenseMonthCalendarProps {
@@ -49,6 +50,7 @@ export function ExpenseMonthCalendar({
               isSelected={day.date === selectedDate}
               isSelectedWeek={isInSelectedWeek(day.date, selectedWeekStart)}
               isWeekend={day.isWeekend}
+              periodStatus={day.periodStatus}
               totalAmount={day.totalAmount}
               expenses={day.expenses}
               onClick={onSelectDate}
@@ -57,21 +59,7 @@ export function ExpenseMonthCalendar({
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center justify-center gap-4 text-caption text-text-tertiary">
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-text-muted" /> Rascunho
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-warning" /> Submetido
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-success" /> Aprovado
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-danger" /> Rejeitado
-        </span>
-      </div>
+      <ExpenseCalendarLegend />
     </div>
   );
 }

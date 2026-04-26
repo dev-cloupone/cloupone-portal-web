@@ -1,10 +1,18 @@
 import { api } from './api';
-import type { Expense, ExpenseMonthData, UpsertExpenseData, SubmitWeekResult, PendingExpense, ReimbursementListResponse } from '../types/expense.types';
+import type { Expense, ExpenseMonthData, UpsertExpenseData, PendingExpense, ReimbursementListResponse } from '../types/expense.types';
 import type { PaginatedResponse } from '../types/pagination.types';
 
 // User operations
-export async function getMonthExpenses(year: number, month: number): Promise<ExpenseMonthData> {
-  return api<ExpenseMonthData>(`/expenses/month?year=${year}&month=${month}`);
+export async function getMonthExpenses(
+  year: number,
+  month: number,
+  consultantUserId?: string,
+  projectId?: string,
+): Promise<ExpenseMonthData> {
+  const params = new URLSearchParams({ year: String(year), month: String(month) });
+  if (consultantUserId) params.set('consultantUserId', consultantUserId);
+  if (projectId) params.set('projectId', projectId);
+  return api<ExpenseMonthData>(`/expenses/month?${params.toString()}`);
 }
 
 export async function getWeekExpenses(weekStartDate: string): Promise<{ weekStartDate: string; expenses: Expense[]; totalAmount: number }> {
@@ -19,15 +27,12 @@ export async function deleteExpense(id: string): Promise<void> {
   return api<void>(`/expenses/${id}`, { method: 'DELETE' });
 }
 
-export async function submitWeek(weekStartDate: string): Promise<SubmitWeekResult> {
-  return api<SubmitWeekResult>('/expenses/submit-week', {
-    method: 'POST',
-    body: JSON.stringify({ weekStartDate }),
-  });
-}
-
 export async function resubmitExpense(id: string): Promise<Expense> {
   return api<Expense>(`/expenses/${id}/resubmit`, { method: 'POST' });
+}
+
+export async function revertExpense(id: string): Promise<Expense> {
+  return api<Expense>(`/expenses/${id}/revert`, { method: 'POST' });
 }
 
 // Gestor/Admin: Approvals
@@ -46,10 +51,13 @@ export async function listPending(params?: {
   return api(`/expenses/pending${qs ? `?${qs}` : ''}`);
 }
 
-export async function approveExpenses(ids: string[]): Promise<{ approved: number }> {
+export async function approveExpenses(
+  ids: string[],
+  updates?: Record<string, { clientChargeAmount: string }>,
+): Promise<{ approved: number }> {
   return api<{ approved: number }>('/expenses/approve', {
     method: 'POST',
-    body: JSON.stringify({ ids }),
+    body: JSON.stringify({ ids, updates }),
   });
 }
 

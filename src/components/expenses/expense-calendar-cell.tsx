@@ -8,12 +8,14 @@ interface ExpenseCalendarCellProps {
   isSelected: boolean;
   isSelectedWeek: boolean;
   isWeekend: boolean;
+  periodStatus: 'open' | 'closed' | 'none';
   totalAmount: number;
   expenses: Expense[];
   onClick: (date: string) => void;
 }
 
 const STATUS_DOT_COLORS: Record<string, string> = {
+  created: 'bg-accent',
   draft: 'bg-text-muted',
   submitted: 'bg-warning',
   approved: 'bg-success',
@@ -28,6 +30,7 @@ export function ExpenseCalendarCell({
   isSelected,
   isSelectedWeek,
   isWeekend,
+  periodStatus,
   totalAmount,
   expenses,
   onClick,
@@ -35,6 +38,8 @@ export function ExpenseCalendarCell({
   let bgClass = 'bg-surface-1';
   if (isSelected) bgClass = 'bg-accent-10';
   else if (isSelectedWeek) bgClass = 'bg-accent-5';
+  else if (periodStatus === 'open') bgClass = 'bg-accent-5';
+  else if (periodStatus === 'closed') bgClass = 'bg-surface-2 opacity-60';
   else if (isWeekend) bgClass = 'bg-[var(--color-weekend)]';
 
   let borderClass = 'border border-transparent';

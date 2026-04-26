@@ -139,7 +139,7 @@ export default function UsersPage() {
         </Button>
       </div>
 
-      {error && (
+      {error && !isCreateModalOpen && !editingUser && (
         <div className="mb-4 rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">
           <p className="text-xs text-danger whitespace-pre-line">{error}</p>
         </div>
@@ -199,7 +199,7 @@ export default function UsersPage() {
       {meta && <PaginationControls meta={meta} onPageChange={goToPage} />}
 
       {/* Create User Modal */}
-      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Novo Usuario">
+      <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); setError(''); }} title="Novo Usuario">
         <form onSubmit={handleCreate} className="space-y-4">
           <Input
             label="Nome"
@@ -259,14 +259,14 @@ export default function UsersPage() {
             </div>
           )}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setIsCreateModalOpen(false)}>Cancelar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setIsCreateModalOpen(false); setError(''); }}>Cancelar</Button>
             <Button type="submit">Criar</Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit User Modal */}
-      <Modal isOpen={!!editingUser} onClose={() => setEditingUser(null)} title="Editar Usuario">
+      <Modal isOpen={!!editingUser} onClose={() => { setEditingUser(null); setError(''); }} title="Editar Usuario">
         <form onSubmit={handleUpdate} className="space-y-4">
           <Input
             label="Nome"
@@ -316,7 +316,7 @@ export default function UsersPage() {
             </div>
           )}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setEditingUser(null)}>Cancelar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setEditingUser(null); setError(''); }}>Cancelar</Button>
             <Button type="submit">Salvar</Button>
           </div>
         </form>

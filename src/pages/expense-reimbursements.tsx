@@ -10,10 +10,11 @@ import * as expenseService from '../services/expense.service';
 import { BASE_URL } from '../services/api';
 import * as consultantService from '../services/consultant.service';
 import * as projectService from '../services/project.service';
+import * as periodService from '../services/project-expense-period.service';
 import { formatApiError } from '../services/api';
 import { useToastStore } from '../stores/toast.store';
 import { useNavItems } from '../hooks/use-nav-items';
-import type { PendingExpense } from '../types/expense.types';
+import type { PendingExpense, ProjectExpensePeriod } from '../types/expense.types';
 
 function formatCurrency(value: number | string): string {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -51,6 +52,8 @@ export default function ExpenseReimbursementsPage() {
   // Options for dropdowns
   const [consultantOptions, setConsultantOptions] = useState<{ value: string; label: string }[]>([]);
   const [projectOptions, setProjectOptions] = useState<{ value: string; label: string }[]>([]);
+  const [periodOptions, setPeriodOptions] = useState<{ value: string; label: string; period: ProjectExpensePeriod }[]>([]);
+  const [selectedPeriodId, setSelectedPeriodId] = useState('');
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -98,6 +101,38 @@ export default function ExpenseReimbursementsPage() {
     }
     loadOptions();
   }, []);
+
+  // Load periods when project filter changes
+  useEffect(() => {
+    if (!filterProject) {
+      setPeriodOptions([]);
+      setSelectedPeriodId('');
+      return;
+    }
+    async function loadPeriods() {
+      try {
+        const result = await periodService.listByProject(filterProject);
+        setPeriodOptions(result.data.map(p => ({
+          value: p.id,
+          label: `${new Date(p.weekStart + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} — ${new Date(p.weekEnd + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} (${p.status === 'open' ? 'Aberto' : 'Fechado'})`,
+          period: p,
+        })));
+      } catch { /* silent */ }
+    }
+    loadPeriods();
+  }, [filterProject]);
+
+  function handlePeriodFilter(periodId: string) {
+    setSelectedPeriodId(periodId);
+    const option = periodOptions.find(o => o.value === periodId);
+    if (option) {
+      setFilterFrom(option.period.weekStart);
+      setFilterTo(option.period.weekEnd);
+    } else {
+      setFilterFrom('');
+      setFilterTo('');
+    }
+  }
 
   // Reset page when filters change
   useEffect(() => {
@@ -205,6 +240,16 @@ export default function ExpenseReimbursementsPage() {
             onChange={setFilterProject}
           />
         </div>
+        {filterProject && periodOptions.length > 0 && (
+          <div className="w-56">
+            <Select
+              label="Período"
+              options={[{ value: '', label: 'Todos' }, ...periodOptions]}
+              value={selectedPeriodId}
+              onChange={handlePeriodFilter}
+            />
+          </div>
+        )}
         <div className="w-40">
           <Select
             label="Status"

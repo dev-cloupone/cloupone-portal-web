@@ -1,5 +1,6 @@
-import { Pencil, Trash2, AlertTriangle, Paperclip, RotateCcw } from 'lucide-react';
+import { Pencil, Trash2, AlertTriangle, Paperclip, RotateCcw, Undo2 } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import type { Expense } from '../../types/expense.types';
 
 interface ExpenseCardProps {
@@ -7,9 +8,12 @@ interface ExpenseCardProps {
   onEdit: (expense: Expense) => void;
   onDelete: (expenseId: string) => void;
   onResubmit?: (expenseId: string) => void;
+  onRevert?: (expense: Expense) => void;
+  isConsultantMode?: boolean;
 }
 
 const STATUS_DOT_COLORS: Record<string, string> = {
+  created: 'bg-accent',
   draft: 'bg-text-muted',
   submitted: 'bg-warning',
   approved: 'bg-success',
@@ -17,6 +21,7 @@ const STATUS_DOT_COLORS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
+  created: 'Criado',
   draft: 'Rascunho',
   submitted: 'Submetido',
   approved: 'Aprovado',
@@ -27,10 +32,11 @@ function formatCurrency(value: string | number): string {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export function ExpenseCard({ expense, onEdit, onDelete, onResubmit }: ExpenseCardProps) {
-  const canEdit = expense.status === 'draft' || expense.status === 'rejected';
-  const canDelete = expense.status === 'draft';
+export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert, isConsultantMode }: ExpenseCardProps) {
+  const canEdit = ['created', 'rejected'].includes(expense.status);
+  const canDelete = expense.status === 'created' || expense.status === 'draft';
   const canResubmit = expense.status === 'rejected';
+  const canRevert = expense.status === 'approved' && !expense.reimbursedAt && !!onRevert;
 
   return (
     <div className="rounded-lg border border-border bg-surface-2 p-3 space-y-2 transition-colors hover:border-border-subtle">
@@ -39,8 +45,10 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit }: ExpenseCa
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT_COLORS[expense.status]}`} />
           <span className="text-xs text-text-tertiary">{STATUS_LABELS[expense.status]}</span>
-          {expense.autoApproved && expense.status === 'approved' && (
-            <span className="text-[10px] text-success bg-success/10 px-1.5 py-0.5 rounded">auto</span>
+          {expense.revertedAt && expense.status === 'created' && (
+            <span title={`Revertida por ${expense.revertedByName ?? 'Gestor'} em ${new Date(expense.revertedAt).toLocaleDateString('pt-BR')}`}>
+              <Badge variant="warning" className="cursor-help">Revertida</Badge>
+            </span>
           )}
         </div>
         <span className="text-sm font-bold text-text-primary">
@@ -56,7 +64,15 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit }: ExpenseCa
             {[expense.clientName, expense.categoryName].filter(Boolean).join(' \u00b7 ')}
           </p>
         )}
+        <span className="text-xs text-text-muted">Criada por {expense.createdByName}</span>
       </div>
+
+      {/* KM info */}
+      {expense.kmQuantity && (
+        <p className="text-xs text-accent font-medium">
+          {Number(expense.kmQuantity).toFixed(1)} km
+        </p>
+      )}
 
       {/* Description */}
       {expense.description && (
@@ -91,7 +107,7 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit }: ExpenseCa
       )}
 
       {/* Actions */}
-      {(canEdit || canDelete || canResubmit) && (
+      {(canEdit || canDelete || canResubmit || canRevert) && (
         <div className="flex items-center gap-2 pt-1">
           {canEdit && (
             <Button variant="ghost" size="sm" onClick={() => onEdit(expense)}>
@@ -101,6 +117,11 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit }: ExpenseCa
           {canResubmit && onResubmit && (
             <Button variant="ghost" size="sm" onClick={() => onResubmit(expense.id)}>
               <RotateCcw size={12} className="mr-1" /> Resubmeter
+            </Button>
+          )}
+          {canRevert && (
+            <Button variant="ghost" size="sm" onClick={() => onRevert(expense)} className="text-warning hover:text-warning">
+              <Undo2 size={12} className="mr-1" /> Reverter
             </Button>
           )}
           {canDelete && (

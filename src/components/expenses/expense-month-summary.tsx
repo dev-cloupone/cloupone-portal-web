@@ -7,6 +7,7 @@ interface ExpenseMonthSummaryProps {
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  created: { label: 'Criado', color: 'bg-accent' },
   draft: { label: 'Rascunho', color: 'bg-text-muted' },
   submitted: { label: 'Submetido', color: 'bg-warning' },
   approved: { label: 'Aprovado', color: 'bg-success' },

@@ -84,6 +84,39 @@ export function getExpenseCsvUrl(
   return `${BASE_URL}/reports/expenses/excel?${qs}`;
 }
 
+// --- Weekly Expense Report (V2) ---
+
+interface WeeklyExpenseFilters {
+  consultantId?: string;
+  categoryId?: string;
+  status?: string;
+  reimbursementStatus?: string;
+}
+
+function buildWeeklyExpenseQs(projectId: string, weekStart: string, filters?: WeeklyExpenseFilters): string {
+  const params = new URLSearchParams({ projectId, weekStart });
+  if (filters?.consultantId) params.set('consultantId', filters.consultantId);
+  if (filters?.categoryId) params.set('categoryId', filters.categoryId);
+  if (filters?.status) params.set('status', filters.status);
+  if (filters?.reimbursementStatus) params.set('reimbursementStatus', filters.reimbursementStatus);
+  return params.toString();
+}
+
+export async function getWeeklyExpenseReport(
+  projectId: string, weekStart: string, filters?: WeeklyExpenseFilters,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> {
+  const qs = buildWeeklyExpenseQs(projectId, weekStart, filters);
+  return api(`/reports/expenses/weekly?${qs}`);
+}
+
+export function getWeeklyExpenseCsvUrl(
+  projectId: string, weekStart: string, filters?: WeeklyExpenseFilters,
+): string {
+  const qs = buildWeeklyExpenseQs(projectId, weekStart, filters);
+  return `${BASE_URL}/reports/expenses/weekly/csv?${qs}`;
+}
+
 export async function downloadReport(url: string, filename: string): Promise<void> {
   const token = getAccessToken();
   const response = await fetch(url, {
