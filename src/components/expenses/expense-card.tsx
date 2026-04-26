@@ -9,7 +9,6 @@ interface ExpenseCardProps {
   onDelete: (expenseId: string) => void;
   onResubmit?: (expenseId: string) => void;
   onRevert?: (expense: Expense) => void;
-  isConsultantMode?: boolean;
 }
 
 const STATUS_DOT_COLORS: Record<string, string> = {
@@ -32,7 +31,7 @@ function formatCurrency(value: string | number): string {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert, isConsultantMode }: ExpenseCardProps) {
+export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert }: ExpenseCardProps) {
   const canEdit = ['created', 'rejected'].includes(expense.status);
   const canDelete = expense.status === 'created' || expense.status === 'draft';
   const canResubmit = expense.status === 'rejected';

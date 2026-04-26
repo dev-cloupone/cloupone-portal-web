@@ -10,7 +10,6 @@ interface ExpenseDayPanelProps {
   expenses: Expense[];
   weekSummary: ExpenseWeekSummary | null;
   isDayInOpenPeriod: boolean;
-  isConsultantMode?: boolean;
   onEdit: (expense: Expense) => void;
   onDelete: (expenseId: string) => void;
   onResubmit: (expenseId: string) => void;
@@ -38,7 +37,6 @@ export function ExpenseDayPanel({
   expenses,
   weekSummary,
   isDayInOpenPeriod,
-  isConsultantMode,
   onEdit,
   onDelete,
   onResubmit,
@@ -119,7 +117,6 @@ export function ExpenseDayPanel({
               onDelete={onDelete}
               onResubmit={onResubmit}
               onRevert={onRevertExpense ? (e) => setRevertingExpense(e) : undefined}
-              isConsultantMode={isConsultantMode}
             />
           ))}
         </div>

@@ -282,19 +282,19 @@ export default function ExpenseReportPage() {
             <h3 className="text-lg font-semibold text-text-primary mb-3">Por Consultor</h3>
             <div className="space-y-2">
               {reportData.byConsultant.map((group) => (
-                <div key={group.consultantId} className="rounded-xl border border-border bg-surface-1 overflow-hidden">
+                <div key={group.consultantName} className="rounded-xl border border-border bg-surface-1 overflow-hidden">
                   <div
                     className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface-2/50"
-                    onClick={() => toggleConsultant(group.consultantId)}
+                    onClick={() => toggleConsultant(group.consultantName)}
                   >
                     <div className="flex items-center gap-2">
-                      {expandedConsultants.has(group.consultantId) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      {expandedConsultants.has(group.consultantName) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       <span className="font-semibold text-sm">{group.consultantName}</span>
                       <span className="text-xs text-text-muted">{group.expenseCount} despesas</span>
                     </div>
                     <span className="font-bold">{formatCurrency(group.totalAmount)}</span>
                   </div>
-                  {expandedConsultants.has(group.consultantId) && (
+                  {expandedConsultants.has(group.consultantName) && (
                     <div className="border-t border-border px-4 py-3">
                       <Table>
                         <TableHead>

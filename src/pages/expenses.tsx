@@ -39,8 +39,6 @@ export default function ExpensesPage() {
   const [contextConsultantUserId, setContextConsultantUserId] = useState<string | null>(null);
   const [contextProjectId, setContextProjectId] = useState<string | null>(null);
 
-  const isConsultantMode = !!(contextConsultantUserId && contextProjectId);
-
   const projectIds = useMemo(() => allocatedProjects.map(p => p.projectId), [allocatedProjects]);
 
   const filters = useMemo(() => ({
@@ -204,7 +202,6 @@ export default function ExpensesPage() {
                 expenses={selectedDayExpenses}
                 weekSummary={selectedWeekSummary}
                 isDayInOpenPeriod={getDatePeriodStatus(selectedDate, contextProjectId ?? undefined) === 'open'}
-                isConsultantMode={isConsultantMode}
                 onEdit={(expense) => setPanelState({ view: 'expense-form', expense })}
                 onDelete={deleteExpense}
                 onResubmit={resubmitExpense}
