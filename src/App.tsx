@@ -48,15 +48,13 @@ const ExpenseApprovalsPage = lazy(() => import('./pages/expense-approvals'));
 // Expense Reimbursements (gestor + super_admin)
 const ExpenseReimbursementsPage = lazy(() => import('./pages/expense-reimbursements'));
 
-// Expense Report (gestor + super_admin)
-const ExpenseReportPage = lazy(() => import('./pages/expense-report'));
-
 // Dashboards
 const ManagerDashboardPage = lazy(() => import('./pages/manager-dashboard'));
 const ConsultantDashboardPage = lazy(() => import('./pages/consultant-dashboard'));
 
-// Reports (gestor + super_admin)
-const AdminReportsPage = lazy(() => import('./pages/admin/reports'));
+// Reports system (gestor + super_admin)
+const ReportsPage = lazy(() => import('./pages/reports'));
+const ExpenseReportNewPage = lazy(() => import('./pages/reports/expenses'));
 
 // Tickets (all authenticated roles)
 const TicketsPage = lazy(() => import('./pages/tickets'));
@@ -122,7 +120,6 @@ export default function App() {
                     <Route path="clients" element={<RoleGuard allowedRoles={['super_admin']}><AdminClientsPage /></RoleGuard>} />
                     <Route path="consultants" element={<RoleGuard allowedRoles={['super_admin']}><AdminConsultantsPage /></RoleGuard>} />
                     <Route path="expense-categories" element={<RoleGuard allowedRoles={['super_admin']}><AdminExpenseCategoriesPage /></RoleGuard>} />
-                    <Route path="reports" element={<RoleGuard allowedRoles={['super_admin']}><AdminReportsPage /></RoleGuard>} />
                     {/* super_admin + gestor */}
                     <Route path="projects" element={<AdminProjectsPage />} />
                     <Route path="projects/:id/phases" element={<AdminProjectPhasesPage />} />
@@ -218,13 +215,23 @@ export default function App() {
             }
           />
 
-          {/* Expense Report (gestor + super_admin) */}
+          {/* Reports system (gestor + super_admin) */}
           <Route
-            path="/expense-report"
+            path="/reports"
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['gestor', 'super_admin']}>
-                  <ExpenseReportPage />
+                <RoleGuard allowedRoles={['super_admin', 'gestor']}>
+                  <ReportsPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/expenses"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['super_admin', 'gestor']}>
+                  <ExpenseReportNewPage />
                 </RoleGuard>
               </ProtectedRoute>
             }
