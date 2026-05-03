@@ -122,7 +122,7 @@ export function ExpenseForm({
 
   const selectedCategory = categories.find(c => c.id === expenseCategoryId);
   const isKmCategory = selectedCategory?.isKmCategory ?? false;
-  const isOverBudget = selectedCategory?.maxAmount && amount && Number(amount) > Number(selectedCategory.maxAmount);
+  const isOverBudget = selectedCategory?.maxAmount != null && Number(selectedCategory.maxAmount) > 0 && amount && Number(amount) > Number(selectedCategory.maxAmount);
   const needsReceipt = selectedCategory?.requiresReceipt && !receiptFileId;
 
   // Auto-calculate amount for KM categories

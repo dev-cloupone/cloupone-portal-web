@@ -1,6 +1,6 @@
 export function ExpenseCalendarLegend() {
   const items = [
-    { color: 'bg-accent-10', border: 'border-accent/30', label: 'Semana aberta' },
+    { color: 'bg-accent-15', border: 'border-accent/30', label: 'Semana aberta' },
     { color: 'bg-surface-2', border: 'border-border', label: 'Semana fechada' },
     { color: 'bg-success', border: '', label: 'Aprovada', dot: true },
     { color: 'bg-accent', border: '', label: 'Criada', dot: true },

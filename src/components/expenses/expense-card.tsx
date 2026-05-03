@@ -87,7 +87,7 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert }:
       )}
 
       {/* Over budget warning */}
-      {expense.categoryMaxAmount && Number(expense.amount) > Number(expense.categoryMaxAmount) && (
+      {expense.categoryMaxAmount != null && Number(expense.categoryMaxAmount) > 0 && Number(expense.amount) > Number(expense.categoryMaxAmount) && (
         <div className="flex items-center gap-1 text-xs text-warning">
           <AlertTriangle size={10} />
           <span>Acima do teto ({formatCurrency(expense.categoryMaxAmount)})</span>
