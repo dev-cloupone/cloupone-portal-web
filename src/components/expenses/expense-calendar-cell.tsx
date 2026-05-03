@@ -36,14 +36,17 @@ export function ExpenseCalendarCell({
   onClick,
 }: ExpenseCalendarCellProps) {
   let bgClass = 'bg-surface-1';
-  if (isSelected) bgClass = 'bg-accent-10';
+  if (isSelected && periodStatus === 'open') bgClass = 'bg-success-15';
+  else if (isSelected) bgClass = 'bg-accent-10';
+  else if (isSelectedWeek && periodStatus === 'open') bgClass = 'bg-success-15';
   else if (isSelectedWeek) bgClass = 'bg-accent-5';
   else if (periodStatus === 'open') bgClass = 'bg-success-15';
   else if (periodStatus === 'closed') bgClass = 'bg-surface-2 opacity-60';
   else if (isWeekend) bgClass = 'bg-[var(--color-weekend)]';
 
   let borderClass = 'border border-transparent';
-  if (isSelected) borderClass = 'border border-accent';
+  if (isSelected && periodStatus === 'open') borderClass = 'border border-success';
+  else if (isSelected) borderClass = 'border border-accent';
   else if (isToday) borderClass = 'border border-dashed border-accent/50';
 
   let dayTextClass = 'text-text-primary';
