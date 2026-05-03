@@ -89,5 +89,5 @@ export function ExpenseCalendarCell({
 
 function formatCurrency(value: number): string {
   if (value >= 1000) return `R$${(value / 1000).toFixed(1)}k`;
-  return `R$${value.toFixed(0)}`;
+  return `R$${value.toFixed(2)}`;
 }

@@ -180,10 +180,10 @@ export default function ExpenseApprovalsPage() {
     }
   }
 
-  async function handleApproveGroup(ids: string[]) {
+  async function handleApproveGroup(ids: string[], updates?: Record<string, { clientChargeAmount: string }>) {
     setActionLoading(true);
     try {
-      await expenseService.approveExpenses(ids);
+      await expenseService.approveExpenses(ids, updates);
       addToast(`${ids.length} despesa(s) aprovada(s).`, 'success');
       await loadData();
     } catch (err) {
@@ -344,7 +344,7 @@ export default function ExpenseApprovalsPage() {
                 <div className="border-t border-border px-4 py-3 bg-surface-0/50">
                   <ExpenseGroupDetail
                     expenses={group.expenses}
-                    onApproveAll={(ids) => handleApproveGroup(ids)}
+                    onApproveAll={(ids, updates) => handleApproveGroup(ids, updates)}
                     onApproveOne={handleApproveOne}
                     onReject={(id) => {
                       setRejectingId(id);
@@ -404,7 +404,7 @@ export default function ExpenseApprovalsPage() {
 
 interface ExpenseGroupDetailProps {
   expenses: PendingExpense[];
-  onApproveAll: (ids: string[]) => void;
+  onApproveAll: (ids: string[], updates?: Record<string, { clientChargeAmount: string }>) => void;
   onApproveOne: (id: string, updates?: Record<string, { clientChargeAmount: string }>) => void;
   onReject: (id: string) => void;
   loading: boolean;
@@ -543,7 +543,17 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
           {' \u00b7 '}
           {sorted.length} despesa{sorted.length !== 1 ? 's' : ''}
         </span>
-        <Button onClick={() => onApproveAll(sorted.map(e => e.id))} disabled={loading} size="sm">
+        <Button onClick={() => {
+          const updates: Record<string, { clientChargeAmount: string }> = {};
+          for (const e of sorted) {
+            const overrideValue = chargeOverrides[e.id];
+            const originalValue = e.clientChargeAmount || e.amount;
+            if (overrideValue && overrideValue !== originalValue) {
+              updates[e.id] = { clientChargeAmount: overrideValue };
+            }
+          }
+          onApproveAll(sorted.map(e => e.id), Object.keys(updates).length > 0 ? updates : undefined);
+        }} disabled={loading} size="sm">
           <CheckCheck size={15} className="mr-1.5" /> Aprovar Tudo
         </Button>
       </div>

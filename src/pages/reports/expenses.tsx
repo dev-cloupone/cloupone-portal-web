@@ -10,7 +10,6 @@ import { useNavItems } from '../../hooks/use-nav-items';
 import { reportCatalogService } from '../../services/report-catalog.service';
 import * as projectService from '../../services/project.service';
 import * as periodService from '../../services/project-expense-period.service';
-import * as consultantService from '../../services/consultant.service';
 import { formatApiError } from '../../services/api';
 import { WeekMultiSelect } from './components/week-multi-select';
 import type { ProjectExpensePeriod } from '../../types/expense.types';
@@ -56,31 +55,35 @@ export default function ExpenseReportPage() {
 
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Load projects and consultants on mount
+  // Load projects on mount
   useEffect(() => {
-    Promise.all([
-      projectService.listProjects({ page: 1, limit: 100 }),
-      consultantService.listConsultants({ page: 1, limit: 100 }),
-    ])
-      .then(([projRes, consRes]) => {
+    projectService.listProjects({ page: 1, limit: 100 })
+      .then((projRes) => {
         setProjects(projRes.data.map((p) => ({ value: p.id, label: p.name })));
-        setConsultants(consRes.data.map((c) => ({ value: c.userId, label: c.userName })));
       })
       .catch((err) => setError(formatApiError(err)))
       .finally(() => setLoadingFilters(false));
   }, []);
 
-  // Load periods when project changes
+  // Load periods and consultants when project changes
   useEffect(() => {
     if (!projectId) {
       setPeriods([]);
       setSelectedWeekIds([]);
+      setConsultants([]);
+      setConsultantId('');
       return;
     }
     periodService.listByProject(projectId)
       .then((res) => setPeriods(res.data))
       .catch(() => setPeriods([]));
+    projectService.listAllocations(projectId)
+      .then((res) => {
+        setConsultants(res.data.map((a) => ({ value: a.userId, label: a.userName })));
+      })
+      .catch(() => setConsultants([]));
     setSelectedWeekIds([]);
+    setConsultantId('');
     setReportData(null);
   }, [projectId]);
 
