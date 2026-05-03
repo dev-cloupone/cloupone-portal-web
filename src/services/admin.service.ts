@@ -27,6 +27,9 @@ export interface UserListParams {
   page?: number;
   limit?: number;
   search?: string;
+  role?: string;
+  clientId?: string;
+  isActive?: string;
 }
 
 export interface UserRecord {
@@ -42,10 +45,12 @@ export interface UserRecord {
 
 export interface PaginatedUsers {
   data: UserRecord[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export async function listUsers(params?: UserListParams): Promise<PaginatedUsers> {
@@ -53,6 +58,9 @@ export async function listUsers(params?: UserListParams): Promise<PaginatedUsers
   if (params?.page) query.set('page', String(params.page));
   if (params?.limit) query.set('limit', String(params.limit));
   if (params?.search) query.set('search', params.search);
+  if (params?.role) query.set('role', params.role);
+  if (params?.clientId) query.set('clientId', params.clientId);
+  if (params?.isActive) query.set('isActive', params.isActive);
   const qs = query.toString();
   return api<PaginatedUsers>(`/users${qs ? `?${qs}` : ''}`);
 }

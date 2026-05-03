@@ -6,6 +6,7 @@ import { Input } from '../../components/ui/input';
 import { MSG } from '../../constants/messages';
 import { Modal } from '../../components/ui/modal';
 import { Badge } from '../../components/ui/badge';
+import { Select } from '../../components/ui/select';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/ui/table';
 import { PaginationControls } from '../../components/ui/pagination-controls';
 import { usePagination } from '../../hooks/use-pagination';
@@ -32,7 +33,14 @@ export default function UsersPage() {
   const [error, setError] = useState('');
   const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', role: 'client', clientId: '' });
   const [editForm, setEditForm] = useState({ name: '', email: '', role: 'client', clientId: '' });
-  const { page, limit, meta, setMeta, goToPage } = usePagination({ initialLimit: 20 });
+  const [filterRole, setFilterRole] = useState('');
+  const [filterClient, setFilterClient] = useState('');
+  const [filterStatus, setFilterStatus] = useState('true');
+  const { page, limit, meta, setMeta, goToPage, resetPage } = usePagination({ initialLimit: 20 });
+
+  function handleFilterRole(value: string) { setFilterRole(value); resetPage(); }
+  function handleFilterClient(value: string) { setFilterClient(value); resetPage(); }
+  function handleFilterStatus(value: string) { setFilterStatus(value); resetPage(); }
 
   useEffect(() => {
     clientService.listClients({ limit: 100 }).then((res) => setClients(res.data)).catch(console.error);
@@ -40,14 +48,15 @@ export default function UsersPage() {
 
   async function loadData() {
     try {
-      const result = await adminService.listUsers({ page, limit });
-      setUsers(result.data);
-      setMeta({
-        page: result.page,
-        limit: result.limit,
-        total: result.total,
-        totalPages: result.totalPages,
+      const result = await adminService.listUsers({
+        page,
+        limit,
+        role: filterRole || undefined,
+        clientId: filterClient || undefined,
+        isActive: filterStatus || undefined,
       });
+      setUsers(result.data);
+      setMeta(result.meta);
     } catch {
       setError(MSG.LOAD_USERS_ERROR);
     }
@@ -125,8 +134,7 @@ export default function UsersPage() {
     setIsCreateModalOpen(true);
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { loadData(); }, [page, limit]);
+  useEffect(() => { loadData(); }, [page, limit, filterRole, filterClient, filterStatus]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clientMap = new Map(clients.map((c) => [c.id, c.companyName]));
 
@@ -144,6 +152,43 @@ export default function UsersPage() {
           <p className="text-xs text-danger whitespace-pre-line">{error}</p>
         </div>
       )}
+
+      <div className="mb-4 flex gap-4">
+        <div className="w-44">
+          <Select
+            label="Role"
+            options={[
+              { value: '', label: 'Todas' },
+              { value: 'super_admin', label: 'Super Admin' },
+              { value: 'gestor', label: 'Gestor' },
+              { value: 'consultor', label: 'Consultor' },
+              { value: 'client', label: 'Cliente' },
+            ]}
+            value={filterRole}
+            onChange={handleFilterRole}
+          />
+        </div>
+        <div className="w-52">
+          <Select
+            label="Cliente"
+            options={[{ value: '', label: 'Todos' }, ...clients.map((c) => ({ value: c.id, label: c.companyName }))]}
+            value={filterClient}
+            onChange={handleFilterClient}
+          />
+        </div>
+        <div className="w-36">
+          <Select
+            label="Status"
+            options={[
+              { value: '', label: 'Todos' },
+              { value: 'true', label: 'Ativo' },
+              { value: 'false', label: 'Inativo' },
+            ]}
+            value={filterStatus}
+            onChange={handleFilterStatus}
+          />
+        </div>
+      </div>
 
       <Table>
         <TableHead>
