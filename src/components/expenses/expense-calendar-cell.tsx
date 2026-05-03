@@ -8,12 +8,14 @@ interface ExpenseCalendarCellProps {
   isSelected: boolean;
   isSelectedWeek: boolean;
   isWeekend: boolean;
+  periodStatus: 'open' | 'closed' | 'none';
   totalAmount: number;
   expenses: Expense[];
   onClick: (date: string) => void;
 }
 
 const STATUS_DOT_COLORS: Record<string, string> = {
+  created: 'bg-accent',
   draft: 'bg-text-muted',
   submitted: 'bg-warning',
   approved: 'bg-success',
@@ -28,17 +30,24 @@ export function ExpenseCalendarCell({
   isSelected,
   isSelectedWeek,
   isWeekend,
+  periodStatus,
   totalAmount,
   expenses,
   onClick,
 }: ExpenseCalendarCellProps) {
   let bgClass = 'bg-surface-1';
-  if (isSelected) bgClass = 'bg-accent-10';
+  if (isSelected && periodStatus === 'open') bgClass = 'bg-success-15';
+  else if (isSelected) bgClass = 'bg-accent-10';
+  else if (isSelectedWeek && periodStatus === 'open') bgClass = 'bg-success-15';
+  else if (isSelectedWeek && periodStatus === 'closed') bgClass = 'bg-surface-2 opacity-60';
   else if (isSelectedWeek) bgClass = 'bg-accent-5';
+  else if (periodStatus === 'open') bgClass = 'bg-success-15';
+  else if (periodStatus === 'closed') bgClass = 'bg-surface-2 opacity-60';
   else if (isWeekend) bgClass = 'bg-[var(--color-weekend)]';
 
   let borderClass = 'border border-transparent';
-  if (isSelected) borderClass = 'border border-accent';
+  if (isSelected && periodStatus === 'open') borderClass = 'border border-success';
+  else if (isSelected) borderClass = 'border border-accent';
   else if (isToday) borderClass = 'border border-dashed border-accent/50';
 
   let dayTextClass = 'text-text-primary';
@@ -52,7 +61,7 @@ export function ExpenseCalendarCell({
     <button
       type="button"
       onClick={() => onClick(date)}
-      className={`relative flex flex-col items-start p-1.5 sm:p-2 rounded-lg min-h-[52px] sm:min-h-[68px] transition-all duration-150 cursor-pointer hover:bg-accent-10 ${bgClass} ${borderClass}`}
+      className={`relative flex flex-col items-start p-1.5 sm:p-2 rounded-lg min-h-[52px] sm:min-h-[68px] transition-all duration-150 cursor-pointer ${periodStatus !== 'closed' ? 'hover:bg-accent-10' : ''} ${bgClass} ${borderClass}`}
     >
       <span className={`text-xs sm:text-sm leading-none ${dayTextClass}`}>
         {dayNumber}
@@ -80,5 +89,5 @@ export function ExpenseCalendarCell({
 
 function formatCurrency(value: number): string {
   if (value >= 1000) return `R$${(value / 1000).toFixed(1)}k`;
-  return `R$${value.toFixed(0)}`;
+  return `R$${value.toFixed(2)}`;
 }

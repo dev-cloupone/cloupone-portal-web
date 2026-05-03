@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, XCircle } from 'lucide-react';
+import { Plus, Pencil, XCircle, CheckCircle } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -14,9 +14,10 @@ import type { ExpenseCategory } from '../../types/expense.types';
 const emptyForm = {
   name: '',
   description: '',
-  maxAmount: '',
+  defaultMaxAmount: '',
+  defaultKmRate: '',
   requiresReceipt: true,
-  sortOrder: '0',
+  isKmCategory: false,
 };
 
 export default function ExpenseCategoriesPage() {
@@ -43,9 +44,10 @@ export default function ExpenseCategoriesPage() {
       await categoryService.createCategory({
         name: form.name,
         description: form.description || undefined,
-        maxAmount: form.maxAmount || undefined,
+        defaultMaxAmount: form.defaultMaxAmount || undefined,
+        defaultKmRate: form.defaultKmRate || undefined,
         requiresReceipt: form.requiresReceipt,
-        sortOrder: Number(form.sortOrder),
+        isKmCategory: form.isKmCategory,
       });
       setIsCreateOpen(false);
       setForm(emptyForm);
@@ -63,9 +65,10 @@ export default function ExpenseCategoriesPage() {
       await categoryService.updateCategory(editing.id, {
         name: form.name,
         description: form.description || undefined,
-        maxAmount: form.maxAmount || undefined,
+        defaultMaxAmount: form.defaultMaxAmount || undefined,
+        defaultKmRate: form.defaultKmRate || undefined,
         requiresReceipt: form.requiresReceipt,
-        sortOrder: Number(form.sortOrder),
+        isKmCategory: form.isKmCategory,
       });
       setEditing(null);
       await loadData();
@@ -84,13 +87,24 @@ export default function ExpenseCategoriesPage() {
     }
   }
 
+  async function handleReactivate(category: ExpenseCategory) {
+    if (!confirm(`Reativar "${category.name}"?`)) return;
+    try {
+      await categoryService.reactivateCategory(category.id);
+      await loadData();
+    } catch (err) {
+      setError(formatApiError(err));
+    }
+  }
+
   function openEdit(category: ExpenseCategory) {
     setForm({
       name: category.name,
       description: category.description || '',
-      maxAmount: category.maxAmount || '',
+      defaultMaxAmount: category.defaultMaxAmount || '',
+      defaultKmRate: category.defaultKmRate || '',
       requiresReceipt: category.requiresReceipt,
-      sortOrder: String(category.sortOrder),
+      isKmCategory: category.isKmCategory,
     });
     setError('');
     setEditing(category);
@@ -113,7 +127,20 @@ export default function ExpenseCategoriesPage() {
     <>
       <Input label="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
       <Input label="Descrição" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-      <Input label="Teto (R$)" type="number" step="0.01" min="0" value={form.maxAmount} onChange={(e) => setForm({ ...form, maxAmount: e.target.value })} placeholder="Ex: 100.00" />
+      <Input label="Teto Padrão (R$)" type="number" step="0.01" min="0" value={form.defaultMaxAmount} onChange={(e) => setForm({ ...form, defaultMaxAmount: e.target.value })} placeholder="Ex: 100.00" />
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="isKmCategory"
+          checked={form.isKmCategory}
+          onChange={(e) => setForm({ ...form, isKmCategory: e.target.checked })}
+          className="rounded border-border"
+        />
+        <label htmlFor="isKmCategory" className="text-sm text-text-primary">Categoria de KM</label>
+      </div>
+      {form.isKmCategory && (
+        <Input label="Taxa KM Padrão (R$/km)" type="number" step="0.01" min="0" value={form.defaultKmRate} onChange={(e) => setForm({ ...form, defaultKmRate: e.target.value })} placeholder="Ex: 1.50" />
+      )}
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -124,7 +151,6 @@ export default function ExpenseCategoriesPage() {
         />
         <label htmlFor="requiresReceipt" className="text-sm text-text-primary">Exige Comprovante</label>
       </div>
-      <Input label="Ordem" type="number" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: e.target.value })} />
     </>
   );
 
@@ -135,7 +161,7 @@ export default function ExpenseCategoriesPage() {
         <Button onClick={openCreate}><Plus size={16} className="mr-2" /> Nova Categoria</Button>
       </div>
 
-      {error && (
+      {error && !isCreateOpen && !editing && (
         <div className="mb-4 rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">
           <p className="text-xs text-danger whitespace-pre-line">{error}</p>
         </div>
@@ -146,9 +172,10 @@ export default function ExpenseCategoriesPage() {
           <TableRow>
             <TableHeader>Nome</TableHeader>
             <TableHeader>Descrição</TableHeader>
-            <TableHeader>Teto</TableHeader>
+            <TableHeader>Teto Padrão</TableHeader>
+            <TableHeader>KM</TableHeader>
             <TableHeader>Comprovante</TableHeader>
-            <TableHeader>Ordem</TableHeader>
+            <TableHeader>Status</TableHeader>
             <TableHeader>Ações</TableHeader>
           </TableRow>
         </TableHead>
@@ -157,15 +184,28 @@ export default function ExpenseCategoriesPage() {
             <TableRow key={c.id}>
               <TableCell className="font-medium">{c.name}</TableCell>
               <TableCell>{c.description || '—'}</TableCell>
-              <TableCell>{formatCurrency(c.maxAmount)}</TableCell>
+              <TableCell>{formatCurrency(c.defaultMaxAmount)}</TableCell>
+              <TableCell>
+                {c.isKmCategory ? (
+                  <Badge variant="default">{c.defaultKmRate ? `R$ ${Number(c.defaultKmRate).toFixed(2)}/km` : 'Sim'}</Badge>
+                ) : '—'}
+              </TableCell>
               <TableCell>
                 <Badge variant={c.requiresReceipt ? 'default' : 'success'}>{c.requiresReceipt ? 'Sim' : 'Não'}</Badge>
               </TableCell>
-              <TableCell>{c.sortOrder}</TableCell>
+              <TableCell>
+                <Badge variant={c.isActive ? 'success' : 'danger'}>{c.isActive ? 'Ativa' : 'Inativa'}</Badge>
+              </TableCell>
               <TableCell>
                 <div className="flex gap-2">
-                  <button onClick={() => openEdit(c)} className="text-accent hover:text-accent-hover" title="Editar"><Pencil size={16} /></button>
-                  <button onClick={() => handleDeactivate(c)} className="text-danger hover:text-danger/80" title="Desativar"><XCircle size={16} /></button>
+                  {c.isActive ? (
+                    <>
+                      <button onClick={() => openEdit(c)} className="text-accent hover:text-accent-hover" title="Editar"><Pencil size={16} /></button>
+                      <button onClick={() => handleDeactivate(c)} className="text-danger hover:text-danger/80" title="Desativar"><XCircle size={16} /></button>
+                    </>
+                  ) : (
+                    <button onClick={() => handleReactivate(c)} className="text-accent hover:text-accent-hover" title="Reativar"><CheckCircle size={16} /></button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
@@ -173,7 +213,7 @@ export default function ExpenseCategoriesPage() {
         </TableBody>
       </Table>
 
-      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Nova Categoria de Despesa">
+      <Modal isOpen={isCreateOpen} onClose={() => { setIsCreateOpen(false); setError(''); }} title="Nova Categoria de Despesa">
         <form onSubmit={handleCreate} className="space-y-4">
           {formFields}
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
@@ -184,7 +224,7 @@ export default function ExpenseCategoriesPage() {
         </form>
       </Modal>
 
-      <Modal isOpen={!!editing} onClose={() => setEditing(null)} title="Editar Categoria de Despesa">
+      <Modal isOpen={!!editing} onClose={() => { setEditing(null); setError(''); }} title="Editar Categoria de Despesa">
         <form onSubmit={handleUpdate} className="space-y-4">
           {formFields}
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}

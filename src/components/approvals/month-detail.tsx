@@ -113,7 +113,6 @@ export function MonthDetail({ timesheet, entries, isLoading, onBack, onApprove, 
                 <TableHeader>Data</TableHeader>
                 <TableHeader>Horario</TableHeader>
                 <TableHeader>Projeto</TableHeader>
-                <TableHeader>Categoria</TableHeader>
                 <TableHeader className="text-right">Horas</TableHeader>
                 <TableHeader>Descrição</TableHeader>
               </TableRow>
@@ -133,7 +132,6 @@ export function MonthDetail({ timesheet, entries, isLoading, onBack, onApprove, 
                       <div className="text-xs text-text-muted">{entry.clientName}</div>
                     )}
                   </TableCell>
-                  <TableCell>{entry.categoryName || '-'}</TableCell>
                   <TableCell className="text-right font-mono">
                     {Number(entry.hours).toFixed(1)}
                   </TableCell>

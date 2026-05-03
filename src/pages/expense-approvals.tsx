@@ -53,7 +53,7 @@ function groupByWeek(entries: PendingExpense[]): PendingExpenseGroup[] {
 
   for (const entry of entries) {
     const sunday = getSunday(entry.date);
-    const userId = entry.createdByUserId;
+    const userId = entry.consultantUserId || entry.createdByUserId;
     const key = `${userId}-${sunday}`;
 
     if (!groups.has(key)) {
@@ -64,7 +64,7 @@ function groupByWeek(entries: PendingExpense[]): PendingExpenseGroup[] {
       groups.set(key, {
         key,
         userId,
-        userName: entry.createdByName || 'Consultor',
+        userName: entry.consultantName || entry.createdByName || 'Consultor',
         userEmail: entry.createdByEmail || '',
         weekStart: sunday,
         weekEnd: saturdayDate.toISOString().split('T')[0],
@@ -180,10 +180,10 @@ export default function ExpenseApprovalsPage() {
     }
   }
 
-  async function handleApproveGroup(ids: string[]) {
+  async function handleApproveGroup(ids: string[], updates?: Record<string, { clientChargeAmount: string }>) {
     setActionLoading(true);
     try {
-      await expenseService.approveExpenses(ids);
+      await expenseService.approveExpenses(ids, updates);
       addToast(`${ids.length} despesa(s) aprovada(s).`, 'success');
       await loadData();
     } catch (err) {
@@ -193,10 +193,10 @@ export default function ExpenseApprovalsPage() {
     }
   }
 
-  async function handleApproveOne(id: string) {
+  async function handleApproveOne(id: string, updates?: Record<string, { clientChargeAmount: string }>) {
     setActionLoading(true);
     try {
-      await expenseService.approveExpenses([id]);
+      await expenseService.approveExpenses([id], updates);
       addToast('Despesa aprovada.', 'success');
       await loadData();
     } catch (err) {
@@ -344,7 +344,7 @@ export default function ExpenseApprovalsPage() {
                 <div className="border-t border-border px-4 py-3 bg-surface-0/50">
                   <ExpenseGroupDetail
                     expenses={group.expenses}
-                    onApproveAll={(ids) => handleApproveGroup(ids)}
+                    onApproveAll={(ids, updates) => handleApproveGroup(ids, updates)}
                     onApproveOne={handleApproveOne}
                     onReject={(id) => {
                       setRejectingId(id);
@@ -404,8 +404,8 @@ export default function ExpenseApprovalsPage() {
 
 interface ExpenseGroupDetailProps {
   expenses: PendingExpense[];
-  onApproveAll: (ids: string[]) => void;
-  onApproveOne: (id: string) => void;
+  onApproveAll: (ids: string[], updates?: Record<string, { clientChargeAmount: string }>) => void;
+  onApproveOne: (id: string, updates?: Record<string, { clientChargeAmount: string }>) => void;
   onReject: (id: string) => void;
   loading: boolean;
 }
@@ -413,6 +413,38 @@ interface ExpenseGroupDetailProps {
 function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, loading }: ExpenseGroupDetailProps) {
   const sorted = [...expenses].sort((a, b) => a.date.localeCompare(b.date));
   const total = sorted.reduce((sum, e) => sum + Number(e.amount), 0);
+
+  const [chargeOverrides, setChargeOverrides] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    for (const e of expenses) {
+      initial[e.id] = e.clientChargeAmount || e.amount;
+    }
+    return initial;
+  });
+
+  useEffect(() => {
+    setChargeOverrides((prev) => {
+      const next: Record<string, string> = {};
+      for (const e of expenses) {
+        next[e.id] = prev[e.id] ?? e.clientChargeAmount ?? e.amount;
+      }
+      return next;
+    });
+  }, [expenses]);
+
+  function handleChargeChange(expenseId: string, value: string) {
+    setChargeOverrides((prev) => ({ ...prev, [expenseId]: value }));
+  }
+
+  function handleApproveOneWithOverride(expense: PendingExpense) {
+    const overrideValue = chargeOverrides[expense.id];
+    const originalValue = expense.clientChargeAmount || expense.amount;
+    if (overrideValue && overrideValue !== originalValue) {
+      onApproveOne(expense.id, { [expense.id]: { clientChargeAmount: overrideValue } });
+    } else {
+      onApproveOne(expense.id);
+    }
+  }
 
   return (
     <div className="space-y-3">
@@ -424,6 +456,7 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
               <TableHeader>Projeto</TableHeader>
               <TableHeader>Categoria</TableHeader>
               <TableHeader className="text-right">Valor</TableHeader>
+              <TableHeader className="text-right">Cobrança Cliente</TableHeader>
               <TableHeader>Descrição</TableHeader>
               <TableHeader>Comprov.</TableHeader>
               <TableHeader className="w-24">Ações</TableHeader>
@@ -441,9 +474,29 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
                     <div className="text-xs text-text-muted">{expense.clientName}</div>
                   )}
                 </TableCell>
-                <TableCell>{expense.categoryName || '—'}</TableCell>
+                <TableCell>
+                  <div>{expense.categoryName || '—'}</div>
+                  {expense.categoryMaxAmount != null && Number(expense.categoryMaxAmount) > 0 && (
+                    <div className={`text-xs ${Number(expense.amount) > Number(expense.categoryMaxAmount) ? 'text-danger font-medium' : 'text-text-muted'}`}>
+                      Limite: {formatCurrency(expense.categoryMaxAmount)}
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell className="text-right font-mono whitespace-nowrap">
-                  {formatCurrency(expense.amount)}
+                  <div>{formatCurrency(expense.amount)}</div>
+                  {expense.kmQuantity && (
+                    <div className="text-xs text-accent">{Number(expense.kmQuantity).toFixed(1)} km</div>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={chargeOverrides[expense.id] ?? expense.clientChargeAmount ?? expense.amount}
+                    onChange={(e) => handleChargeChange(expense.id, e.target.value)}
+                    className="w-28 rounded-md border border-border bg-surface-2 px-2 py-1 text-right text-sm font-mono text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+                  />
                 </TableCell>
                 <TableCell className="max-w-[200px] truncate">
                   {expense.description || '—'}
@@ -460,7 +513,7 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
                 <TableCell>
                   <div className="flex gap-1.5">
                     <button
-                      onClick={() => onApproveOne(expense.id)}
+                      onClick={() => handleApproveOneWithOverride(expense)}
                       disabled={loading}
                       className="rounded-md p-1.5 text-accent hover:bg-success-muted transition-colors disabled:opacity-50"
                       title="Aprovar"
@@ -490,7 +543,17 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
           {' \u00b7 '}
           {sorted.length} despesa{sorted.length !== 1 ? 's' : ''}
         </span>
-        <Button onClick={() => onApproveAll(sorted.map(e => e.id))} disabled={loading} size="sm">
+        <Button onClick={() => {
+          const updates: Record<string, { clientChargeAmount: string }> = {};
+          for (const e of sorted) {
+            const overrideValue = chargeOverrides[e.id];
+            const originalValue = e.clientChargeAmount || e.amount;
+            if (overrideValue && overrideValue !== originalValue) {
+              updates[e.id] = { clientChargeAmount: overrideValue };
+            }
+          }
+          onApproveAll(sorted.map(e => e.id), Object.keys(updates).length > 0 ? updates : undefined);
+        }} disabled={loading} size="sm">
           <CheckCheck size={15} className="mr-1.5" /> Aprovar Tudo
         </Button>
       </div>

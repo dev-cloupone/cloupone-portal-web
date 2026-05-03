@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Plus, Pencil, XCircle, UserPlus, UserMinus, Layers } from 'lucide-react';
+import { Plus, Pencil, XCircle, UserPlus, UserMinus, Layers, Receipt } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -233,7 +233,7 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {error && (
+      {error && !isCreateOpen && !editing && !allocProject && (
         <div className="mb-4 rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">
           <p className="text-xs text-danger whitespace-pre-line">{error}</p>
         </div>
@@ -262,6 +262,7 @@ export default function ProjectsPage() {
                 <div className="flex gap-2">
                   <button onClick={() => openEdit(p)} className="text-accent hover:text-accent-hover" title="Editar"><Pencil size={16} /></button>
                   <button onClick={() => navigate(`/admin/projects/${p.id}/phases`)} className="text-accent hover:text-accent-hover" title="Fases"><Layers size={16} /></button>
+                  <button onClick={() => navigate(`/admin/projects/${p.id}/expenses`)} className="text-accent hover:text-accent-hover" title="Despesas"><Receipt size={16} /></button>
                   <button onClick={() => openAllocations(p)} className="text-accent hover:text-accent-hover" title="Equipe"><UserPlus size={16} /></button>
                   {p.isActive && (
                     <button onClick={() => handleDeactivate(p)} className="text-danger hover:text-danger/80" title="Desativar"><XCircle size={16} /></button>
@@ -275,32 +276,32 @@ export default function ProjectsPage() {
       {meta && <PaginationControls meta={meta} onPageChange={goToPage} />}
 
       {/* Create Modal */}
-      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Novo Projeto">
+      <Modal isOpen={isCreateOpen} onClose={() => { setIsCreateOpen(false); setError(''); }} title="Novo Projeto">
         <form onSubmit={handleCreate} className="space-y-4">
           {formFields}
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setIsCreateOpen(false); setError(''); }}>Cancelar</Button>
             <Button type="submit">Criar</Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit Modal */}
-      <Modal isOpen={!!editing} onClose={() => setEditing(null)} title="Editar Projeto">
+      <Modal isOpen={!!editing} onClose={() => { setEditing(null); setError(''); }} title="Editar Projeto">
         <form onSubmit={handleUpdate} className="space-y-4">
           {formFields}
           <Select label="Status" options={statusOptions} value={editStatus} onChange={setEditStatus} />
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setEditing(null); setError(''); }}>Cancelar</Button>
             <Button type="submit">Salvar</Button>
           </div>
         </form>
       </Modal>
 
       {/* Allocations Modal */}
-      <Modal isOpen={!!allocProject} onClose={() => setAllocProject(null)} title={`Equipe — ${allocProject?.name || ''}`}>
+      <Modal isOpen={!!allocProject} onClose={() => { setAllocProject(null); setError(''); }} title={`Equipe — ${allocProject?.name || ''}`}>
         <div className="space-y-4">
           <div className="flex gap-2">
             <div className="flex-1">

@@ -4,8 +4,6 @@ export interface TimeEntry {
   projectId: string;
   projectName: string;
   clientName?: string | null;
-  categoryId?: string | null;
-  categoryName?: string | null;
   date: string;
   startTime: string;
   endTime: string;
@@ -68,7 +66,6 @@ export interface CalendarDay {
 export interface UpsertEntryData {
   id?: string;
   projectId: string;
-  categoryId?: string | null;
   date: string;
   startTime: string;
   endTime: string;

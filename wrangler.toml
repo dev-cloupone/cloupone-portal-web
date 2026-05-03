@@ -15,7 +15,7 @@ name = "RATE_LIMITER"
 namespace_id = "1001"
 
 [ratelimits.simple]
-limit = 100
+limit = 200
 period = 60
 
 # --- Dev environment ---

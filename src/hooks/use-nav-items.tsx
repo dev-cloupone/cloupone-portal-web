@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { LayoutDashboard, Users, Settings, User, Building2, FolderKanban, Tag, Clock, CheckSquare, BarChart3, FileText, Headset, Receipt, Wallet, HandCoins } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, User, Building2, FolderKanban, Clock, CheckSquare, BarChart3, FileText, Headset, Receipt, Wallet, HandCoins } from 'lucide-react';
 import { useAuth } from './use-auth';
 
 export interface NavItem {
@@ -38,7 +38,6 @@ export function useNavItems(): NavEntry[] {
           { label: 'Clientes', path: '/admin/clients', icon: <Building2 size={18} /> },
           { label: 'Projetos', path: '/admin/projects', icon: <FolderKanban size={18} /> },
           { label: 'Consultores', path: '/admin/consultants', icon: <Users size={18} /> },
-          { label: 'Categorias', path: '/admin/activity-categories', icon: <Tag size={18} /> },
           { label: 'Cat. Despesas', path: '/admin/expense-categories', icon: <Receipt size={18} /> },
         ],
       },
@@ -61,7 +60,7 @@ export function useNavItems(): NavEntry[] {
       {
         group: 'Sistema',
         items: [
-          { label: 'Relatorios', path: '/admin/reports', icon: <FileText size={18} /> },
+          { label: 'Relatórios', path: '/reports', icon: <FileText size={18} /> },
           { label: 'Configurações', path: '/admin/settings', icon: <Settings size={18} /> },
           { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
         ],
@@ -96,6 +95,7 @@ export function useNavItems(): NavEntry[] {
       {
         group: 'Sistema',
         items: [
+          { label: 'Relatórios', path: '/reports', icon: <FileText size={18} /> },
           { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
         ],
       },

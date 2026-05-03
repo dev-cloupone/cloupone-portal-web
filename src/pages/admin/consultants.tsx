@@ -117,7 +117,7 @@ export default function ConsultantsPage() {
         <Button onClick={openCreate}><Plus size={16} className="mr-2" /> Novo Consultor</Button>
       </div>
 
-      {error && (
+      {error && !isCreateOpen && !editing && (
         <div className="mb-4 rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">
           <p className="text-xs text-danger whitespace-pre-line">{error}</p>
         </div>
@@ -150,7 +150,7 @@ export default function ConsultantsPage() {
       {meta && <PaginationControls meta={meta} onPageChange={goToPage} />}
 
       {/* Create */}
-      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Novo Consultor">
+      <Modal isOpen={isCreateOpen} onClose={() => { setIsCreateOpen(false); setError(''); }} title="Novo Consultor">
         <form onSubmit={handleCreate} className="space-y-4">
           <Select
             label="Usuário"
@@ -176,14 +176,14 @@ export default function ConsultantsPage() {
           </label>
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setIsCreateOpen(false); setError(''); }}>Cancelar</Button>
             <Button type="submit">Criar</Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit */}
-      <Modal isOpen={!!editing} onClose={() => setEditing(null)} title="Editar Consultor">
+      <Modal isOpen={!!editing} onClose={() => { setEditing(null); setError(''); }} title="Editar Consultor">
         <form onSubmit={handleUpdate} className="space-y-4">
           <Input label="Taxa/Hora (R$)" type="number" step="0.01" value={editForm.hourlyRate} onChange={(e) => setEditForm({ ...editForm, hourlyRate: e.target.value })} required />
           <Select label="Tipo de Contrato" options={contractTypeOptions} value={editForm.contractType} onChange={(v) => setEditForm({ ...editForm, contractType: v })} />
@@ -201,7 +201,7 @@ export default function ConsultantsPage() {
           </label>
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setEditing(null); setError(''); }}>Cancelar</Button>
             <Button type="submit">Salvar</Button>
           </div>
         </form>

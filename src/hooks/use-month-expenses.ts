@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as expenseService from '../services/expense.service';
-import type { ExpenseMonthData, ExpenseCalendarDay, ExpenseWeekSummary, UpsertExpenseData } from '../types/expense.types';
+import * as periodService from '../services/project-expense-period.service';
+import type { ExpenseMonthData, ExpenseCalendarDay, ExpenseWeekSummary, UpsertExpenseData, ProjectExpensePeriod } from '../types/expense.types';
 import { useToastStore } from '../stores/toast.store';
 
 function formatMonth(date: Date): { year: number; month: number } {
@@ -30,36 +31,121 @@ function computeWeekStatus(expenses: { status: string }[]): ExpenseWeekSummary['
   const statuses = new Set(expenses.map(e => e.status));
   if (statuses.size === 1) {
     const s = expenses[0].status;
-    if (s === 'draft' || s === 'submitted' || s === 'approved') return s;
+    if (s === 'created' || s === 'draft' || s === 'submitted' || s === 'approved') return s;
   }
   return 'mixed';
 }
 
-export function useMonthExpenses() {
+interface MonthExpensesFilters {
+  consultantUserId?: string;
+  projectId?: string;
+  /** When set, calendar period status is scoped to this project only. */
+  periodScopeProjectId?: string;
+}
+
+export function useMonthExpenses(projectIds?: string[], filters?: MonthExpensesFilters) {
   const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(() => new Date().getMonth() + 1);
   const [monthData, setMonthData] = useState<ExpenseMonthData | null>(null);
+  const [periods, setPeriods] = useState<ProjectExpensePeriod[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const addToast = useToastStore((s) => s.addToast);
 
   const currentMonthStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+  const loadRequestId = useRef(0);
 
   const loadMonth = useCallback(async (year: number, month: number) => {
+    const thisRequest = ++loadRequestId.current;
     setIsLoading(true);
     try {
-      const data = await expenseService.getMonthExpenses(year, month);
-      setMonthData(data);
+      const data = await expenseService.getMonthExpenses(
+        year, month, filters?.consultantUserId, filters?.projectId,
+      );
+      if (thisRequest === loadRequestId.current) {
+        setMonthData(data);
+      }
     } catch {
-      addToast('Erro ao carregar despesas do mês.', 'error');
+      if (thisRequest === loadRequestId.current) {
+        addToast('Erro ao carregar despesas do mês.', 'error');
+      }
     } finally {
-      setIsLoading(false);
+      if (thisRequest === loadRequestId.current) {
+        setIsLoading(false);
+      }
     }
-  }, [addToast]);
+  }, [addToast, filters?.consultantUserId, filters?.projectId]);
 
   useEffect(() => {
     loadMonth(currentYear, currentMonth);
   }, [currentYear, currentMonth, loadMonth]);
+
+  // Merge explicit projectIds with project IDs derived from loaded expenses (stable key for deps)
+  const effectiveProjectIdsKey = useMemo(() => {
+    const ids = new Set(projectIds ?? []);
+    if (monthData?.expenses) {
+      for (const e of monthData.expenses) {
+        if (e.projectId) ids.add(e.projectId);
+      }
+    }
+    return Array.from(ids).sort().join(',');
+  }, [projectIds, monthData]);
+
+  // Load periods for all allocated projects for this month
+  const periodRequestId = useRef(0);
+  useEffect(() => {
+    const pids = effectiveProjectIdsKey ? effectiveProjectIdsKey.split(',') : [];
+    if (pids.length === 0) {
+      setPeriods([]);
+      return;
+    }
+    const thisRequest = ++periodRequestId.current;
+    Promise.all(
+      pids.map((pid) =>
+        periodService.listByProject(pid, { year: currentYear, month: currentMonth })
+          .then((res) => res.data)
+          .catch(() => [] as ProjectExpensePeriod[]),
+      ),
+    ).then((results) => {
+      if (thisRequest === periodRequestId.current) {
+        setPeriods(results.flat());
+      }
+    });
+  }, [effectiveProjectIdsKey, currentYear, currentMonth]);
+
+  /** Get the period status for a given date, optionally scoped to a single project. */
+  const getDatePeriodStatus = useCallback((dateStr: string, projectId?: string): 'open' | 'closed' | 'none' => {
+    let hasPeriod = false;
+    for (const p of periods) {
+      if (projectId && p.projectId !== projectId) continue;
+      if (dateStr >= p.weekStart && dateStr <= p.weekEnd) {
+        if (p.status === 'open') {
+          if (p.customDays && p.customDays.length > 0) {
+            if (p.customDays.includes(dateStr)) return 'open';
+          } else {
+            return 'open';
+          }
+        }
+        hasPeriod = true;
+      }
+    }
+    return hasPeriod ? 'closed' : 'none';
+  }, [periods]);
+
+  /** Get the set of project IDs that have the given date in an open period. */
+  const getOpenProjectIdsForDate = useCallback((dateStr: string): Set<string> => {
+    const openIds = new Set<string>();
+    for (const p of periods) {
+      if (dateStr >= p.weekStart && dateStr <= p.weekEnd && p.status === 'open') {
+        if (p.customDays && p.customDays.length > 0) {
+          if (p.customDays.includes(dateStr)) openIds.add(p.projectId);
+        } else {
+          openIds.add(p.projectId);
+        }
+      }
+    }
+    return openIds;
+  }, [periods]);
 
   // Build calendar grid (Sunday-Saturday)
   const calendarDays = useMemo((): ExpenseCalendarDay[] => {
@@ -96,13 +182,14 @@ export function useMonthExpenses() {
         isWeekend: dow === 0 || dow === 6,
         expenses: dayExpenses,
         totalAmount,
+        periodStatus: getDatePeriodStatus(dateStr, filters?.periodScopeProjectId),
       });
 
       cursor = addDays(cursor, 1);
     }
 
     return days;
-  }, [monthData, currentYear, currentMonth]);
+  }, [monthData, currentYear, currentMonth, getDatePeriodStatus, filters?.periodScopeProjectId]);
 
   // Expenses for selected day
   const selectedDayExpenses = useMemo(() => {
@@ -132,9 +219,9 @@ export function useMonthExpenses() {
       });
 
       const totalAmount = weekExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
-      const statusBreakdown = { draft: 0, submitted: 0, approved: 0, rejected: 0 };
+      const statusBreakdown = { created: 0, draft: 0, submitted: 0, approved: 0, rejected: 0 };
       for (const e of weekExpenses) {
-        statusBreakdown[e.status]++;
+        statusBreakdown[e.status as keyof typeof statusBreakdown]++;
       }
 
       summaries.push({
@@ -143,7 +230,7 @@ export function useMonthExpenses() {
         totalAmount,
         expenseCount: weekExpenses.length,
         statusBreakdown,
-        hasDraftExpenses: weekExpenses.some(e => e.status === 'draft'),
+        hasCreatedExpenses: weekExpenses.some(e => e.status === 'created'),
         status: computeWeekStatus(weekExpenses),
       });
 
@@ -215,25 +302,6 @@ export function useMonthExpenses() {
     }
   }, [currentYear, currentMonth, loadMonth, addToast]);
 
-  const submitWeek = useCallback(async (weekStartDate: string) => {
-    try {
-      const result = await expenseService.submitWeek(weekStartDate);
-      if (result.warnings.length > 0) {
-        result.warnings.forEach((w) => addToast(w, 'warning'));
-      }
-      const msgs: string[] = [];
-      if (result.autoApproved > 0) msgs.push(`${result.autoApproved} auto-aprovada(s)`);
-      if (result.pendingApproval > 0) msgs.push(`${result.pendingApproval} enviada(s) para aprovação`);
-      addToast(msgs.join(', ') + '.', 'success');
-      await loadMonth(currentYear, currentMonth);
-      return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao submeter semana.';
-      addToast(message, 'error');
-      throw err;
-    }
-  }, [currentYear, currentMonth, loadMonth, addToast]);
-
   const resubmitExpense = useCallback(async (expenseId: string) => {
     try {
       await expenseService.resubmitExpense(expenseId);
@@ -246,14 +314,26 @@ export function useMonthExpenses() {
     }
   }, [currentYear, currentMonth, loadMonth, addToast]);
 
+  const revertExpense = useCallback(async (expenseId: string) => {
+    try {
+      await expenseService.revertExpense(expenseId);
+      addToast('Despesa revertida para Criada.', 'success');
+      await loadMonth(currentYear, currentMonth);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao reverter despesa.';
+      addToast(message, 'error');
+      throw err;
+    }
+  }, [currentYear, currentMonth, loadMonth, addToast]);
+
   return {
     // State
-    currentMonthStr, currentYear, currentMonth, monthData, selectedDate, isLoading,
+    currentMonthStr, currentYear, currentMonth, monthData, selectedDate, isLoading, periods,
     // Derived
-    calendarDays, selectedDayExpenses, selectedWeekSummary, weekSummaries,
+    calendarDays, selectedDayExpenses, selectedWeekSummary, weekSummaries, getDatePeriodStatus, getOpenProjectIdsForDate,
     // Navigation
     setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentMonth,
     // CRUD
-    saveExpense, deleteExpense, submitWeek, resubmitExpense, reload: () => loadMonth(currentYear, currentMonth),
+    saveExpense, deleteExpense, resubmitExpense, revertExpense, reload: () => loadMonth(currentYear, currentMonth),
   };
 }
