@@ -53,6 +53,7 @@
   --color-accent-15: #3B82F626;
   --color-success-5: #10b9810D;
   --color-success-10: #10b9811A;
+  --color-success-15: #10b98126;
   --color-warning-5: #f59e0b0D;
   --color-weekend: #1C1D2E80;
 
@@ -113,6 +114,7 @@
   --color-accent-15: #2563EB26;
   --color-success-5: #0596690D;
   --color-success-10: #0596691A;
+  --color-success-15: #05966926;
   --color-warning-5: #d977060D;
   --color-weekend: #E0E3F080;
 }

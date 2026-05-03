@@ -476,7 +476,7 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
                 </TableCell>
                 <TableCell>
                   <div>{expense.categoryName || '—'}</div>
-                  {expense.categoryMaxAmount && (
+                  {expense.categoryMaxAmount != null && Number(expense.categoryMaxAmount) > 0 && (
                     <div className={`text-xs ${Number(expense.amount) > Number(expense.categoryMaxAmount) ? 'text-danger font-medium' : 'text-text-muted'}`}>
                       Limite: {formatCurrency(expense.categoryMaxAmount)}
                     </div>

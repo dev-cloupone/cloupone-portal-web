@@ -38,7 +38,7 @@ export function ExpenseCalendarCell({
   let bgClass = 'bg-surface-1';
   if (isSelected) bgClass = 'bg-accent-10';
   else if (isSelectedWeek) bgClass = 'bg-accent-5';
-  else if (periodStatus === 'open') bgClass = 'bg-accent-15';
+  else if (periodStatus === 'open') bgClass = 'bg-success-15';
   else if (periodStatus === 'closed') bgClass = 'bg-surface-2 opacity-60';
   else if (isWeekend) bgClass = 'bg-[var(--color-weekend)]';
 
