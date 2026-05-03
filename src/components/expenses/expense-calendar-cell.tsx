@@ -39,6 +39,7 @@ export function ExpenseCalendarCell({
   if (isSelected && periodStatus === 'open') bgClass = 'bg-success-15';
   else if (isSelected) bgClass = 'bg-accent-10';
   else if (isSelectedWeek && periodStatus === 'open') bgClass = 'bg-success-15';
+  else if (isSelectedWeek && periodStatus === 'closed') bgClass = 'bg-surface-2 opacity-60';
   else if (isSelectedWeek) bgClass = 'bg-accent-5';
   else if (periodStatus === 'open') bgClass = 'bg-success-15';
   else if (periodStatus === 'closed') bgClass = 'bg-surface-2 opacity-60';
@@ -60,7 +61,7 @@ export function ExpenseCalendarCell({
     <button
       type="button"
       onClick={() => onClick(date)}
-      className={`relative flex flex-col items-start p-1.5 sm:p-2 rounded-lg min-h-[52px] sm:min-h-[68px] transition-all duration-150 cursor-pointer hover:bg-accent-10 ${bgClass} ${borderClass}`}
+      className={`relative flex flex-col items-start p-1.5 sm:p-2 rounded-lg min-h-[52px] sm:min-h-[68px] transition-all duration-150 cursor-pointer ${periodStatus !== 'closed' ? 'hover:bg-accent-10' : ''} ${bgClass} ${borderClass}`}
     >
       <span className={`text-xs sm:text-sm leading-none ${dayTextClass}`}>
         {dayNumber}
