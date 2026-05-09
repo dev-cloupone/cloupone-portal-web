@@ -85,14 +85,6 @@ export function useNavItems(): NavEntry[] {
         ],
       },
       {
-        group: 'Aprovações',
-        items: [
-          { label: 'Aprovações', path: '/approvals', icon: <CheckSquare size={18} /> },
-          { label: 'Aprov. Despesas', path: '/expense-approvals', icon: <Receipt size={18} /> },
-          { label: 'Reembolsos', path: '/expense-reimbursements', icon: <HandCoins size={18} /> },
-        ],
-      },
-      {
         group: 'Sistema',
         items: [
           { label: 'Relatórios', path: '/reports', icon: <FileText size={18} /> },
