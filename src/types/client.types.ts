@@ -6,6 +6,10 @@ export interface Client {
   contactEmail?: string;
   contactPhone?: string;
   notes?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
