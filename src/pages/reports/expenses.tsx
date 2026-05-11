@@ -10,6 +10,8 @@ import { useNavItems } from '../../hooks/use-nav-items';
 import { reportCatalogService } from '../../services/report-catalog.service';
 import * as projectService from '../../services/project.service';
 import * as periodService from '../../services/project-expense-period.service';
+import * as bankAccountsService from '../../services/bank-accounts.service';
+import type { BankAccountOption } from '../../services/bank-accounts.service';
 import { formatApiError } from '../../services/api';
 import { WeekMultiSelect } from './components/week-multi-select';
 import type { ProjectExpensePeriod } from '../../types/expense.types';
@@ -44,6 +46,8 @@ export default function ExpenseReportPage() {
   const [consultants, setConsultants] = useState<ConsultantOption[]>([]);
   const [consultantId, setConsultantId] = useState('');
   const [view, setView] = useState<'consultant' | 'client'>('consultant');
+  const [bankAccounts, setBankAccounts] = useState<BankAccountOption[]>([]);
+  const [bankAccountId, setBankAccountId] = useState('');
 
   // Data state
   const [reportData, setReportData] = useState<ExpenseReportResult | null>(null);
@@ -63,6 +67,9 @@ export default function ExpenseReportPage() {
       })
       .catch((err) => setError(formatApiError(err)))
       .finally(() => setLoadingFilters(false));
+    bankAccountsService.listActiveBankAccounts()
+      .then(setBankAccounts)
+      .catch(() => setBankAccounts([]));
   }, []);
 
   // Load periods and consultants when project changes
@@ -101,6 +108,9 @@ export default function ExpenseReportPage() {
       selectedWeekIds.forEach((id) => params.append('weekIds', id));
       if (consultantId) params.set('consultantId', consultantId);
       params.set('view', view);
+      if (view === 'client' && bankAccountId) {
+        params.set('bankAccountId', bankAccountId);
+      }
       const data = await reportCatalogService.getExpenseData(params);
       setReportData(data);
     } catch (err) {
@@ -109,7 +119,7 @@ export default function ExpenseReportPage() {
     } finally {
       setLoading(false);
     }
-  }, [projectId, selectedWeekIds, consultantId, view]);
+  }, [projectId, selectedWeekIds, consultantId, view, bankAccountId]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -126,6 +136,9 @@ export default function ExpenseReportPage() {
       selectedWeekIds.forEach((id) => params.append('weekIds', id));
       if (consultantId) params.set('consultantId', consultantId);
       params.set('view', view);
+      if (view === 'client' && bankAccountId) {
+        params.set('bankAccountId', bankAccountId);
+      }
       const url = reportCatalogService.getExpensePdfUrl(params);
       await reportCatalogService.downloadPdf(url, 'relatorio-despesas.pdf');
     } catch (err) {
@@ -189,6 +202,20 @@ export default function ExpenseReportPage() {
                 onChange={(v) => setView(v as 'consultant' | 'client')}
               />
             </div>
+            {view === 'client' && (
+              <div>
+                <Select
+                  label="Conta Bancaria"
+                  placeholder={bankAccounts.length === 0 ? 'Nenhuma conta cadastrada' : 'Selecione a conta'}
+                  options={bankAccounts.map((a) => ({ value: a.id, label: a.label }))}
+                  value={bankAccountId}
+                  onChange={setBankAccountId}
+                />
+                {bankAccounts.length === 0 && (
+                  <p className="text-[10px] text-warning mt-1">Cadastre contas bancarias em Configuracoes.</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Week selector - full width below filters */}
@@ -226,7 +253,7 @@ export default function ExpenseReportPage() {
                 <span className="mx-2">|</span>
                 Visão: {reportData.view === 'client' ? 'Cliente' : 'Consultor'}
               </div>
-              <Button size="sm" onClick={handleDownloadPdf} disabled={pdfLoading}>
+              <Button size="sm" onClick={handleDownloadPdf} disabled={pdfLoading || (view === 'client' && !bankAccountId)}>
                 <Download size={14} className="mr-1.5" />
                 {pdfLoading ? 'Gerando...' : 'Gerar PDF'}
               </Button>

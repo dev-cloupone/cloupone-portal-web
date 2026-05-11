@@ -13,7 +13,7 @@ import { formatApiError } from '../../services/api';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { Client } from '../../types/client.types';
 
-const emptyForm = { companyName: '', cnpj: '', contactName: '', contactEmail: '', contactPhone: '', notes: '' };
+const emptyForm = { companyName: '', cnpj: '', contactName: '', contactEmail: '', contactPhone: '', notes: '', address: '', city: '', state: '', zipCode: '' };
 
 export default function ClientsPage() {
   const navItems = useNavItems();
@@ -79,6 +79,10 @@ export default function ClientsPage() {
       contactEmail: client.contactEmail || '',
       contactPhone: client.contactPhone || '',
       notes: client.notes || '',
+      address: client.address || '',
+      city: client.city || '',
+      state: client.state || '',
+      zipCode: client.zipCode || '',
     });
     setError('');
     setEditing(client);
@@ -99,6 +103,12 @@ export default function ClientsPage() {
       <Input label="Nome do Contato" value={form.contactName} onChange={(e) => setForm({ ...form, contactName: e.target.value })} />
       <Input label="Email do Contato" type="email" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
       <Input label="Telefone" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
+      <Input label="Endereço" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Rua, número - complemento" />
+      <div className="grid grid-cols-3 gap-3">
+        <Input label="Cidade" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+        <Input label="Estado" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder="SC" maxLength={2} />
+        <Input label="CEP" value={form.zipCode} onChange={(e) => setForm({ ...form, zipCode: e.target.value })} placeholder="00000-000" />
+      </div>
       <div className="space-y-1.5">
         <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">Observações</label>
         <textarea

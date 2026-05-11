@@ -23,6 +23,9 @@ const HomePage = lazy(() => import('./pages/home'));
 const AdminDashboardPage = lazy(() => import('./pages/admin/dashboard'));
 const AdminUsersPage = lazy(() => import('./pages/admin/users'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/settings'));
+const SettingsGeneralPage = lazy(() => import('./pages/admin/settings/general'));
+const CompanyInfoPage = lazy(() => import('./pages/admin/settings/company-info'));
+const BankAccountsPage = lazy(() => import('./pages/admin/settings/bank-accounts'));
 
 // Admin entity pages (super_admin + gestor)
 const AdminClientsPage = lazy(() => import('./pages/admin/clients'));
@@ -116,7 +119,11 @@ export default function App() {
                     {/* super_admin only */}
                     <Route path="dashboard" element={<RoleGuard allowedRoles={['super_admin']}><AdminDashboardPage /></RoleGuard>} />
                     <Route path="users" element={<RoleGuard allowedRoles={['super_admin']}><AdminUsersPage /></RoleGuard>} />
-                    <Route path="settings" element={<RoleGuard allowedRoles={['super_admin']}><AdminSettingsPage /></RoleGuard>} />
+                    <Route path="settings" element={<RoleGuard allowedRoles={['super_admin']}><AdminSettingsPage /></RoleGuard>}>
+                      <Route index element={<SettingsGeneralPage />} />
+                      <Route path="company-info" element={<CompanyInfoPage />} />
+                      <Route path="bank-accounts" element={<BankAccountsPage />} />
+                    </Route>
                     <Route path="clients" element={<RoleGuard allowedRoles={['super_admin']}><AdminClientsPage /></RoleGuard>} />
                     <Route path="consultants" element={<RoleGuard allowedRoles={['super_admin']}><AdminConsultantsPage /></RoleGuard>} />
                     <Route path="expense-categories" element={<RoleGuard allowedRoles={['super_admin']}><AdminExpenseCategoriesPage /></RoleGuard>} />
