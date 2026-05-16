@@ -38,7 +38,7 @@ function formatDate(dateStr: string): string {
 function getHeaders(showConsultant: boolean): string[] {
   const headers = ['Data'];
   if (showConsultant) headers.push('Consultor');
-  headers.push('Projeto', 'Subfase', 'Ticket', 'Inicio', 'Fim', 'Horas', 'Descricao');
+  headers.push('Projeto', 'Subfase', 'Ticket', 'Início', 'Fim', 'Horas', 'Descrição');
   return headers;
 }
 
@@ -162,7 +162,7 @@ export async function exportToPdf(options: ExportOptions) {
     columnStyles: {
       [headers.indexOf('Data')]: { halign: 'center', cellWidth: 22 },
       [headers.indexOf('Ticket')]: { halign: 'center', cellWidth: 28 },
-      [headers.indexOf('Inicio')]: { halign: 'center', cellWidth: 16 },
+      [headers.indexOf('Início')]: { halign: 'center', cellWidth: 16 },
       [headers.indexOf('Fim')]: { halign: 'center', cellWidth: 16 },
       [horasIdx]: { halign: 'right', cellWidth: 16 },
     },
@@ -183,7 +183,7 @@ export async function exportToPdf(options: ExportOptions) {
 
   const totalPages = doc.getNumberOfPages();
   const now = new Date();
-  const timestamp = `Gerado em ${now.toLocaleDateString('pt-BR')} as ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+  const timestamp = `Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
@@ -193,7 +193,7 @@ export async function exportToPdf(options: ExportOptions) {
     doc.setFontSize(7);
     doc.setTextColor(153, 153, 153);
     doc.text(timestamp, 14, pageHeight - 10);
-    doc.text(`Pagina ${i} de ${totalPages}`, pageWidth - 14, pageHeight - 10, { align: 'right' });
+    doc.text(`Página ${i} de ${totalPages}`, pageWidth - 14, pageHeight - 10, { align: 'right' });
   }
 
   doc.save(getFileName(currentMonth, consultantName, 'pdf'));

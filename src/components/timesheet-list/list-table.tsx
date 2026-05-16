@@ -39,10 +39,10 @@ export function ListTable({ entries, totalHours, loading, filtering, showConsult
             <TableHeader>Projeto</TableHeader>
             <TableHeader>Subfase</TableHeader>
             <TableHeader>Ticket</TableHeader>
-            <TableHeader>Inicio</TableHeader>
+            <TableHeader>Início</TableHeader>
             <TableHeader>Fim</TableHeader>
             <TableHeader>Horas</TableHeader>
-            <TableHeader>Descricao</TableHeader>
+            <TableHeader>Descrição</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -57,7 +57,7 @@ export function ListTable({ entries, totalHours, loading, filtering, showConsult
   if (entries.length === 0) {
     return (
       <div className={`flex flex-col items-center justify-center py-16 text-text-muted transition-opacity duration-150 ${filtering ? 'opacity-50 pointer-events-none' : ''}`}>
-        <p className="text-sm">Nenhum apontamento encontrado para este periodo.</p>
+        <p className="text-sm">Nenhum apontamento encontrado para este período.</p>
       </div>
     );
   }
@@ -71,10 +71,10 @@ export function ListTable({ entries, totalHours, loading, filtering, showConsult
           <TableHeader>Projeto</TableHeader>
           <TableHeader>Subfase</TableHeader>
           <TableHeader>Ticket</TableHeader>
-          <TableHeader>Inicio</TableHeader>
+          <TableHeader>Início</TableHeader>
           <TableHeader>Fim</TableHeader>
           <TableHeader className="text-right">Horas</TableHeader>
-          <TableHeader>Descricao</TableHeader>
+          <TableHeader>Descrição</TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>

@@ -38,13 +38,13 @@ export default function TimesheetListPage() {
         {/* Header */}
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={goToPreviousMonth} aria-label="Mes anterior">
+            <Button variant="ghost" size="sm" onClick={goToPreviousMonth} aria-label="Mês anterior">
               <ChevronLeft size={16} />
             </Button>
             <h1 className="text-lg font-semibold text-text-primary capitalize min-w-[160px] text-center">
               {monthLabel}
             </h1>
-            <Button variant="ghost" size="sm" onClick={goToNextMonth} aria-label="Proximo mes">
+            <Button variant="ghost" size="sm" onClick={goToNextMonth} aria-label="Próximo mês">
               <ChevronRight size={16} />
             </Button>
             <Button variant="secondary" size="sm" onClick={goToToday}>Hoje</Button>
@@ -60,7 +60,7 @@ export default function TimesheetListPage() {
               disabled={loading || entries.length === 0}
             />
             <Button variant="ghost" size="sm" onClick={() => navigate('/timesheet')}>
-              <Calendar className="w-4 h-4 mr-1" /> Calendario
+              <Calendar className="w-4 h-4 mr-1" /> Calendário
             </Button>
           </div>
         </header>
