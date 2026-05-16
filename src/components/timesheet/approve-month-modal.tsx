@@ -8,7 +8,6 @@ interface ApproveMonthModalProps {
   onConfirm: () => Promise<void>;
   monthLabel: string;
   totalHours: number;
-  targetHours: number;
   entryCount: number;
 }
 
@@ -18,15 +17,9 @@ export function ApproveMonthModal({
   onConfirm,
   monthLabel,
   totalHours,
-  targetHours,
   entryCount,
 }: ApproveMonthModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const warnings: string[] = [];
-  if (totalHours < targetHours) {
-    warnings.push(`Total de horas (${totalHours.toFixed(1)}h) está abaixo da meta mensal (${targetHours}h).`);
-  }
 
   async function handleConfirm() {
     setIsSubmitting(true);
@@ -54,22 +47,10 @@ export function ApproveMonthModal({
             <span className="font-semibold text-text-primary">{totalHours.toFixed(1)}h</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-text-tertiary">Meta mensal</span>
-            <span className="text-text-secondary">{targetHours}h</span>
-          </div>
-          <div className="flex justify-between text-sm">
             <span className="text-text-tertiary">Apontamentos</span>
             <span className="text-text-secondary">{entryCount}</span>
           </div>
         </div>
-
-        {warnings.length > 0 && (
-          <div className="rounded-lg bg-warning-muted border border-warning/20 px-3 py-2">
-            {warnings.map((w, i) => (
-              <p key={i} className="text-xs text-warning">{w}</p>
-            ))}
-          </div>
-        )}
 
         <p className="text-xs text-text-muted">
           Após a aprovação, os registros não poderão ser editados até que um gestor reabra o mês.
