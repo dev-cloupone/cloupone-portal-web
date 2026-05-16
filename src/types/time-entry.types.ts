@@ -73,3 +73,42 @@ export interface UpsertEntryData {
   ticketId?: string | null;
   subphaseId?: string | null;
 }
+
+// --- List view types ---
+
+export interface TimeEntryListItem {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  hours: string;
+  description: string | null;
+  consultantId: string;
+  consultantName: string;
+  projectId: string;
+  projectName: string;
+  subphaseId: string | null;
+  subphaseName: string | null;
+  ticketId: string | null;
+  ticketCode: string | null;
+  ticketTitle: string | null;
+}
+
+export interface TimeEntryListResponse {
+  entries: TimeEntryListItem[];
+  totalHours: string;
+}
+
+export interface TimeEntryListParams {
+  month: string;
+  consultantId?: string;
+  projectId?: string;
+  subphaseId?: string;
+  ticketId?: string;
+  all?: boolean;
+}
+
+export interface ConsultantOption {
+  id: string;
+  name: string;
+}
