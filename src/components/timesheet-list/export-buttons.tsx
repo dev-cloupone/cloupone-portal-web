@@ -8,8 +8,6 @@ interface ExportButtonsProps {
   currentMonth: string;
   consultantName?: string;
   projectName?: string;
-  consultantFilterLabel?: string;
-  projectFilterLabel?: string;
   showConsultantColumn: boolean;
   disabled: boolean;
 }
@@ -20,19 +18,17 @@ export function ExportButtons({
   currentMonth,
   consultantName,
   projectName,
-  consultantFilterLabel,
-  projectFilterLabel,
   showConsultantColumn,
   disabled,
 }: ExportButtonsProps) {
   const handleExcel = async () => {
     const { exportToExcel } = await import('../../utils/timesheet-export');
-    exportToExcel({ entries, totalHours, currentMonth, consultantName, projectName, consultantFilterLabel, projectFilterLabel, showConsultantColumn });
+    exportToExcel({ entries, totalHours, currentMonth, consultantName, projectName, showConsultantColumn });
   };
 
   const handlePdf = async () => {
     const { exportToPdf } = await import('../../utils/timesheet-export');
-    exportToPdf({ entries, totalHours, currentMonth, consultantName, projectName, consultantFilterLabel, projectFilterLabel, showConsultantColumn });
+    exportToPdf({ entries, totalHours, currentMonth, consultantName, projectName, showConsultantColumn });
   };
 
   return (

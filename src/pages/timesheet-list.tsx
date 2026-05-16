@@ -31,8 +31,6 @@ export default function TimesheetListPage() {
   const selectedProjectName = filters.projectId ? projects.find(p => p.id === filters.projectId)?.name : undefined;
   const selectedConsultantName = filters.consultantId ? consultants.find(c => c.id === filters.consultantId)?.name : undefined;
 
-  const consultantFilterLabel = filters.all ? 'Todos' : (selectedConsultantName || user?.name || 'Meus apontamentos');
-  const projectFilterLabel = selectedProjectName || 'Todos';
 
   return (
     <SidebarLayout navItems={navItems} title="Apontamentos - Lista">
@@ -56,10 +54,8 @@ export default function TimesheetListPage() {
               entries={entries}
               totalHours={totalHours}
               currentMonth={currentMonth}
-              consultantName={selectedConsultantName}
+              consultantName={filters.all ? undefined : (selectedConsultantName || user?.name)}
               projectName={selectedProjectName}
-              consultantFilterLabel={consultantFilterLabel}
-              projectFilterLabel={projectFilterLabel}
               showConsultantColumn={isAdminOrGestor}
               disabled={loading || entries.length === 0}
             />

@@ -21,8 +21,6 @@ interface ExportOptions {
   currentMonth: string;
   consultantName?: string;
   projectName?: string;
-  consultantFilterLabel?: string;
-  projectFilterLabel?: string;
   showConsultantColumn: boolean;
 }
 
@@ -118,7 +116,7 @@ export function exportToExcel(options: ExportOptions) {
 }
 
 export async function exportToPdf(options: ExportOptions) {
-  const { entries, totalHours, currentMonth, consultantName, projectName, consultantFilterLabel, projectFilterLabel, showConsultantColumn } = options;
+  const { entries, totalHours, currentMonth, consultantName, projectName, showConsultantColumn } = options;
   const headers = getHeaders(showConsultantColumn);
   const rows = buildRows(entries, showConsultantColumn);
 
@@ -137,17 +135,6 @@ export async function exportToPdf(options: ExportOptions) {
   const headerOpts: HeaderOptions = { currentMonth, logoDataUrl, consultantName, projectName };
   let startY = drawHeader(doc, pageWidth, headerOpts);
 
-  // Draw filter line
-  const filterParts: string[] = [];
-  if (consultantFilterLabel) filterParts.push(`Consultor: ${consultantFilterLabel}`);
-  if (projectFilterLabel) filterParts.push(`Projeto: ${projectFilterLabel}`);
-  if (filterParts.length > 0) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Filtros: ${filterParts.join(' | ')}`, 14, startY);
-    startY += 6;
-  }
 
   const lastRowIndex = rows.length - 1;
 
