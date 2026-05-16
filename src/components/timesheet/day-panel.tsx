@@ -1,12 +1,11 @@
 import { Plus, Clock, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { EntryCard } from './entry-card';
-import type { TimeEntry, WeekSummary } from '../../types/time-entry.types';
+import type { TimeEntry } from '../../types/time-entry.types';
 
 interface DayPanelProps {
   selectedDate: string;
   entries: TimeEntry[];
-  weekSummary: WeekSummary | null;
   isEditable?: boolean;
   onEdit: (entry: TimeEntry) => void;
   onDelete: (entryId: string) => void;
@@ -34,7 +33,6 @@ function formatHoursLabel(hours: number): string {
 export function DayPanel({
   selectedDate,
   entries,
-  weekSummary,
   isEditable = true,
   onEdit,
   onDelete,
@@ -72,14 +70,6 @@ export function DayPanel({
           </div>
         </div>
 
-        {/* Week info bar */}
-        {weekSummary && (
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-text-tertiary">
-              Semana: {formatHoursLabel(weekSummary.totalHours)} / {weekSummary.targetHours}h
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Entries list */}

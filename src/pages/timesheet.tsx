@@ -124,9 +124,7 @@ export default function TimesheetPage() {
 
         <MonthHeader
           currentMonth={currentMonth}
-          monthData={monthData}
           monthStatus={currentMonthStatus}
-          selectedWeekSummary={selectedWeekSummary}
           onPreviousMonth={handlePreviousMonth}
           onNextMonth={handleNextMonth}
           onToday={handleGoToToday}
@@ -164,7 +162,6 @@ export default function TimesheetPage() {
               <DayPanel
                 selectedDate={selectedDate}
                 entries={selectedDayEntries}
-                weekSummary={selectedWeekSummary}
                 isEditable={isMonthEditable}
                 onEdit={(entry) => setPanelState({ view: 'entry-form', entry })}
                 onDelete={deleteEntry}
@@ -200,7 +197,6 @@ export default function TimesheetPage() {
         }}
         monthLabel={approveMonthLabel}
         totalHours={monthData?.totalHours ?? 0}
-        targetHours={monthData?.targetHours ?? 0}
         entryCount={monthData?.entries.length ?? 0}
       />
     </SidebarLayout>

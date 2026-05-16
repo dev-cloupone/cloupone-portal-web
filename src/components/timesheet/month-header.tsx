@@ -2,14 +2,11 @@ import { ChevronLeft, ChevronRight, CalendarDays, CheckCircle, List } from 'luci
 import { useNavigate } from 'react-router';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import type { MonthData, WeekSummary } from '../../types/time-entry.types';
 import type { MonthlyTimesheetStatus } from '../../types/monthly-timesheet.types';
 
 interface MonthHeaderProps {
   currentMonth: string;
-  monthData: MonthData | null;
   monthStatus?: MonthlyTimesheetStatus | null;
-  selectedWeekSummary: WeekSummary | null;
   onPreviousMonth: () => void;
   onNextMonth: () => void;
   onToday: () => void;
@@ -29,37 +26,9 @@ function formatMonthLabel(month: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-function ProgressBar({ label, current, target }: { label: string; current: number; target: number }) {
-  const percent = target > 0 ? Math.min((current / target) * 100, 100) : 0;
-  const barColor = percent >= 100
-    ? 'bg-success'
-    : percent >= 75
-      ? 'bg-accent'
-      : percent >= 50
-        ? 'bg-warning'
-        : 'bg-text-muted';
-
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-xs text-text-tertiary">
-        <span>{label}: {current.toFixed(1)}h / {target}h</span>
-        <span>{Math.round(percent)}%</span>
-      </div>
-      <div className="h-1.5 w-full rounded-full bg-surface-3 overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-300 ${barColor}`}
-          style={{ width: `${percent}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
 export function MonthHeader({
   currentMonth,
-  monthData,
   monthStatus,
-  selectedWeekSummary,
   onPreviousMonth,
   onNextMonth,
   onToday,
@@ -102,22 +71,6 @@ export function MonthHeader({
         </div>
       </div>
 
-      {monthData && (
-        <div className="space-y-2">
-          <ProgressBar
-            label="Mês"
-            current={monthData.totalHours}
-            target={monthData.targetHours}
-          />
-          {selectedWeekSummary && (
-            <ProgressBar
-              label="Semana"
-              current={selectedWeekSummary.totalHours}
-              target={selectedWeekSummary.targetHours}
-            />
-          )}
-        </div>
-      )}
     </div>
   );
 }

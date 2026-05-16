@@ -21,8 +21,6 @@ export function MonthSummary({ monthData, weekSummaries, monthStatus }: MonthSum
   // Days worked
   const uniqueDays = new Set(entries.map(e => e.date));
   const daysWorked = uniqueDays.size;
-  const avgDaily = daysWorked > 0 ? monthData.totalHours / daysWorked : 0;
-
   // Breakdown by project
   const projectMap = new Map<string, { name: string; hours: number }>();
   for (const e of entries) {
@@ -47,9 +45,7 @@ export function MonthSummary({ monthData, weekSummaries, monthStatus }: MonthSum
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard label="Total registrado" value={`${monthData.totalHours.toFixed(1)}h`} />
-        <StatCard label="Meta mensal" value={`${monthData.targetHours}h`} />
         <StatCard label="Dias trabalhados" value={String(daysWorked)} />
-        <StatCard label="Média diária" value={`${avgDaily.toFixed(1)}h`} />
       </div>
 
       {/* Project breakdown */}
@@ -91,7 +87,7 @@ export function MonthSummary({ monthData, weekSummaries, monthStatus }: MonthSum
                   <span className="text-text-secondary">
                     Sem. {weekLabel}
                   </span>
-                  <span className="text-text-tertiary">{w.totalHours.toFixed(1)}h / {w.targetHours}h</span>
+                  <span className="text-text-tertiary">{w.totalHours.toFixed(1)}h</span>
                 </div>
               );
             })}
