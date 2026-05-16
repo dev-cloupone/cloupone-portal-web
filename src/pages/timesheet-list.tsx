@@ -24,14 +24,15 @@ export default function TimesheetListPage() {
     consultants, projects,
     goToPreviousMonth, goToNextMonth, goToToday,
     isAdminOrGestor,
+    user,
   } = useTimesheetList();
 
   const monthLabel = formatMonthLabel(currentMonth);
   const selectedProjectName = filters.projectId ? projects.find(p => p.id === filters.projectId)?.name : undefined;
   const selectedConsultantName = filters.consultantId ? consultants.find(c => c.id === filters.consultantId)?.name : undefined;
 
-  const consultantFilterLabel = filters.all ? 'Todos' : (selectedConsultantName || 'Meus apontamentos');
-  const projectFilterLabel = selectedProjectName || 'Todos os projetos';
+  const consultantFilterLabel = filters.all ? 'Todos' : (selectedConsultantName || user?.name || 'Meus apontamentos');
+  const projectFilterLabel = selectedProjectName || 'Todos';
 
   return (
     <SidebarLayout navItems={navItems} title="Apontamentos - Lista">
