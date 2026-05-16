@@ -38,6 +38,7 @@ const AdminProjectExpenseCategoriesConfigPage = lazy(() => import('./pages/admin
 
 // Timesheet (consultor + gestor + super_admin)
 const TimesheetPage = lazy(() => import('./pages/timesheet'));
+const TimesheetListPage = lazy(() => import('./pages/timesheet-list'));
 
 // Approvals (super_admin only)
 const ApprovalsPage = lazy(() => import('./pages/approvals'));
@@ -145,6 +146,16 @@ export default function App() {
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['consultor', 'gestor', 'super_admin']}>
                   <TimesheetPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/timesheet/list"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['consultor', 'gestor', 'super_admin']}>
+                  <TimesheetListPage />
                 </RoleGuard>
               </ProtectedRoute>
             }

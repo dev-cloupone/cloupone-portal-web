@@ -1,5 +1,6 @@
 import { api } from './api';
 import type { Consultant } from '../types/consultant.types';
+import type { ConsultantOption } from '../types/time-entry.types';
 import type { PaginatedResponse } from '../types/pagination.types';
 
 interface ListParams {
@@ -29,4 +30,8 @@ export async function updateConsultant(userId: string, data: { hourlyRate?: numb
 
 export async function listConsultantProjects(userId: string) {
   return api<{ data: Array<{ projectId: string; projectName: string; clientName: string; status: string }> }>(`/consultants/${userId}/projects`);
+}
+
+export async function listConsultantsByScope(): Promise<{ data: ConsultantOption[] }> {
+  return api<{ data: ConsultantOption[] }>('/consultants/by-scope');
 }

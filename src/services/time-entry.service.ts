@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { TimeEntry, WeekData, MonthData, UpsertEntryData } from '../types/time-entry.types';
+import type { TimeEntry, WeekData, MonthData, UpsertEntryData, TimeEntryListParams, TimeEntryListResponse } from '../types/time-entry.types';
 import type { PaginatedResponse } from '../types/pagination.types';
 
 export async function getMonthEntries(date: string): Promise<MonthData> {
@@ -16,6 +16,17 @@ export async function upsertEntry(data: UpsertEntryData): Promise<TimeEntry> {
 
 export async function deleteEntry(id: string): Promise<void> {
   return api<void>(`/time-entries/${id}`, { method: 'DELETE' });
+}
+
+export async function getTimeEntryList(params: TimeEntryListParams): Promise<TimeEntryListResponse> {
+  const searchParams = new URLSearchParams();
+  searchParams.set('month', params.month);
+  if (params.consultantId) searchParams.set('consultantId', params.consultantId);
+  if (params.projectId) searchParams.set('projectId', params.projectId);
+  if (params.subphaseId) searchParams.set('subphaseId', params.subphaseId);
+  if (params.ticketId) searchParams.set('ticketId', params.ticketId);
+  if (params.all) searchParams.set('all', 'true');
+  return api<TimeEntryListResponse>(`/time-entries/list?${searchParams.toString()}`);
 }
 
 export async function listTimeEntries(params?: {

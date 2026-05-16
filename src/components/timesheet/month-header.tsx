@@ -1,4 +1,5 @@
-import { ChevronLeft, ChevronRight, CalendarDays, CheckCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarDays, CheckCircle, List } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import type { MonthData, WeekSummary } from '../../types/time-entry.types';
@@ -64,6 +65,7 @@ export function MonthHeader({
   onToday,
   onApproveMonth,
 }: MonthHeaderProps) {
+  const navigate = useNavigate();
   const statusCfg = monthStatus ? STATUS_CONFIG[monthStatus] : null;
   const canApprove = monthStatus === 'open' || monthStatus === 'reopened';
 
@@ -93,6 +95,9 @@ export function MonthHeader({
           </Button>
           <Button variant="ghost" size="sm" onClick={onToday}>
             <CalendarDays size={14} className="mr-1" /> Hoje
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/timesheet/list')}>
+            <List size={14} className="mr-1" /> Visão em Lista
           </Button>
         </div>
       </div>
