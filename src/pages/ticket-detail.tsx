@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
@@ -186,6 +186,26 @@ export default function TicketDetailPage() {
       addToast(formatApiError(err), 'error');
       throw err;
     }
+  }
+
+  const ccDebounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  function handleCcEmailsChange(ccEmails: string[]) {
+    if (!id) return;
+    // Optimistic UI update
+    setTicket((prev) => prev ? { ...prev, ccEmails } : prev);
+    if (ccDebounceRef.current) clearTimeout(ccDebounceRef.current);
+    ccDebounceRef.current = setTimeout(async () => {
+      try {
+        const updated = await ticketService.update(id, { ccEmails });
+        setTicket(updated);
+        await loadHistory();
+        addToast('E-mails em copia atualizados', 'success');
+      } catch (err) {
+        addToast(formatApiError(err), 'error');
+        // Revert on error
+        await loadTicket();
+      }
+    }, 800);
   }
 
   async function handleAttachmentRemove(attachmentId: string) {
@@ -395,6 +415,7 @@ export default function TicketDetailPage() {
               consultants={consultants}
               onPriorityChange={handlePriorityChange}
               onAssigneeChange={handleAssigneeChange}
+              onCcEmailsChange={handleCcEmailsChange}
               onAttachmentUpload={handleAttachmentUpload}
               onAttachmentRemove={handleAttachmentRemove}
               uploading={uploading}

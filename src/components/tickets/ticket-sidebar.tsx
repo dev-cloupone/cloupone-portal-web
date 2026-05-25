@@ -1,6 +1,7 @@
 import { Calendar, Clock, Eye, EyeOff, User as UserIcon } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Select } from '../ui/select';
+import { CcEmailsInput } from './cc-emails-input';
 import { TicketPriorityBadge } from './ticket-priority-badge';
 import { TicketTypeBadge } from './ticket-type-badge';
 import { TicketAttachments } from './ticket-attachments';
@@ -31,6 +32,7 @@ interface TicketSidebarProps {
   consultants: { value: string; label: string }[];
   onPriorityChange: (priority: TicketPriority) => void;
   onAssigneeChange: (userId: string | null) => void;
+  onCcEmailsChange: (emails: string[]) => void;
   onAttachmentUpload: (file: File) => Promise<void>;
   onAttachmentRemove: (attachmentId: string) => Promise<void>;
   uploading?: boolean;
@@ -57,6 +59,7 @@ export function TicketSidebar({
   consultants,
   onPriorityChange,
   onAssigneeChange,
+  onCcEmailsChange,
   onAttachmentUpload,
   onAttachmentRemove,
   uploading,
@@ -194,6 +197,29 @@ export function TicketSidebar({
           </div>
         </div>
       )}
+
+      {/* CC Emails */}
+      <div className="space-y-2">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+          E-mails em Cópia
+        </h4>
+        {isFinished ? (
+          ticket.ccEmails.length > 0 ? (
+            <div className="space-y-1">
+              {ticket.ccEmails.map((email) => (
+                <p key={email} className="text-xs text-text-secondary">{email}</p>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-text-muted">Nenhum</p>
+          )
+        ) : (
+          <CcEmailsInput
+            value={ticket.ccEmails}
+            onChange={onCcEmailsChange}
+          />
+        )}
+      </div>
 
       <hr className="border-border" />
 
