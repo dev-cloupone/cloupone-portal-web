@@ -213,7 +213,7 @@ export default function TicketNewPage() {
             onChange={(emails) => setForm((prev) => ({ ...prev, ccEmails: emails }))}
           />
           <p className="text-xs text-text-muted">
-            Esses e-mails receberao todas as notificacoes do ticket.
+            Esses e-mails receberão todas as notificações do ticket.
           </p>
         </div>
 
