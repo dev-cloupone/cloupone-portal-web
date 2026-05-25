@@ -19,6 +19,7 @@ export interface Ticket {
   description: string | null;
   metadata: Record<string, unknown> | null;
   isVisibleToClient: boolean;
+  ccEmails: string[];
   dueDate: string | null;
   estimatedHours: number | null;
   resolvedAt: string | null;
@@ -81,6 +82,7 @@ export interface CreateTicketData {
   assignedTo?: string | null;
   dueDate?: string | null;
   estimatedHours?: number | null;
+  ccEmails?: string[];
 }
 
 export interface UpdateTicketData {
@@ -92,6 +94,7 @@ export interface UpdateTicketData {
   description?: string;
   dueDate?: string | null;
   estimatedHours?: number | null;
+  ccEmails?: string[];
 }
 
 export interface ListTicketParams {

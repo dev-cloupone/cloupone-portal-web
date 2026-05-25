@@ -5,6 +5,7 @@ import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
+import { CcEmailsInput } from '../components/tickets/cc-emails-input';
 import { ticketService } from '../services/ticket.service';
 import { listProjects } from '../services/project.service';
 import { formatApiError } from '../services/api';
@@ -34,6 +35,7 @@ interface FormState {
   title: string;
   priority: string;
   description: string;
+  ccEmails: string[];
 }
 
 const emptyForm: FormState = {
@@ -42,6 +44,7 @@ const emptyForm: FormState = {
   title: '',
   priority: '',
   description: '',
+  ccEmails: [],
 };
 
 function formatFileSize(bytes: number): string {
@@ -90,6 +93,7 @@ export default function TicketNewPage() {
         title: form.title,
         description: form.description || undefined,
         priority: (form.priority as CreateTicketData['priority']) || undefined,
+        ccEmails: form.ccEmails.length > 0 ? form.ccEmails : undefined,
       };
 
       const ticket = await ticketService.create(data);
@@ -198,6 +202,19 @@ export default function TicketNewPage() {
               className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none placeholder:text-text-muted"
             />
           </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
+          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">
+            E-mails em Copia
+          </h3>
+          <CcEmailsInput
+            value={form.ccEmails}
+            onChange={(emails) => setForm((prev) => ({ ...prev, ccEmails: emails }))}
+          />
+          <p className="text-xs text-text-muted">
+            Esses e-mails receberao todas as notificacoes do ticket.
+          </p>
         </div>
 
         <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
