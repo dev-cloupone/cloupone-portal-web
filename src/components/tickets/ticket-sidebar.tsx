@@ -201,7 +201,7 @@ export function TicketSidebar({
       {/* CC Emails */}
       <div className="space-y-2">
         <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-          E-mails em Copia
+          E-mails em Cópia
         </h4>
         {isFinished ? (
           ticket.ccEmails.length > 0 ? (

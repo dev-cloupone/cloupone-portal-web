@@ -107,11 +107,11 @@ export function CcEmailsInput({ value, onChange, disabled, maxEmails = 10 }: CcE
 
   return (
     <div className="relative">
-      <div className="flex flex-wrap gap-1.5 rounded-lg border border-border bg-surface-2 px-2.5 py-2 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent">
+      <div className="flex flex-wrap items-center gap-1 rounded-lg border border-border bg-surface-2 px-2 py-1.5 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent">
         {value.map((email) => (
           <span
             key={email}
-            className="inline-flex items-center gap-1 rounded-md bg-accent/10 px-2 py-0.5 text-xs text-accent"
+            className="inline-flex items-center gap-0.5 rounded bg-accent/10 px-1.5 py-px text-[11px] text-accent"
           >
             {email}
             {!disabled && (
@@ -120,7 +120,7 @@ export function CcEmailsInput({ value, onChange, disabled, maxEmails = 10 }: CcE
                 onClick={() => removeEmail(email)}
                 className="text-accent/60 hover:text-accent"
               >
-                <X size={12} />
+                <X size={10} />
               </button>
             )}
           </span>
@@ -134,14 +134,13 @@ export function CcEmailsInput({ value, onChange, disabled, maxEmails = 10 }: CcE
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
             onFocus={() => input.length >= 2 && suggestions.length > 0 && setShowDropdown(true)}
-            placeholder={value.length === 0 ? 'Digite emails...' : ''}
-            className="flex-1 min-w-[120px] bg-transparent text-xs text-text-primary outline-none placeholder:text-text-muted"
+            placeholder={value.length === 0 ? 'Digite e-mails...' : ''}
+            className="flex-1 min-w-[100px] bg-transparent text-[11px] text-text-primary outline-none placeholder:text-text-muted"
           />
         )}
-      </div>
-
-      <div className="flex justify-end mt-1">
-        <span className="text-[11px] text-text-muted">{value.length}/{maxEmails}</span>
+        {value.length > 0 && (
+          <span className="ml-auto text-[10px] text-text-muted">{value.length}/{maxEmails}</span>
+        )}
       </div>
 
       {showDropdown && (
@@ -157,12 +156,12 @@ export function CcEmailsInput({ value, onChange, disabled, maxEmails = 10 }: CcE
                 e.preventDefault();
                 addEmail(s.email);
               }}
-              className={`w-full px-3 py-2 text-left text-xs hover:bg-surface-2 ${
+              className={`w-full px-2.5 py-1.5 text-left text-[11px] hover:bg-surface-2 ${
                 i === highlightedIndex ? 'bg-surface-2' : ''
               }`}
             >
               <span className="font-medium text-text-primary">{s.name}</span>
-              <span className="ml-2 text-text-muted">{s.email}</span>
+              <span className="ml-1.5 text-text-muted">{s.email}</span>
             </button>
           ))}
         </div>

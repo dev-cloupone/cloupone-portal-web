@@ -206,7 +206,7 @@ export default function TicketNewPage() {
 
         <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
           <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">
-            E-mails em Copia
+            E-mails em Cópia
           </h3>
           <CcEmailsInput
             value={form.ccEmails}
