@@ -24,7 +24,7 @@ export function CcEmailsInput({ value, onChange, disabled, maxEmails = 10 }: CcE
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const atLimit = value.length >= maxEmails;
 

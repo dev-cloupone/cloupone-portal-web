@@ -188,7 +188,7 @@ export default function TicketDetailPage() {
     }
   }
 
-  const ccDebounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const ccDebounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   function handleCcEmailsChange(ccEmails: string[]) {
     if (!id) return;
     // Optimistic UI update
