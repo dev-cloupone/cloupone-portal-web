@@ -32,6 +32,7 @@ export async function listConsultantProjects(userId: string) {
   return api<{ data: Array<{ projectId: string; projectName: string; clientName: string; status: string }> }>(`/consultants/${userId}/projects`);
 }
 
-export async function listConsultantsByScope(): Promise<{ data: ConsultantOption[] }> {
-  return api<{ data: ConsultantOption[] }>('/consultants/by-scope');
+export async function listConsultantsByScope(role?: string): Promise<{ data: ConsultantOption[] }> {
+  const qs = role ? `?role=${role}` : '';
+  return api<{ data: ConsultantOption[] }>(`/consultants/by-scope${qs}`);
 }

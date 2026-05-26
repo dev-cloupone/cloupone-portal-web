@@ -110,7 +110,7 @@ export default function TicketsPage() {
     if (user?.role === 'client') return;
     async function loadConsultants() {
       try {
-        const result = await listConsultantsByScope();
+        const result = await listConsultantsByScope('consultor');
         setConsultants(result.data);
       } catch (err) { setError(formatApiError(err)); }
     }
