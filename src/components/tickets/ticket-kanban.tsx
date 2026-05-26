@@ -65,6 +65,7 @@ export function TicketKanban({ filters, onTicketUpdated }: TicketKanbanProps) {
         type: (filters.type as Ticket['type']) || undefined,
         priority: (filters.priority as Ticket['priority']) || undefined,
         search: filters.search || undefined,
+        assignedTo: filters.assignedTo || undefined,
         sort: 'updated_at',
         order: 'desc',
       });
@@ -126,7 +127,7 @@ export function TicketKanban({ filters, onTicketUpdated }: TicketKanbanProps) {
     const allowed = STATUS_TRANSITIONS[ticket.status] || [];
     if (!allowed.includes(targetStatus)) {
       addToast(
-        `Transicao invalida: ${TICKET_STATUS_LABELS[ticket.status as TicketStatus]} → ${TICKET_STATUS_LABELS[targetStatus as TicketStatus]}`,
+        `Transição inválida: ${TICKET_STATUS_LABELS[ticket.status as TicketStatus]} → ${TICKET_STATUS_LABELS[targetStatus as TicketStatus]}`,
         'error'
       );
       return;

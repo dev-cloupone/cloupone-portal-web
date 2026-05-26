@@ -94,7 +94,7 @@ export function TicketCard({ ticket, isDragging }: TicketCardProps) {
           ) : (
             <div
               className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-3 text-text-muted"
-              title="Sem atribuicao"
+              title="Sem atribuição"
             >
               <UserIcon size={12} />
             </div>

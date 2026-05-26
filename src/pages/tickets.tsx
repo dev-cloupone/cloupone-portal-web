@@ -13,11 +13,13 @@ import { TicketFilters, type TicketFilterValues } from '../components/tickets/ti
 import { TicketKanban } from '../components/tickets/ticket-kanban';
 import { ticketService } from '../services/ticket.service';
 import { listProjects } from '../services/project.service';
+import { listConsultantsByScope } from '../services/consultant.service';
 import { formatApiError } from '../services/api';
 import { usePagination } from '../hooks/use-pagination';
 import { useNavItems } from '../hooks/use-nav-items';
 import { useAuth } from '../hooks/use-auth';
 import type { Ticket } from '../types/ticket.types';
+import type { ConsultantOption } from '../types/time-entry.types';
 
 type ViewMode = 'list' | 'kanban';
 
@@ -43,6 +45,7 @@ const emptyFilters: TicketFilterValues = {
   type: '',
   priority: '',
   search: '',
+  assignedTo: '',
 };
 
 function resolveStatusParam(status: string): string | undefined {
@@ -60,6 +63,7 @@ export default function TicketsPage() {
   const [error, setError] = useState('');
   const [filters, setFilters] = useState<TicketFilterValues>(emptyFilters);
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+  const [consultants, setConsultants] = useState<ConsultantOption[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>(getInitialViewMode);
   const { page, limit, meta, setMeta, goToPage, resetPage } = usePagination({ initialLimit: 20 });
 
@@ -75,6 +79,7 @@ export default function TicketsPage() {
         type: (filters.type as Ticket['type']) || undefined,
         priority: (filters.priority as Ticket['priority']) || undefined,
         search: filters.search || undefined,
+        assignedTo: filters.assignedTo || undefined,
         sort: 'updated_at',
         order: 'desc',
       });
@@ -100,6 +105,17 @@ export default function TicketsPage() {
     }
     loadProjects();
   }, []);
+
+  useEffect(() => {
+    if (user?.role === 'client') return;
+    async function loadConsultants() {
+      try {
+        const result = await listConsultantsByScope();
+        setConsultants(result.data);
+      } catch (err) { setError(formatApiError(err)); }
+    }
+    loadConsultants();
+  }, [user?.role]);
 
   function handleFiltersChange(newFilters: TicketFilterValues) {
     setFilters(newFilters);
@@ -157,7 +173,7 @@ export default function TicketsPage() {
       </div>
 
       <div className="mb-6">
-        <TicketFilters values={filters} onChange={handleFiltersChange} projects={projects} />
+        <TicketFilters values={filters} onChange={handleFiltersChange} projects={projects} consultants={consultants} showConsultantFilter={isInternalUser} />
       </div>
 
       {error && (
@@ -178,19 +194,19 @@ export default function TicketsPage() {
             <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
               <List size={40} className="text-text-muted mb-3" />
               <p className="text-text-secondary font-medium">Nenhum ticket encontrado</p>
-              <p className="text-sm text-text-muted mt-1">Crie um novo ticket para comecar</p>
+              <p className="text-sm text-text-muted mt-1">Crie um novo ticket para começar</p>
             </div>
           ) : (
             <>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableHeader>Codigo</TableHeader>
+                    <TableHeader>Código</TableHeader>
                     <TableHeader>Título</TableHeader>
                     <TableHeader>Tipo</TableHeader>
                     <TableHeader>Prioridade</TableHeader>
                     <TableHeader>Status</TableHeader>
-                    <TableHeader>Atribuido</TableHeader>
+                    <TableHeader>Atribuído</TableHeader>
                     <TableHeader>Projeto</TableHeader>
                     <TableHeader>Atualizado</TableHeader>
                   </TableRow>
