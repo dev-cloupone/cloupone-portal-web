@@ -84,7 +84,12 @@ export function TicketCard({ ticket, isDragging }: TicketCardProps) {
               className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent text-[10px] font-bold"
               title={ticket.assignedToName}
             >
-              {ticket.assignedToName.charAt(0).toUpperCase()}
+              {(() => {
+                const parts = ticket.assignedToName.split(' ').filter(Boolean);
+                const first = parts[0]?.charAt(0) ?? '';
+                const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
+                return (first + last).toUpperCase();
+              })()}
             </div>
           ) : (
             <div
