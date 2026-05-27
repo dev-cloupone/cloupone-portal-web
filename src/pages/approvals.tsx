@@ -103,6 +103,7 @@ export default function ApprovalsPage() {
             <Select
               label="Status"
               options={[
+                { value: 'not_approved', label: 'Não aprovados' },
                 { value: '', label: 'Todos' },
                 { value: 'open', label: 'Aberto' },
                 { value: 'approved', label: 'Aprovado' },

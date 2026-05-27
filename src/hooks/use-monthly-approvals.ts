@@ -21,7 +21,7 @@ export function useMonthlyApprovals() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentMonth, setCurrentMonth] = useState(() => format(new Date(), 'yyyy-MM'));
-  const [filters, setFilters] = useState<Filters>({});
+  const [filters, setFilters] = useState<Filters>({ status: 'not_approved' });
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [detail, setDetail] = useState<DetailData | null>(null);
