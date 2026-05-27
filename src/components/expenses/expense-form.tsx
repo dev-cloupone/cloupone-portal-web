@@ -231,7 +231,7 @@ export function ExpenseForm({
     .filter(c => c.isActive)
     .map(c => ({
       value: c.id,
-      label: c.maxAmount ? `${c.name} (teto R$ ${Number(c.maxAmount).toFixed(2)})` : c.name,
+      label: c.maxAmount && Number(c.maxAmount) > 0 ? `${c.name} (teto R$ ${Number(c.maxAmount).toFixed(2)})` : c.name,
     }));
 
   const templateOptions = templates.map(t => ({
@@ -332,14 +332,11 @@ export function ExpenseForm({
         {/* Category info */}
         {selectedCategory && (
           <div className="flex flex-wrap gap-2 text-xs text-text-tertiary">
-            {selectedCategory.maxAmount && (
+            {selectedCategory.maxAmount && Number(selectedCategory.maxAmount) > 0 && (
               <span>Teto: R$ {Number(selectedCategory.maxAmount).toFixed(2)}</span>
             )}
             {selectedCategory.isKmCategory && selectedCategory.kmRate && (
               <span className="text-accent">R$ {Number(selectedCategory.kmRate).toFixed(2)} por km</span>
-            )}
-            {selectedCategory.requiresReceipt && (
-              <span className="text-warning">Exige comprovante</span>
             )}
           </div>
         )}
