@@ -40,3 +40,14 @@ export async function reopenPeriod(
     method: 'POST',
   });
 }
+
+export async function updateDays(
+  projectId: string,
+  periodId: string,
+  data: { customDays: string[] | null },
+): Promise<ProjectExpensePeriod> {
+  return api<ProjectExpensePeriod>(`/projects/${projectId}/expense-periods/${periodId}/days`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
