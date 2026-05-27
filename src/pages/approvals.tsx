@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCheck, User, Calendar, Eye, RotateCcw, AlertTriangle } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
+import { MonthNavigator } from '../components/ui/month-navigator';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Select } from '../components/ui/select';
@@ -26,10 +27,11 @@ const STATUS_LABELS: Record<string, { label: string; variant: 'warning' | 'succe
 export default function ApprovalsPage() {
   const navItems = useNavItems();
   const {
-    timesheets, isLoading, error, filters, pendingCount,
+    timesheets, isLoading, error, currentMonth, filters, pendingCount,
     detail, detailLoading,
     updateFilters, loadDetail, closeDetail,
     approveMonth, reopenMonth,
+    goToPreviousMonth, goToNextMonth, goToToday,
   } = useMonthlyApprovals();
 
   const [consultantOptions, setConsultantOptions] = useState<{ value: string; label: string }[]>([]);
@@ -85,9 +87,14 @@ export default function ApprovalsPage() {
   return (
     <SidebarLayout navItems={navItems} title="Aprovações">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Aprovações Mensais</h2>
-          <p className="text-sm text-text-muted mt-1">
+        <div className="flex flex-col gap-2">
+          <MonthNavigator
+            currentMonth={currentMonth}
+            onPreviousMonth={goToPreviousMonth}
+            onNextMonth={goToNextMonth}
+            onToday={goToToday}
+          />
+          <p className="text-sm text-text-muted">
             {pendingCount} mes{pendingCount !== 1 ? 'es' : ''} pendente{pendingCount !== 1 ? 's' : ''}
           </p>
         </div>

@@ -3,17 +3,11 @@ import { ListFilters } from '../components/timesheet-list/list-filters';
 import { ListTable } from '../components/timesheet-list/list-table';
 import { ExportButtons } from '../components/timesheet-list/export-buttons';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
+import { MonthNavigator } from '../components/ui/month-navigator';
 import { useNavItems } from '../hooks/use-nav-items';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router';
-
-function formatMonthLabel(month: string): string {
-  const [yearStr, monthStr] = month.split('-');
-  const date = new Date(parseInt(yearStr), parseInt(monthStr) - 1, 1);
-  const label = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
 
 export default function TimesheetListPage() {
   const navItems = useNavItems();
@@ -27,7 +21,6 @@ export default function TimesheetListPage() {
     user,
   } = useTimesheetList();
 
-  const monthLabel = formatMonthLabel(currentMonth);
   const selectedProjectName = filters.projectId ? projects.find(p => p.id === filters.projectId)?.name : undefined;
   const selectedConsultantName = filters.consultantId ? consultants.find(c => c.id === filters.consultantId)?.name : undefined;
 
@@ -37,18 +30,12 @@ export default function TimesheetListPage() {
       <div className="space-y-6">
         {/* Header */}
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={goToPreviousMonth} aria-label="Mês anterior">
-              <ChevronLeft size={16} />
-            </Button>
-            <h1 className="text-lg font-semibold text-text-primary capitalize min-w-[160px] text-center">
-              {monthLabel}
-            </h1>
-            <Button variant="ghost" size="sm" onClick={goToNextMonth} aria-label="Próximo mês">
-              <ChevronRight size={16} />
-            </Button>
-            <Button variant="secondary" size="sm" onClick={goToToday}>Hoje</Button>
-          </div>
+          <MonthNavigator
+            currentMonth={currentMonth}
+            onPreviousMonth={goToPreviousMonth}
+            onNextMonth={goToNextMonth}
+            onToday={goToToday}
+          />
           <div className="flex items-center gap-2">
             <ExportButtons
               entries={entries}
