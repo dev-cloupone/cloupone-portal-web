@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { CalendarPlus, Lock, LockOpen, Tags } from 'lucide-react';
+import { CalendarPlus, Lock, LockOpen, Pencil, Tags } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Modal } from '../ui/modal';
@@ -43,6 +43,7 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
   const navigate = useNavigate();
   const [periods, setPeriods] = useState<ProjectExpensePeriod[]>([]);
   const [isOpenModalOpen, setIsOpenModalOpen] = useState(false);
+  const [editingPeriod, setEditingPeriod] = useState<ProjectExpensePeriod | null>(null);
   const [error, setError] = useState('');
 
   // Open period form
@@ -116,6 +117,34 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
     }
   }
 
+  function openEditModal(period: ProjectExpensePeriod) {
+    const days = getWeekDays(period.weekStart);
+    setEditingPeriod(period);
+    setUseCustomDays(true);
+    setSelectedDays(
+      period.customDays && period.customDays.length > 0
+        ? new Set(period.customDays)
+        : new Set(days),
+    );
+    setError('');
+  }
+
+  async function handleUpdateDays(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingPeriod) return;
+    setError('');
+    try {
+      const customDays = selectedDays.size === 7 ? null : Array.from(selectedDays).sort();
+      await periodService.updateDays(projectId, editingPeriod.id, { customDays });
+      setEditingPeriod(null);
+      await loadData();
+    } catch (err) {
+      setError(formatApiError(err));
+    }
+  }
+
+  const editWeekDays = editingPeriod ? getWeekDays(editingPeriod.weekStart) : [];
+
   const openPeriods = periods.filter(p => p.status === 'open');
   const closedPeriods = periods.filter(p => p.status === 'closed');
 
@@ -173,13 +202,22 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
                 </TableCell>
                 <TableCell>
                   {p.status === 'open' && (
-                    <button
-                      onClick={() => handleClosePeriod(p)}
-                      className="text-warning hover:text-warning/80 flex items-center gap-1 text-sm"
-                      title="Fechar período"
-                    >
-                      <Lock size={14} /> Fechar
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => openEditModal(p)}
+                        className="text-accent hover:text-accent/80 flex items-center gap-1 text-sm"
+                        title="Editar dias"
+                      >
+                        <Pencil size={14} /> Editar
+                      </button>
+                      <button
+                        onClick={() => handleClosePeriod(p)}
+                        className="text-warning hover:text-warning/80 flex items-center gap-1 text-sm"
+                        title="Fechar período"
+                      >
+                        <Lock size={14} /> Fechar
+                      </button>
+                    </div>
                   )}
                   {p.status === 'closed' && (
                     <button
@@ -252,6 +290,44 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
           <div className="modal-actions">
             <Button variant="secondary" type="button" onClick={() => { setIsOpenModalOpen(false); setError(''); }}>Cancelar</Button>
             <Button type="submit" disabled={!resolvedWeekStart}>Abrir Período</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit Period Days Modal */}
+      <Modal isOpen={!!editingPeriod} onClose={() => { setEditingPeriod(null); setUseCustomDays(false); setSelectedDays(new Set()); setError(''); }} title="Editar Período Semanal">
+        <form onSubmit={handleUpdateDays} className="space-y-4">
+          {editingPeriod && (
+            <p className="text-xs text-text-tertiary">
+              Semana: {formatDateBR(editingPeriod.weekStart)} (Dom) — {formatDateBR(editingPeriod.weekEnd)} (Sáb)
+            </p>
+          )}
+
+          <p className="text-sm text-text-primary">Selecione os dias abertos:</p>
+
+          {editWeekDays.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {editWeekDays.map((day, i) => (
+                <button
+                  key={day}
+                  type="button"
+                  onClick={() => toggleDay(day)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    selectedDays.has(day)
+                      ? 'bg-accent text-white border-accent'
+                      : 'bg-surface-2 text-text-secondary border-border hover:border-accent/50'
+                  }`}
+                >
+                  {DAY_LABELS[i]} {new Date(day + 'T12:00:00').getDate()}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
+          <div className="modal-actions">
+            <Button variant="secondary" type="button" onClick={() => { setEditingPeriod(null); setUseCustomDays(false); setSelectedDays(new Set()); setError(''); }}>Cancelar</Button>
+            <Button type="submit" disabled={selectedDays.size === 0}>Salvar Alterações</Button>
           </div>
         </form>
       </Modal>

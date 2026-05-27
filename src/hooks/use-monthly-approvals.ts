@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { format } from 'date-fns';
 import * as monthlyTimesheetService from '../services/monthly-timesheet.service';
 import { formatApiError } from '../services/api';
 import { useToastStore } from '../stores/toast.store';
@@ -8,8 +9,6 @@ import type { TimeEntry } from '../types/time-entry.types';
 interface Filters {
   userId?: string;
   status?: string;
-  year?: number;
-  month?: number;
 }
 
 interface DetailData {
@@ -21,7 +20,8 @@ export function useMonthlyApprovals() {
   const [timesheets, setTimesheets] = useState<MonthlyTimesheet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filters, setFilters] = useState<Filters>({});
+  const [currentMonth, setCurrentMonth] = useState(() => format(new Date(), 'yyyy-MM'));
+  const [filters, setFilters] = useState<Filters>({ status: 'not_approved' });
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [detail, setDetail] = useState<DetailData | null>(null);
@@ -30,17 +30,41 @@ export function useMonthlyApprovals() {
 
   const limit = 50;
 
+  const goToPreviousMonth = useCallback(() => {
+    setCurrentMonth(prev => {
+      const [y, m] = prev.split('-').map(Number);
+      const date = new Date(y, m - 2, 1);
+      return format(date, 'yyyy-MM');
+    });
+    setPage(1);
+  }, []);
+
+  const goToNextMonth = useCallback(() => {
+    setCurrentMonth(prev => {
+      const [y, m] = prev.split('-').map(Number);
+      const date = new Date(y, m, 1);
+      return format(date, 'yyyy-MM');
+    });
+    setPage(1);
+  }, []);
+
+  const goToToday = useCallback(() => {
+    setCurrentMonth(format(new Date(), 'yyyy-MM'));
+    setPage(1);
+  }, []);
+
   const loadData = useCallback(async () => {
     setIsLoading(true);
     setError('');
+    const [yearStr, monthStr] = currentMonth.split('-');
     try {
       const result = await monthlyTimesheetService.list({
         page,
         limit,
         userId: filters.userId || undefined,
         status: filters.status || undefined,
-        year: filters.year || undefined,
-        month: filters.month || undefined,
+        year: parseInt(yearStr),
+        month: parseInt(monthStr),
       });
       setTimesheets(result.data);
       setTotal(result.meta.total);
@@ -49,7 +73,7 @@ export function useMonthlyApprovals() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, filters]);
+  }, [page, filters, currentMonth]);
 
   useEffect(() => {
     loadData();
@@ -107,6 +131,7 @@ export function useMonthlyApprovals() {
     timesheets,
     isLoading,
     error,
+    currentMonth,
     filters,
     page,
     total,
@@ -116,6 +141,9 @@ export function useMonthlyApprovals() {
     detailLoading,
     setPage,
     updateFilters,
+    goToPreviousMonth,
+    goToNextMonth,
+    goToToday,
     loadDetail,
     closeDetail,
     approveMonth,

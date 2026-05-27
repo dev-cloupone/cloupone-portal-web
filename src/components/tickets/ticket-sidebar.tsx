@@ -73,7 +73,7 @@ export function TicketSidebar({
   }));
 
   const assigneeOptions = [
-    { value: '', label: 'Sem atribuicao' },
+    { value: '', label: 'Sem atribuição' },
     ...consultants,
   ];
   if (
@@ -110,7 +110,7 @@ export function TicketSidebar({
 
       {/* Assignee */}
       <div className="space-y-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Atribuido a</h4>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Atribuído a</h4>
         {canChangeAssignee ? (
           <>
             <Select
@@ -132,7 +132,7 @@ export function TicketSidebar({
         ) : (
           <div className="flex items-center gap-2 text-sm text-text-secondary">
             <UserIcon size={14} className="text-text-muted" />
-            {ticket.assignedToName || <span className="text-text-muted">Sem atribuicao</span>}
+            {ticket.assignedToName || <span className="text-text-muted">Sem atribuição</span>}
           </div>
         )}
       </div>
