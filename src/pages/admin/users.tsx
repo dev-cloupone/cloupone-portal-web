@@ -19,6 +19,7 @@ import { useNavItems } from '../../hooks/use-nav-items';
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
+  administrative: 'Administrativo',
   gestor: 'Gestor',
   consultor: 'Consultor',
   client: 'Cliente',
@@ -160,6 +161,7 @@ export default function UsersPage() {
             options={[
               { value: '', label: 'Todas' },
               { value: 'super_admin', label: 'Super Admin' },
+              { value: 'administrative', label: 'Administrativo' },
               { value: 'gestor', label: 'Gestor' },
               { value: 'consultor', label: 'Consultor' },
               { value: 'client', label: 'Cliente' },
@@ -278,6 +280,7 @@ export default function UsersPage() {
             >
               <option value="client">Cliente</option>
               <option value="consultor">Consultor</option>
+              <option value="administrative">Administrativo</option>
               <option value="gestor">Gestor</option>
               <option value="super_admin">Super Admin</option>
             </select>
@@ -335,6 +338,7 @@ export default function UsersPage() {
             >
               <option value="client">Cliente</option>
               <option value="consultor">Consultor</option>
+              <option value="administrative">Administrativo</option>
               <option value="gestor">Gestor</option>
               <option value="super_admin">Super Admin</option>
             </select>

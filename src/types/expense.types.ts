@@ -56,8 +56,7 @@ export interface Expense {
   description: string | null;
   amount: string;
   kmQuantity: string | null;
-  clientChargeAmount: string;
-  clientChargeAmountManuallySet: boolean;
+  approvedAmount: string | null;
   receiptFileId: string | null;
   receiptUrl: string | null;
   requiresReimbursement: boolean;
@@ -114,7 +113,6 @@ export interface UpsertExpenseData {
   description?: string | null;
   amount: string;
   kmQuantity?: string | null;
-  clientChargeAmount?: string | null;
   receiptFileId?: string | null;
   requiresReimbursement?: boolean;
   templateId?: string | null;
@@ -147,7 +145,7 @@ export interface WeeklyExpenseReportEntry {
   categoryMaxAmount: string | null;
   description: string | null;
   amount: string;
-  clientChargeAmount: string;
+  approvedAmount: string | null;
   kmQuantity: string | null;
   requiresReimbursement: boolean;
   reimbursedAt: string | null;
@@ -158,7 +156,7 @@ export interface WeeklyExpenseReportConsultant {
   consultantName: string;
   expenseCount: number;
   totalAmount: number;
-  totalClientCharge: number;
+  totalApproved: number;
   totalReimbursable: number;
   expenses: WeeklyExpenseReportEntry[];
 }
@@ -167,7 +165,7 @@ export interface WeeklyExpenseReportCategory {
   categoryName: string;
   maxAmount: string | null;
   totalAmount: number;
-  totalClientCharge: number;
+  totalApproved: number;
   percentUsed: number | null;
 }
 
@@ -178,7 +176,7 @@ export interface WeeklyExpenseReport {
   byCategory: WeeklyExpenseReportCategory[];
   totals: {
     totalAmount: number;
-    totalClientCharge: number;
+    totalApproved: number;
     totalReimbursable: number;
     totalReimbursed: number;
     expenseCount: number;

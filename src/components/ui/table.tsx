@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 interface TableProps {
-  children: ReactNode;
+  children?: ReactNode;
   className?: string;
 }
 
@@ -31,17 +31,21 @@ export function TableRow({ children, className = '', onClick }: TableRowProps) {
   return <tr className={`transition-colors hover:bg-surface-2/50 ${className}`} onClick={onClick}>{children}</tr>;
 }
 
-export function TableHeader({ children, className = '' }: TableProps) {
+interface TableCellProps extends TableProps {
+  colSpan?: number;
+}
+
+export function TableHeader({ children, className = '', colSpan }: TableCellProps) {
   return (
-    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted ${className}`}>
+    <th colSpan={colSpan} className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted ${className}`}>
       {children}
     </th>
   );
 }
 
-export function TableCell({ children, className = '' }: TableProps) {
+export function TableCell({ children, className = '', colSpan }: TableCellProps) {
   return (
-    <td className={`px-4 py-3.5 text-sm text-text-secondary ${className}`}>
+    <td colSpan={colSpan} className={`px-4 py-3.5 text-sm text-text-secondary ${className}`}>
       {children}
     </td>
   );

@@ -53,7 +53,7 @@ export async function listPending(params?: {
 
 export async function approveExpenses(
   ids: string[],
-  updates?: Record<string, { clientChargeAmount: string }>,
+  updates?: Record<string, { approvedAmount?: string }>,
 ): Promise<{ approved: number }> {
   return api<{ approved: number }>('/expenses/approve', {
     method: 'POST',

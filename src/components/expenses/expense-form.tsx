@@ -54,11 +54,9 @@ export function ExpenseForm({
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [kmQuantity, setKmQuantity] = useState('');
-  const [clientChargeAmount, setClientChargeAmount] = useState('');
   const [receiptFileId, setReceiptFileId] = useState<string | null>(null);
   const [_receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [requiresReimbursement, setRequiresReimbursement] = useState(true);
-  const [isChargeManuallySet, setIsChargeManuallySet] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
@@ -72,11 +70,9 @@ export function ExpenseForm({
       setDescription(expense.description || '');
       setAmount(expense.amount);
       setKmQuantity(expense.kmQuantity || '');
-      setClientChargeAmount(expense.clientChargeAmount || '');
       setReceiptFileId(expense.receiptFileId);
       setReceiptUrl(expense.receiptUrl);
       setRequiresReimbursement(expense.requiresReimbursement);
-      setIsChargeManuallySet(expense.clientChargeAmountManuallySet ?? false);
     } else {
       setProjectId(contextProjectId || (projects.length === 1 ? projects[0].projectId : ''));
       setConsultantUserId(contextConsultantUserId || '');
@@ -84,11 +80,9 @@ export function ExpenseForm({
       setDescription('');
       setAmount('');
       setKmQuantity('');
-      setClientChargeAmount('');
       setReceiptFileId(null);
       setReceiptUrl(null);
       setRequiresReimbursement(user?.role === 'consultor');
-      setIsChargeManuallySet(false);
     }
     setError('');
   }, [expense, date, projects, user?.role, contextConsultantUserId, contextProjectId]);
@@ -132,13 +126,6 @@ export function ExpenseForm({
       setAmount(computed);
     }
   }, [isKmCategory, kmQuantity, selectedCategory?.kmRate]);
-
-  // Default client charge = amount (unless manually set)
-  useEffect(() => {
-    if (!isChargeManuallySet && amount) {
-      setClientChargeAmount(amount);
-    }
-  }, [amount, isChargeManuallySet]);
 
   function handleApplyTemplate(templateId: string) {
     if (!templateId) return;
@@ -204,7 +191,6 @@ export function ExpenseForm({
         description: description.trim() || null,
         amount,
         kmQuantity: isKmCategory ? kmQuantity : null,
-        clientChargeAmount: isGestorOrAdmin ? clientChargeAmount || null : null,
         receiptFileId,
         requiresReimbursement,
       });
@@ -386,26 +372,6 @@ export function ExpenseForm({
             </p>
           )}
         </div>
-
-        {/* Client charge amount (gestor/admin only) */}
-        {isGestorOrAdmin && (
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-              Valor de cobrança ao cliente (R$)
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={clientChargeAmount}
-              onChange={(e) => { setClientChargeAmount(e.target.value); setIsChargeManuallySet(true); }}
-              disabled={!isEditable}
-              className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none disabled:opacity-40"
-              placeholder="0.00"
-            />
-            <p className="text-xs text-text-muted">Default = valor da despesa. Edite para definir manualmente.</p>
-          </div>
-        )}
 
         {/* Description (optional) */}
         <div className="space-y-1.5">

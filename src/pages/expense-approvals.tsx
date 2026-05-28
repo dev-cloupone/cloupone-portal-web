@@ -180,7 +180,7 @@ export default function ExpenseApprovalsPage() {
     }
   }
 
-  async function handleApproveGroup(ids: string[], updates?: Record<string, { clientChargeAmount: string }>) {
+  async function handleApproveGroup(ids: string[], updates?: Record<string, { approvedAmount: string }>) {
     setActionLoading(true);
     try {
       await expenseService.approveExpenses(ids, updates);
@@ -193,7 +193,7 @@ export default function ExpenseApprovalsPage() {
     }
   }
 
-  async function handleApproveOne(id: string, updates?: Record<string, { clientChargeAmount: string }>) {
+  async function handleApproveOne(id: string, updates?: Record<string, { approvedAmount: string }>) {
     setActionLoading(true);
     try {
       await expenseService.approveExpenses([id], updates);
@@ -404,8 +404,8 @@ export default function ExpenseApprovalsPage() {
 
 interface ExpenseGroupDetailProps {
   expenses: PendingExpense[];
-  onApproveAll: (ids: string[], updates?: Record<string, { clientChargeAmount: string }>) => void;
-  onApproveOne: (id: string, updates?: Record<string, { clientChargeAmount: string }>) => void;
+  onApproveAll: (ids: string[], updates?: Record<string, { approvedAmount: string }>) => void;
+  onApproveOne: (id: string, updates?: Record<string, { approvedAmount: string }>) => void;
   onReject: (id: string) => void;
   loading: boolean;
 }
@@ -417,7 +417,7 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
   const [chargeOverrides, setChargeOverrides] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     for (const e of expenses) {
-      initial[e.id] = e.clientChargeAmount || e.amount;
+      initial[e.id] = e.approvedAmount || e.amount;
     }
     return initial;
   });
@@ -426,7 +426,7 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
     setChargeOverrides((prev) => {
       const next: Record<string, string> = {};
       for (const e of expenses) {
-        next[e.id] = prev[e.id] ?? e.clientChargeAmount ?? e.amount;
+        next[e.id] = prev[e.id] ?? e.approvedAmount ?? e.amount;
       }
       return next;
     });
@@ -438,9 +438,9 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
 
   function handleApproveOneWithOverride(expense: PendingExpense) {
     const overrideValue = chargeOverrides[expense.id];
-    const originalValue = expense.clientChargeAmount || expense.amount;
+    const originalValue = expense.approvedAmount || expense.amount;
     if (overrideValue && overrideValue !== originalValue) {
-      onApproveOne(expense.id, { [expense.id]: { clientChargeAmount: overrideValue } });
+      onApproveOne(expense.id, { [expense.id]: { approvedAmount: overrideValue } });
     } else {
       onApproveOne(expense.id);
     }
@@ -456,7 +456,7 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
               <TableHeader>Projeto</TableHeader>
               <TableHeader>Categoria</TableHeader>
               <TableHeader className="text-right">Valor</TableHeader>
-              <TableHeader className="text-right">Cobrança Cliente</TableHeader>
+              <TableHeader className="text-right">Valor Aprovado</TableHeader>
               <TableHeader>Descrição</TableHeader>
               <TableHeader>Comprov.</TableHeader>
               <TableHeader className="w-24">Ações</TableHeader>
@@ -493,7 +493,7 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
                     type="number"
                     step="0.01"
                     min="0"
-                    value={chargeOverrides[expense.id] ?? expense.clientChargeAmount ?? expense.amount}
+                    value={chargeOverrides[expense.id] ?? expense.approvedAmount ?? expense.amount}
                     onChange={(e) => handleChargeChange(expense.id, e.target.value)}
                     className="w-28 rounded-md border border-border bg-surface-2 px-2 py-1 text-right text-sm font-mono text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
                   />
@@ -544,12 +544,12 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
           {sorted.length} despesa{sorted.length !== 1 ? 's' : ''}
         </span>
         <Button onClick={() => {
-          const updates: Record<string, { clientChargeAmount: string }> = {};
+          const updates: Record<string, { approvedAmount: string }> = {};
           for (const e of sorted) {
             const overrideValue = chargeOverrides[e.id];
-            const originalValue = e.clientChargeAmount || e.amount;
+            const originalValue = e.approvedAmount || e.amount;
             if (overrideValue && overrideValue !== originalValue) {
-              updates[e.id] = { clientChargeAmount: overrideValue };
+              updates[e.id] = { approvedAmount: overrideValue };
             }
           }
           onApproveAll(sorted.map(e => e.id), Object.keys(updates).length > 0 ? updates : undefined);
