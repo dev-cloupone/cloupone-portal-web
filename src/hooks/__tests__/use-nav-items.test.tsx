@@ -16,14 +16,14 @@ describe('useNavItems', () => {
     mockUseAuth.mockReturnValue({ user: { role: 'super_admin' } })
     const { result } = renderHook(() => useNavItems())
     const groups = result.current.filter(isNavGroup)
-    expect(groups).toHaveLength(5)
+    expect(groups).toHaveLength(6)
   })
 
-  it('returns 3 groups for gestor', () => {
+  it('returns 4 groups for gestor', () => {
     mockUseAuth.mockReturnValue({ user: { role: 'gestor' } })
     const { result } = renderHook(() => useNavItems())
     const groups = result.current.filter(isNavGroup)
-    expect(groups).toHaveLength(3)
+    expect(groups).toHaveLength(4)
   })
 
   it('returns flat items (no groups) for consultor', () => {
