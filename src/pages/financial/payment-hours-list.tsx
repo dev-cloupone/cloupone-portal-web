@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { DollarSign, Eye, Trash2 } from 'lucide-react';
+import { DollarSign, Eye, Trash2, AlertTriangle, X } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
+import { MonthNavigator } from '../../components/ui/month-navigator';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Select } from '../../components/ui/select';
@@ -29,6 +30,17 @@ function formatCurrency(value: number | string): string {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function getLastMonth(): string {
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function parseMonth(m: string): { year: number; month: number } {
+  const [y, mo] = m.split('-').map(Number);
+  return { year: y, month: mo };
+}
+
 export default function PaymentHoursListPage() {
   const navItems = useNavItems();
   const navigate = useNavigate();
@@ -39,6 +51,13 @@ export default function PaymentHoursListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Month navigation
+  const [currentMonth, setCurrentMonth] = useState(getLastMonth);
+
+  // Pending warning
+  const [pendingWarning, setPendingWarning] = useState<{ count: number; consultants: string[] } | null>(null);
+  const [warningDismissed, setWarningDismissed] = useState(false);
+
   // Filters
   const [filterConsultant, setFilterConsultant] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -47,15 +66,38 @@ export default function PaymentHoursListPage() {
   // Options
   const [consultantOptions, setConsultantOptions] = useState<{ value: string; label: string }[]>([]);
 
+  function goToPreviousMonth() {
+    setCurrentMonth((prev) => {
+      const { year, month } = parseMonth(prev);
+      const d = new Date(year, month - 2, 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    });
+  }
+
+  function goToNextMonth() {
+    setCurrentMonth((prev) => {
+      const { year, month } = parseMonth(prev);
+      const d = new Date(year, month, 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    });
+  }
+
+  function goToToday() {
+    setCurrentMonth(getLastMonth());
+  }
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
+      const { year, month } = parseMonth(currentMonth);
       const result = await paymentService.listPayments({
         page,
         limit: 20,
         userId: filterConsultant || undefined,
         status: filterStatus || undefined,
+        year,
+        month,
       });
       setData(result.data);
       setMeta(result.meta);
@@ -64,11 +106,20 @@ export default function PaymentHoursListPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, filterConsultant, filterStatus]);
+  }, [page, filterConsultant, filterStatus, currentMonth]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Fetch pending approvals when month changes
+  useEffect(() => {
+    const { year, month } = parseMonth(currentMonth);
+    setWarningDismissed(false);
+    paymentService.getPendingApprovals(year, month)
+      .then((result) => setPendingWarning(result.count > 0 ? result : null))
+      .catch(() => setPendingWarning(null));
+  }, [currentMonth]);
 
   useEffect(() => {
     async function loadOptions() {
@@ -82,7 +133,7 @@ export default function PaymentHoursListPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [filterConsultant, filterStatus]);
+  }, [filterConsultant, filterStatus, currentMonth]);
 
   async function handleDelete(id: string) {
     if (!confirm('Excluir este pagamento?')) return;
@@ -106,6 +157,32 @@ export default function PaymentHoursListPage() {
             Gerar Pagamento
           </Button>
         </header>
+
+        {/* Month Navigator */}
+        <MonthNavigator
+          currentMonth={currentMonth}
+          onPreviousMonth={goToPreviousMonth}
+          onNextMonth={goToNextMonth}
+          onToday={goToToday}
+        />
+
+        {/* Pending approvals warning */}
+        {pendingWarning && !warningDismissed && (
+          <div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3">
+            <AlertTriangle size={18} className="text-warning shrink-0" />
+            <p className="text-sm text-text-secondary flex-1">
+              <strong>{pendingWarning.count}</strong> consultor(es) com timesheet pendente de aprovação:{' '}
+              {pendingWarning.consultants.join(', ')}
+            </p>
+            <button
+              onClick={() => setWarningDismissed(true)}
+              className="rounded-md p-1 text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors"
+              aria-label="Fechar aviso"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3 items-end">

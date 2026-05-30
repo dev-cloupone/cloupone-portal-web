@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { Wallet } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
+import { MonthNavigator } from '../../components/ui/month-navigator';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Select } from '../../components/ui/select';
@@ -28,6 +29,17 @@ const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'success'
   cancelled: { label: 'Cancelado', variant: 'danger' },
 };
 
+function getLastMonth(): string {
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function parseMonth(m: string): { year: number; month: number } {
+  const [y, mo] = m.split('-').map(Number);
+  return { year: y, month: mo };
+}
+
 export default function PaymentExpensesListPage() {
   const navItems = useNavItems();
   const navigate = useNavigate();
@@ -39,19 +51,45 @@ export default function PaymentExpensesListPage() {
   const [totalPages, setTotalPages] = useState(1);
   const limit = 25;
 
+  // Month navigation
+  const [currentMonth, setCurrentMonth] = useState(getLastMonth);
+
   const [filterConsultant, setFilterConsultant] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [consultantOptions, setConsultantOptions] = useState<{ value: string; label: string }[]>([]);
+
+  function goToPreviousMonth() {
+    setCurrentMonth((prev) => {
+      const { year, month } = parseMonth(prev);
+      const d = new Date(year, month - 2, 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    });
+  }
+
+  function goToNextMonth() {
+    setCurrentMonth((prev) => {
+      const { year, month } = parseMonth(prev);
+      const d = new Date(year, month, 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    });
+  }
+
+  function goToToday() {
+    setCurrentMonth(getLastMonth());
+  }
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
+      const { year, month } = parseMonth(currentMonth);
       const result = await paymentService.listPayments({
         page,
         limit,
         userId: filterConsultant || undefined,
         status: filterStatus || undefined,
+        year,
+        month,
       });
       setData(result.data);
       setTotalPages(result.meta.totalPages);
@@ -60,7 +98,7 @@ export default function PaymentExpensesListPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, filterConsultant, filterStatus]);
+  }, [page, filterConsultant, filterStatus, currentMonth]);
 
   useEffect(() => {
     loadData();
@@ -74,7 +112,7 @@ export default function PaymentExpensesListPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [filterConsultant, filterStatus]);
+  }, [filterConsultant, filterStatus, currentMonth]);
 
   return (
     <SidebarLayout navItems={navItems} title="Pgto. Despesas">
@@ -84,6 +122,16 @@ export default function PaymentExpensesListPage() {
           <p className="text-sm text-text-muted mt-1">Gerencie pagamentos de despesas dos consultores.</p>
         </div>
         <Button onClick={() => navigate('/financial/payments/expenses/new')}>Gerar Pagamento</Button>
+      </div>
+
+      {/* Month Navigator */}
+      <div className="mb-4">
+        <MonthNavigator
+          currentMonth={currentMonth}
+          onPreviousMonth={goToPreviousMonth}
+          onNextMonth={goToNextMonth}
+          onToday={goToToday}
+        />
       </div>
 
       <div className="mb-4 flex flex-wrap gap-3 items-end">

@@ -86,6 +86,10 @@ export async function deletePayment(id: string): Promise<void> {
   return api(`/payments/hours/${id}`, { method: 'DELETE' });
 }
 
+export async function getPendingApprovals(year: number, month: number): Promise<{ count: number; consultants: string[] }> {
+  return api(`/payments/hours/pending-approvals?year=${year}&month=${month}`);
+}
+
 export async function getReceiptUrl(id: string): Promise<string> {
   const res = await api<{ url: string }>(`/payments/hours/${id}/receipt`);
   return res.url;

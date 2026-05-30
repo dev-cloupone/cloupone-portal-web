@@ -7,12 +7,16 @@ export async function listPayments(filters?: {
   limit?: number;
   userId?: string;
   status?: string;
+  year?: number;
+  month?: number;
 }): Promise<PaginatedResponse<ExpensePayment>> {
   const params = new URLSearchParams();
   if (filters?.page) params.set('page', String(filters.page));
   if (filters?.limit) params.set('limit', String(filters.limit));
   if (filters?.userId) params.set('userId', filters.userId);
   if (filters?.status) params.set('status', filters.status);
+  if (filters?.year) params.set('year', String(filters.year));
+  if (filters?.month) params.set('month', String(filters.month));
   const qs = params.toString();
   return api(`/payments/expenses${qs ? `?${qs}` : ''}`);
 }
