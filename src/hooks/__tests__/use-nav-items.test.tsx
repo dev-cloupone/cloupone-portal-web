@@ -26,12 +26,12 @@ describe('useNavItems', () => {
     expect(groups).toHaveLength(4)
   })
 
-  it('returns flat items (no groups) for consultor', () => {
+  it('returns 1 group (Meus Pagamentos) for consultor', () => {
     mockUseAuth.mockReturnValue({ user: { role: 'consultor' } })
     const { result } = renderHook(() => useNavItems())
     const groups = result.current.filter(isNavGroup)
-    expect(groups).toHaveLength(0)
-    expect(result.current.length).toBeGreaterThan(0)
+    expect(groups).toHaveLength(1)
+    expect((groups[0] as { group: string }).group).toBe('Meus Pagamentos')
   })
 
   it('returns 2 flat items for client', () => {
