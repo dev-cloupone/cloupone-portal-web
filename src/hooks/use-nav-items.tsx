@@ -128,15 +128,10 @@ export function useNavItems(): NavEntry[] {
 
   if (user?.role === 'consultor') {
     return [
-      {
-        group: 'Operacional',
-        items: [
-          { label: 'Dashboard', path: '/consultant-dashboard', icon: <BarChart3 size={18} /> },
-          { label: 'Atendimento', path: '/tickets', icon: <Headset size={18} /> },
-          { label: 'Apontamento', path: '/timesheet', icon: <Clock size={18} /> },
-          { label: 'Despesas', path: '/expenses', icon: <Wallet size={18} /> },
-        ],
-      },
+      { label: 'Dashboard', path: '/consultant-dashboard', icon: <BarChart3 size={18} /> },
+      { label: 'Atendimento', path: '/tickets', icon: <Headset size={18} /> },
+      { label: 'Apontamento', path: '/timesheet', icon: <Clock size={18} /> },
+      { label: 'Despesas', path: '/expenses', icon: <Wallet size={18} /> },
       {
         group: 'Meus Pagamentos',
         items: [
@@ -144,12 +139,7 @@ export function useNavItems(): NavEntry[] {
           { label: 'Pgto. Despesas', path: '/my-payments/expenses', icon: <HandCoins size={18} /> },
         ],
       },
-      {
-        group: 'Sistema',
-        items: [
-          { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
-        ],
-      },
+      { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
     ];
   }
 
