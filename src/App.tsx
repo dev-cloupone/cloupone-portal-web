@@ -61,7 +61,7 @@ const ReportsPage = lazy(() => import('./pages/reports'));
 const ExpenseReportNewPage = lazy(() => import('./pages/reports/expenses'));
 
 // Financial (super_admin + administrative)
-const AdminProjectRatesPage = lazy(() => import('./pages/admin/project-rates'));
+const AdminProjectAllocationsPage = lazy(() => import('./pages/admin/project-allocations'));
 const PaymentHoursListPage = lazy(() => import('./pages/financial/payment-hours-list'));
 const PaymentHoursNewPage = lazy(() => import('./pages/financial/payment-hours-new'));
 const PaymentHoursDetailPage = lazy(() => import('./pages/financial/payment-hours-detail'));
@@ -146,7 +146,7 @@ export default function App() {
                     <Route path="projects/:id/phases" element={<AdminProjectPhasesPage />} />
                     <Route path="projects/:id/expenses" element={<AdminProjectExpensesConfigPage />} />
                     <Route path="projects/:id/expense-categories" element={<AdminProjectExpenseCategoriesConfigPage />} />
-                    <Route path="projects/:id/rates" element={<RoleGuard allowedRoles={['super_admin']}><AdminProjectRatesPage /></RoleGuard>} />
+                    <Route path="projects/:id/allocations" element={<AdminProjectAllocationsPage />} />
                   </Routes>
                 </RoleGuard>
               </ProtectedRoute>

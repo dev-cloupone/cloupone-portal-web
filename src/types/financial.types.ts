@@ -1,14 +1,3 @@
-export interface ConsultantProjectRate {
-  id: string;
-  userId: string;
-  projectId: string;
-  costRate: string;
-  billingRate: string;
-  consultantName: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export type ConsultantPaymentStatus = 'draft' | 'confirmed' | 'paid' | 'cancelled';
 
 export interface ConsultantPaymentLine {

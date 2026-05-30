@@ -21,5 +21,7 @@ export interface ProjectAllocation {
   userId: string;
   userName: string;
   userEmail: string;
+  costRate?: string;
+  billingRate?: string;
   createdAt: string;
 }
