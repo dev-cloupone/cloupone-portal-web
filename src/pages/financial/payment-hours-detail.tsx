@@ -8,9 +8,11 @@ import { Skeleton } from '../../components/ui/skeleton';
 import { Modal } from '../../components/ui/modal';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/ui/table';
 import * as paymentService from '../../services/consultant-payment.service';
+import { uploadFile } from '../../services/uploads';
 import { formatApiError } from '../../services/api';
 import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
+import { FileUpload } from '../../components/ui/file-upload';
 import type { ConsultantPayment, ConsultantPaymentLine } from '../../types/financial.types';
 
 const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -51,6 +53,8 @@ export default function PaymentHoursDetailPage() {
   // Pay modal
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [receiptFileId, setReceiptFileId] = useState('');
+  const [receiptFileName, setReceiptFileName] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   const loadPayment = useCallback(async () => {
     if (!id) return;
@@ -134,6 +138,7 @@ export default function PaymentHoursDetailPage() {
       setPayment(updated);
       setPayModalOpen(false);
       setReceiptFileId('');
+      setReceiptFileName('');
       addToast('Pagamento registrado.', 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -383,21 +388,45 @@ export default function PaymentHoursDetailPage() {
         <div className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-              ID do Comprovante (opcional)
+              Comprovante (opcional)
             </label>
-            <input
-              type="text"
-              value={receiptFileId}
-              onChange={(e) => setReceiptFileId(e.target.value)}
-              placeholder="ID do arquivo de comprovante..."
-              className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none placeholder:text-text-muted"
-            />
+            {receiptFileId ? (
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary">
+                <span className="truncate flex-1">{receiptFileName}</span>
+                <button
+                  type="button"
+                  onClick={() => { setReceiptFileId(''); setReceiptFileName(''); }}
+                  className="text-text-muted hover:text-danger transition-colors text-xs"
+                >
+                  Remover
+                </button>
+              </div>
+            ) : (
+              <FileUpload
+                accept="image/*,application/pdf"
+                maxSize={10 * 1024 * 1024}
+                uploading={uploading}
+                onUpload={async (file) => {
+                  setUploading(true);
+                  try {
+                    const uploaded = await uploadFile(file, 'payments');
+                    setReceiptFileId(uploaded.id);
+                    setReceiptFileName(file.name);
+                  } catch (err) {
+                    addToast(formatApiError(err), 'error');
+                  } finally {
+                    setUploading(false);
+                  }
+                }}
+                onError={(msg) => addToast(msg, 'error')}
+              />
+            )}
           </div>
           <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={() => setPayModalOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handlePay} disabled={actionLoading}>
+            <Button onClick={handlePay} disabled={actionLoading || uploading}>
               {actionLoading ? 'Processando...' : 'Confirmar Pagamento'}
             </Button>
           </div>

@@ -1,7 +1,7 @@
 import { apiFetch } from './api';
 import type { FileRecord } from '../types/file.types';
 
-export type UploadType = 'tickets' | 'expenses';
+export type UploadType = 'tickets' | 'expenses' | 'payments';
 
 export async function uploadFile(file: File, type: UploadType): Promise<FileRecord> {
   const formData = new FormData();
