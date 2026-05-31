@@ -180,7 +180,7 @@ export default function PaymentHoursDetailPage() {
     setActionLoading(true);
     try {
       await paymentService.deletePayment(id);
-      addToast('Pagamento excluido.', 'success');
+      addToast('Pagamento excluído.', 'success');
       navigate('/financial/payments/hours');
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -214,7 +214,7 @@ export default function PaymentHoursDetailPage() {
     return (
       <SidebarLayout navItems={navItems} title="Pagamento de Horas">
         <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-danger mb-4">{error || 'Pagamento nao encontrado'}</p>
+          <p className="text-danger mb-4">{error || 'Pagamento não encontrado.'}</p>
           <button
             type="button"
             onClick={() => navigate('/financial/payments/hours')}
@@ -327,17 +327,17 @@ export default function PaymentHoursDetailPage() {
 
       {/* Notes */}
       <div className="rounded-xl border border-border bg-surface-1 p-6 mb-6">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">Observacoes</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">Observações</h3>
         {isDraft ? (
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            placeholder="Observacoes sobre o pagamento..."
+            placeholder="Observações sobre o pagamento..."
             className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none placeholder:text-text-muted"
           />
         ) : (
-          <p className="text-sm text-text-secondary whitespace-pre-wrap">{notes || 'Nenhuma observacao.'}</p>
+          <p className="text-sm text-text-secondary whitespace-pre-wrap">{notes || 'Nenhuma observação.'}</p>
         )}
       </div>
 

@@ -110,13 +110,6 @@ export function useNavItems(): NavEntry[] {
         ],
       },
       {
-        group: 'Meus Pagamentos',
-        items: [
-          { label: 'Pgto. Horas', path: '/my-payments/hours', icon: <DollarSign size={18} /> },
-          { label: 'Pgto. Despesas', path: '/my-payments/expenses', icon: <HandCoins size={18} /> },
-        ],
-      },
-      {
         group: 'Sistema',
         items: [
           { label: 'Relatórios', path: '/reports', icon: <FileText size={18} /> },
@@ -132,13 +125,6 @@ export function useNavItems(): NavEntry[] {
       { label: 'Atendimento', path: '/tickets', icon: <Headset size={18} /> },
       { label: 'Apontamento', path: '/timesheet', icon: <Clock size={18} /> },
       { label: 'Despesas', path: '/expenses', icon: <Wallet size={18} /> },
-      {
-        group: 'Meus Pagamentos',
-        items: [
-          { label: 'Pgto. Horas', path: '/my-payments/hours', icon: <DollarSign size={18} /> },
-          { label: 'Pgto. Despesas', path: '/my-payments/expenses', icon: <HandCoins size={18} /> },
-        ],
-      },
       { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
     ];
   }

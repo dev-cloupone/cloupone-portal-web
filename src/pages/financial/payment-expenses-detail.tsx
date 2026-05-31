@@ -85,8 +85,8 @@ export default function PaymentExpensesDetailPage() {
     if (!id || !confirm('Confirmar este pagamento?')) return;
     setActionLoading(true);
     try {
-      const updated = await paymentService.confirmPayment(id);
-      setPayment(updated);
+      await paymentService.confirmPayment(id);
+      await loadPayment();
       addToast('Pagamento confirmado.', 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -99,10 +99,10 @@ export default function PaymentExpensesDetailPage() {
     if (!id) return;
     setActionLoading(true);
     try {
-      const updated = await paymentService.payPayment(id, {
+      await paymentService.payPayment(id, {
         receiptFileId: receiptFileId || undefined,
       });
-      setPayment(updated);
+      await loadPayment();
       setPayModalOpen(false);
       setReceiptFileId('');
       setReceiptFileName('');
@@ -118,8 +118,8 @@ export default function PaymentExpensesDetailPage() {
     if (!id || !confirm('Reverter para rascunho?')) return;
     setActionLoading(true);
     try {
-      const updated = await paymentService.revertPayment(id);
-      setPayment(updated);
+      await paymentService.revertPayment(id);
+      await loadPayment();
       addToast('Pagamento revertido para rascunho.', 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -132,8 +132,8 @@ export default function PaymentExpensesDetailPage() {
     if (!id || !confirm('Cancelar este pagamento? Esta ação não pode ser desfeita facilmente.')) return;
     setActionLoading(true);
     try {
-      const updated = await paymentService.cancelPayment(id);
-      setPayment(updated);
+      await paymentService.cancelPayment(id);
+      await loadPayment();
       addToast('Pagamento cancelado.', 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -147,7 +147,7 @@ export default function PaymentExpensesDetailPage() {
     setActionLoading(true);
     try {
       await paymentService.deletePayment(id);
-      addToast('Pagamento excluido.', 'success');
+      addToast('Pagamento excluído.', 'success');
       navigate('/financial/payments/expenses');
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -182,7 +182,7 @@ export default function PaymentExpensesDetailPage() {
     return (
       <SidebarLayout navItems={navItems} title="Pagamento de Despesas">
         <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">
-          <p className="text-xs text-danger">{error || 'Pagamento nao encontrado.'}</p>
+          <p className="text-xs text-danger">{error || 'Pagamento não encontrado.'}</p>
         </div>
       </SidebarLayout>
     );
@@ -220,7 +220,7 @@ export default function PaymentExpensesDetailPage() {
             <TableRow>
               <TableHeader>Projeto</TableHeader>
               <TableHeader>Data</TableHeader>
-              <TableHeader>Descricao</TableHeader>
+              <TableHeader>Descrição</TableHeader>
               <TableHeader>Categoria</TableHeader>
               <TableHeader className="text-right">Valor</TableHeader>
             </TableRow>

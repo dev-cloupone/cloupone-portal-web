@@ -139,7 +139,7 @@ export default function PaymentHoursListPage() {
     if (!confirm('Excluir este pagamento?')) return;
     try {
       await paymentService.deletePayment(id);
-      addToast('Pagamento excluido.', 'success');
+      addToast('Pagamento excluído.', 'success');
       await loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -239,7 +239,7 @@ export default function PaymentHoursListPage() {
                     <TableHeader className="text-right">Total Horas</TableHeader>
                     <TableHeader className="text-right">Total Valor</TableHeader>
                     <TableHeader>Status</TableHeader>
-                    <TableHeader className="w-24">Acoes</TableHeader>
+                    <TableHeader className="w-24">Ações</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>

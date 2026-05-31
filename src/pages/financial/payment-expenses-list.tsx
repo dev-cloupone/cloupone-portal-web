@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { Wallet } from 'lucide-react';
+import { Wallet, Eye, Trash2 } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { MonthNavigator } from '../../components/ui/month-navigator';
 import { Badge } from '../../components/ui/badge';
@@ -8,11 +8,14 @@ import { Button } from '../../components/ui/button';
 import { Select } from '../../components/ui/select';
 import { Skeleton } from '../../components/ui/skeleton';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/ui/table';
+import { PaginationControls } from '../../components/ui/pagination-controls';
 import * as paymentService from '../../services/expense-payment.service';
 import * as consultantService from '../../services/consultant.service';
 import { formatApiError } from '../../services/api';
+import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { ExpensePayment } from '../../types/financial.types';
+import type { PaginationMeta } from '../../types/pagination.types';
 
 function formatCurrency(value: number | string): string {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -29,10 +32,9 @@ const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'success'
   cancelled: { label: 'Cancelado', variant: 'danger' },
 };
 
-function getLastMonth(): string {
+function getCurrentMonth(): string {
   const now = new Date();
-  const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function parseMonth(m: string): { year: number; month: number } {
@@ -43,16 +45,16 @@ function parseMonth(m: string): { year: number; month: number } {
 export default function PaymentExpensesListPage() {
   const navItems = useNavItems();
   const navigate = useNavigate();
+  const addToast = useToastStore((s) => s.addToast);
   const [data, setData] = useState<ExpensePayment[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 20, total: 0, totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const limit = 25;
 
   // Month navigation
-  const [currentMonth, setCurrentMonth] = useState(getLastMonth);
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth);
 
   const [filterConsultant, setFilterConsultant] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -75,7 +77,7 @@ export default function PaymentExpensesListPage() {
   }
 
   function goToToday() {
-    setCurrentMonth(getLastMonth());
+    setCurrentMonth(getCurrentMonth());
   }
 
   const loadData = useCallback(async () => {
@@ -85,14 +87,14 @@ export default function PaymentExpensesListPage() {
       const { year, month } = parseMonth(currentMonth);
       const result = await paymentService.listPayments({
         page,
-        limit,
+        limit: 20,
         userId: filterConsultant || undefined,
         status: filterStatus || undefined,
         year,
         month,
       });
       setData(result.data);
-      setTotalPages(result.meta.totalPages);
+      setMeta(result.meta);
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -113,6 +115,17 @@ export default function PaymentExpensesListPage() {
   useEffect(() => {
     setPage(1);
   }, [filterConsultant, filterStatus, currentMonth]);
+
+  async function handleDelete(paymentId: string) {
+    if (!confirm('Excluir este pagamento?')) return;
+    try {
+      await paymentService.deletePayment(paymentId);
+      addToast('Pagamento excluído.', 'success');
+      loadData();
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+    }
+  }
 
   return (
     <SidebarLayout navItems={navItems} title="Pgto. Despesas">
@@ -187,10 +200,10 @@ export default function PaymentExpensesListPage() {
               <TableHead>
                 <TableRow>
                   <TableHeader>Consultor</TableHeader>
-                  <TableHeader>Periodo</TableHeader>
+                  <TableHeader>Período</TableHeader>
                   <TableHeader className="text-right">Total Valor</TableHeader>
                   <TableHeader>Status</TableHeader>
-                  <TableHeader className="w-20">Acoes</TableHeader>
+                  <TableHeader className="w-20">Ações</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -211,13 +224,24 @@ export default function PaymentExpensesListPage() {
                         <Badge variant={st.variant}>{st.label}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => navigate(`/financial/payments/expenses/${payment.id}`)}
-                        >
-                          Ver
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => navigate(`/financial/payments/expenses/${payment.id}`)}
+                            className="rounded-md p-1.5 text-text-muted hover:text-accent hover:bg-accent/10 transition-colors"
+                            title="Ver detalhes"
+                          >
+                            <Eye size={15} />
+                          </button>
+                          {payment.status === 'draft' && (
+                            <button
+                              onClick={() => handleDelete(payment.id)}
+                              className="rounded-md p-1.5 text-text-muted hover:text-danger hover:bg-danger/10 transition-colors"
+                              title="Excluir"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -226,29 +250,7 @@ export default function PaymentExpensesListPage() {
             </Table>
           </div>
 
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-              >
-                Anterior
-              </Button>
-              <span className="text-sm text-text-secondary">
-                Pagina {page} de {totalPages}
-              </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-              >
-                Proxima
-              </Button>
-            </div>
-          )}
+          <PaginationControls meta={meta} onPageChange={setPage} />
         </>
       )}
     </SidebarLayout>
