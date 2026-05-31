@@ -63,8 +63,10 @@ export function ExpenseForm({
 
   // Initialize form
   useEffect(() => {
+    let initialProjectId = '';
     if (expense) {
-      setProjectId(expense.projectId);
+      initialProjectId = expense.projectId;
+      setProjectId(initialProjectId);
       setConsultantUserId(expense.consultantUserId || '');
       setExpenseCategoryId(expense.expenseCategoryId || '');
       setDescription(expense.description || '');
@@ -74,7 +76,8 @@ export function ExpenseForm({
       setReceiptUrl(expense.receiptUrl);
       setRequiresReimbursement(expense.requiresReimbursement);
     } else {
-      setProjectId(contextProjectId || (projects.length === 1 ? projects[0].projectId : ''));
+      initialProjectId = contextProjectId || (projects.length === 1 ? projects[0].projectId : '');
+      setProjectId(initialProjectId);
       setConsultantUserId(contextConsultantUserId || '');
       setExpenseCategoryId('');
       setDescription('');
@@ -84,7 +87,12 @@ export function ExpenseForm({
       setReceiptUrl(null);
       setRequiresReimbursement(user?.role === 'consultor');
     }
+    // Ensure categories/allocations are loaded for the auto-selected project
+    if (initialProjectId) {
+      onProjectChange?.(initialProjectId);
+    }
     setError('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expense, date, projects, user?.role, contextConsultantUserId, contextProjectId]);
 
   // Categories for the selected project
