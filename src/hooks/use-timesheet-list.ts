@@ -62,7 +62,7 @@ export function useTimesheetList() {
   }, []);
 
   const hasActiveFilters = useMemo(() => {
-    return !!(filters.consultantId || filters.projectId || filters.all);
+    return !!(filters.consultantId || filters.projectId);
   }, [filters]);
 
   // Load initial filter options
