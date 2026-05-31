@@ -316,8 +316,11 @@ export function useMonthExpenses(projectIds?: string[], filters?: MonthExpensesF
 
   const revertExpense = useCallback(async (expenseId: string) => {
     try {
-      await expenseService.revertExpense(expenseId);
+      const result = await expenseService.revertExpense(expenseId);
       addToast('Despesa revertida para Criada.', 'success');
+      if (result.paymentWarning) {
+        addToast(result.paymentWarning, 'warning');
+      }
       await loadMonth(currentYear, currentMonth);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao reverter despesa.';

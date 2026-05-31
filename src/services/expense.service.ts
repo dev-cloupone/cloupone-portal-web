@@ -31,8 +31,8 @@ export async function resubmitExpense(id: string): Promise<Expense> {
   return api<Expense>(`/expenses/${id}/resubmit`, { method: 'POST' });
 }
 
-export async function revertExpense(id: string): Promise<Expense> {
-  return api<Expense>(`/expenses/${id}/revert`, { method: 'POST' });
+export async function revertExpense(id: string): Promise<Expense & { paymentWarning?: string | null }> {
+  return api<Expense & { paymentWarning?: string | null }>(`/expenses/${id}/revert`, { method: 'POST' });
 }
 
 // Gestor/Admin: Approvals
@@ -41,19 +41,23 @@ export async function listPending(params?: {
   limit?: number;
   consultantId?: string;
   projectId?: string;
+  year?: number;
+  month?: number;
 }): Promise<PaginatedResponse<PendingExpense>> {
   const query = new URLSearchParams();
   if (params?.page) query.set('page', String(params.page));
   if (params?.limit) query.set('limit', String(params.limit));
   if (params?.consultantId) query.set('consultantId', params.consultantId);
   if (params?.projectId) query.set('projectId', params.projectId);
+  if (params?.year) query.set('year', String(params.year));
+  if (params?.month) query.set('month', String(params.month));
   const qs = query.toString();
   return api(`/expenses/pending${qs ? `?${qs}` : ''}`);
 }
 
 export async function approveExpenses(
   ids: string[],
-  updates?: Record<string, { clientChargeAmount: string }>,
+  updates?: Record<string, { approvedAmount?: string }>,
 ): Promise<{ approved: number }> {
   return api<{ approved: number }>('/expenses/approve', {
     method: 'POST',

@@ -49,8 +49,6 @@ const ExpensesPage = lazy(() => import('./pages/expenses'));
 // Expense Approvals (super_admin only)
 const ExpenseApprovalsPage = lazy(() => import('./pages/expense-approvals'));
 
-// Expense Reimbursements (super_admin only)
-const ExpenseReimbursementsPage = lazy(() => import('./pages/expense-reimbursements'));
 
 // Dashboards
 const ManagerDashboardPage = lazy(() => import('./pages/manager-dashboard'));
@@ -59,6 +57,19 @@ const ConsultantDashboardPage = lazy(() => import('./pages/consultant-dashboard'
 // Reports system (gestor + super_admin)
 const ReportsPage = lazy(() => import('./pages/reports'));
 const ExpenseReportNewPage = lazy(() => import('./pages/reports/expenses'));
+
+// Financial (super_admin + administrative)
+const AdminProjectAllocationsPage = lazy(() => import('./pages/admin/project-allocations'));
+const PaymentHoursListPage = lazy(() => import('./pages/financial/payment-hours-list'));
+const PaymentHoursNewPage = lazy(() => import('./pages/financial/payment-hours-new'));
+const PaymentHoursDetailPage = lazy(() => import('./pages/financial/payment-hours-detail'));
+const PaymentExpensesListPage = lazy(() => import('./pages/financial/payment-expenses-list'));
+const PaymentExpensesNewPage = lazy(() => import('./pages/financial/payment-expenses-new'));
+const PaymentExpensesDetailPage = lazy(() => import('./pages/financial/payment-expenses-detail'));
+
+// My Payments (consultor + gestor)
+const MyPaymentsHoursPage = lazy(() => import('./pages/my-payments-hours'));
+const MyPaymentsExpensesPage = lazy(() => import('./pages/my-payments-expenses'));
 
 // Tickets (all authenticated roles)
 const TicketsPage = lazy(() => import('./pages/tickets'));
@@ -133,6 +144,7 @@ export default function App() {
                     <Route path="projects/:id/phases" element={<AdminProjectPhasesPage />} />
                     <Route path="projects/:id/expenses" element={<AdminProjectExpensesConfigPage />} />
                     <Route path="projects/:id/expense-categories" element={<AdminProjectExpenseCategoriesConfigPage />} />
+                    <Route path="projects/:id/allocations" element={<AdminProjectAllocationsPage />} />
                   </Routes>
                 </RoleGuard>
               </ProtectedRoute>
@@ -221,17 +233,6 @@ export default function App() {
             }
           />
 
-          {/* Expense Reimbursements (super_admin only) */}
-          <Route
-            path="/expense-reimbursements"
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['super_admin']}>
-                  <ExpenseReimbursementsPage />
-                </RoleGuard>
-              </ProtectedRoute>
-            }
-          />
 
           {/* Reports system (gestor + super_admin) */}
           <Route
@@ -250,6 +251,47 @@ export default function App() {
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['super_admin', 'gestor']}>
                   <ExpenseReportNewPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Financial (super_admin + administrative) */}
+          <Route
+            path="/financial/*"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['super_admin', 'administrative']}>
+                  <Routes>
+                    <Route path="payments/hours" element={<PaymentHoursListPage />} />
+                    <Route path="payments/hours/new" element={<PaymentHoursNewPage />} />
+                    <Route path="payments/hours/:id" element={<PaymentHoursDetailPage />} />
+                    <Route path="payments/expenses" element={<PaymentExpensesListPage />} />
+                    <Route path="payments/expenses/new" element={<PaymentExpensesNewPage />} />
+                    <Route path="payments/expenses/:id" element={<PaymentExpensesDetailPage />} />
+                  </Routes>
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* My Payments (consultor + gestor) */}
+          <Route
+            path="/my-payments/hours"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['consultor', 'gestor']}>
+                  <MyPaymentsHoursPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-payments/expenses"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['consultor', 'gestor']}>
+                  <MyPaymentsExpensesPage />
                 </RoleGuard>
               </ProtectedRoute>
             }

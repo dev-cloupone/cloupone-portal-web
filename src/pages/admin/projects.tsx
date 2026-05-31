@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Plus, Pencil, XCircle, UserPlus, UserMinus, Layers, Receipt } from 'lucide-react';
+import { Plus, Pencil, XCircle, UserPlus, Layers, Receipt } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -12,13 +12,11 @@ import { PaginationControls } from '../../components/ui/pagination-controls';
 import { usePagination } from '../../hooks/use-pagination';
 import * as projectService from '../../services/project.service';
 import * as clientService from '../../services/client.service';
-import * as consultantService from '../../services/consultant.service';
 import { formatApiError } from '../../services/api';
 import { useNavItems } from '../../hooks/use-nav-items';
 import { useAuth } from '../../hooks/use-auth';
-import type { Project, ProjectAllocation } from '../../types/project.types';
+import type { Project } from '../../types/project.types';
 import type { Client } from '../../types/client.types';
-import type { Consultant } from '../../types/consultant.types';
 
 const statusOptions = [
   { value: 'active', label: 'Ativo' },
@@ -40,7 +38,6 @@ export default function ProjectsPage() {
   const isSuperAdmin = user?.role === 'super_admin';
   const [projects, setProjects] = useState<Project[]>([]);
   const [clientsList, setClientsList] = useState<Client[]>([]);
-  const [consultantsList, setConsultantsList] = useState<Consultant[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
   const [error, setError] = useState('');
@@ -49,11 +46,6 @@ export default function ProjectsPage() {
   const [filterClient, setFilterClient] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const { page, limit, meta, setMeta, goToPage } = usePagination({ initialLimit: 20 });
-
-  // Allocations state
-  const [allocProject, setAllocProject] = useState<Project | null>(null);
-  const [allocations, setAllocations] = useState<ProjectAllocation[]>([]);
-  const [allocUserId, setAllocUserId] = useState('');
 
   async function loadData() {
     try {
@@ -67,13 +59,6 @@ export default function ProjectsPage() {
     } catch {
       setError('Erro ao carregar projetos');
     }
-  }
-
-  async function loadConsultants() {
-    try {
-      const result = await consultantService.listConsultants({ limit: 100 });
-      setConsultantsList(result.data);
-    } catch { /* ignore */ }
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -153,46 +138,9 @@ export default function ProjectsPage() {
     setIsCreateOpen(true);
   }
 
-  async function openAllocations(project: Project) {
-    setAllocProject(project);
-    setAllocUserId('');
-    try {
-      const result = await projectService.listAllocations(project.id);
-      setAllocations(result.data);
-      await loadConsultants();
-    } catch (err) {
-      setError(formatApiError(err));
-    }
-  }
-
-  async function handleAddAllocation() {
-    if (!allocProject || !allocUserId) return;
-    try {
-      await projectService.addAllocation(allocProject.id, allocUserId);
-      const result = await projectService.listAllocations(allocProject.id);
-      setAllocations(result.data);
-      setAllocUserId('');
-    } catch (err) {
-      setError(formatApiError(err));
-    }
-  }
-
-  async function handleRemoveAllocation(userId: string) {
-    if (!allocProject) return;
-    try {
-      await projectService.removeAllocation(allocProject.id, userId);
-      const result = await projectService.listAllocations(allocProject.id);
-      setAllocations(result.data);
-    } catch (err) {
-      setError(formatApiError(err));
-    }
-  }
-
   useEffect(() => { loadData(); }, [page, limit, filterClient, filterStatus]);
 
   const clientOptions = clientsList.map((c) => ({ value: c.id, label: c.companyName }));
-  const allocatedUserIds = new Set(allocations.map((a) => a.userId));
-  const availableConsultants = consultantsList.filter((c) => !allocatedUserIds.has(c.userId));
 
   const statusBadge = (status: string) => {
     const map: Record<string, 'success' | 'warning' | 'default'> = { active: 'success', paused: 'warning', finished: 'default' };
@@ -205,7 +153,7 @@ export default function ProjectsPage() {
       <Input label="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
       <Input label="Descrição" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
       <Select label="Cliente" options={clientOptions} value={form.clientId} onChange={(v) => setForm({ ...form, clientId: v })} placeholder="Selecione um cliente" required />
-      {isSuperAdmin && <Input label="Taxa/Hora (R$)" type="number" step="0.01" value={form.billingRate} onChange={(e) => setForm({ ...form, billingRate: e.target.value })} required />}
+      {isSuperAdmin && <Input label="Valor/Hora Cliente (R$)" type="number" step="0.01" value={form.billingRate} onChange={(e) => setForm({ ...form, billingRate: e.target.value })} required />}
       <div className="grid grid-cols-2 gap-4">
         <Input label="Horas Orçamento" type="number" value={form.budgetHours} onChange={(e) => setForm({ ...form, budgetHours: e.target.value })} />
         <Select label="Tipo Orçamento" options={budgetTypeOptions} value={form.budgetType} onChange={(v) => setForm({ ...form, budgetType: v })} />
@@ -233,7 +181,7 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {error && !isCreateOpen && !editing && !allocProject && (
+      {error && !isCreateOpen && !editing && (
         <div className="mb-4 rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">
           <p className="text-xs text-danger whitespace-pre-line">{error}</p>
         </div>
@@ -263,7 +211,7 @@ export default function ProjectsPage() {
                   <button onClick={() => openEdit(p)} className="text-accent hover:text-accent-hover" title="Editar"><Pencil size={16} /></button>
                   <button onClick={() => navigate(`/admin/projects/${p.id}/phases`)} className="text-accent hover:text-accent-hover" title="Fases"><Layers size={16} /></button>
                   <button onClick={() => navigate(`/admin/projects/${p.id}/expenses`)} className="text-accent hover:text-accent-hover" title="Despesas"><Receipt size={16} /></button>
-                  <button onClick={() => openAllocations(p)} className="text-accent hover:text-accent-hover" title="Equipe"><UserPlus size={16} /></button>
+                  <button onClick={() => navigate(`/admin/projects/${p.id}/allocations`)} className="text-accent hover:text-accent-hover" title="Equipe"><UserPlus size={16} /></button>
                   {p.isActive && (
                     <button onClick={() => handleDeactivate(p)} className="text-danger hover:text-danger/80" title="Desativar"><XCircle size={16} /></button>
                   )}
@@ -300,39 +248,6 @@ export default function ProjectsPage() {
         </form>
       </Modal>
 
-      {/* Allocations Modal */}
-      <Modal isOpen={!!allocProject} onClose={() => { setAllocProject(null); setError(''); }} title={`Equipe — ${allocProject?.name || ''}`}>
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Select
-                options={availableConsultants.map((c) => ({ value: c.userId, label: `${c.userName} (${c.userEmail})` }))}
-                value={allocUserId}
-                onChange={setAllocUserId}
-                placeholder="Selecione um membro"
-              />
-            </div>
-            <Button onClick={handleAddAllocation} disabled={!allocUserId}><UserPlus size={16} /></Button>
-          </div>
-          {allocations.length > 0 ? (
-            <div className="space-y-2">
-              {allocations.map((a) => (
-                <div key={a.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                  <div>
-                    <p className="text-sm font-medium text-text-primary">{a.userName}</p>
-                    <p className="text-xs text-text-muted">{a.userEmail}</p>
-                  </div>
-                  <button onClick={() => handleRemoveAllocation(a.userId)} className="text-danger hover:text-danger/80" title="Remover">
-                    <UserMinus size={16} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-text-muted">Nenhum membro alocado.</p>
-          )}
-        </div>
-      </Modal>
     </SidebarLayout>
   );
 }

@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { LayoutDashboard, Users, Settings, User, Building2, FolderKanban, Clock, CheckSquare, BarChart3, FileText, Headset, Receipt, Wallet, HandCoins } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, User, Building2, FolderKanban, Clock, CheckSquare, BarChart3, FileText, Headset, Receipt, Wallet, HandCoins, DollarSign } from 'lucide-react';
 import { useAuth } from './use-auth';
 
 export interface NavItem {
@@ -54,7 +54,13 @@ export function useNavItems(): NavEntry[] {
         items: [
           { label: 'Aprovações', path: '/approvals', icon: <CheckSquare size={18} /> },
           { label: 'Aprov. Despesas', path: '/expense-approvals', icon: <Receipt size={18} /> },
-          { label: 'Reembolsos', path: '/expense-reimbursements', icon: <HandCoins size={18} /> },
+        ],
+      },
+      {
+        group: 'Financeiro',
+        items: [
+          { label: 'Pgto. Horas', path: '/financial/payments/hours', icon: <DollarSign size={18} /> },
+          { label: 'Pgto. Despesas', path: '/financial/payments/expenses', icon: <HandCoins size={18} /> },
         ],
       },
       {
@@ -62,6 +68,24 @@ export function useNavItems(): NavEntry[] {
         items: [
           { label: 'Relatórios', path: '/reports', icon: <FileText size={18} /> },
           { label: 'Configurações', path: '/admin/settings', icon: <Settings size={18} /> },
+          { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
+        ],
+      },
+    ];
+  }
+
+  if (user?.role === 'administrative') {
+    return [
+      {
+        group: 'Pagamentos',
+        items: [
+          { label: 'Pgto. Horas', path: '/financial/payments/hours', icon: <Clock size={18} /> },
+          { label: 'Pgto. Despesas', path: '/financial/payments/expenses', icon: <Wallet size={18} /> },
+        ],
+      },
+      {
+        group: 'Sistema',
+        items: [
           { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
         ],
       },

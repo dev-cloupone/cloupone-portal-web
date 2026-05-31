@@ -84,13 +84,17 @@ export default function ExpensesPage() {
   }, [user, loadTemplates]);
 
   // Lazy-load categories and allocations per project (on demand, not all at once)
+  const loadedCategoriesRef = useRef<Set<string>>(new Set());
   const loadProjectCategories = useCallback(async (pid: string) => {
-    if (categoriesByProject[pid]) return;
+    if (loadedCategoriesRef.current.has(pid)) return;
+    loadedCategoriesRef.current.add(pid);
     try {
       const res = await projectExpenseCategoryService.listByProject(pid);
       setCategoriesByProject(prev => ({ ...prev, [pid]: res.data }));
-    } catch { /* silent */ }
-  }, [categoriesByProject]);
+    } catch {
+      loadedCategoriesRef.current.delete(pid); // permite retry em caso de erro
+    }
+  }, []);
 
   const loadedAllocationsRef = useRef<Set<string>>(new Set());
   const loadProjectAllocations = useCallback(async (pid: string) => {

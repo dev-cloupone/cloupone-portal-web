@@ -8,6 +8,8 @@ export function getHomeRoute(user: User): string {
   switch (user.role) {
     case 'super_admin':
       return '/admin/dashboard';
+    case 'administrative':
+      return '/financial/payments/hours';
     case 'gestor':
       return '/admin/projects';
     case 'consultor':

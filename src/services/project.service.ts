@@ -46,3 +46,7 @@ export async function addAllocation(projectId: string, userId: string): Promise<
 export async function removeAllocation(projectId: string, userId: string): Promise<void> {
   await api(`/projects/${projectId}/allocations/${userId}`, { method: 'DELETE' });
 }
+
+export async function updateAllocationRates(projectId: string, userId: string, data: { costRate: string; billingRate: string }): Promise<ProjectAllocation> {
+  return api<ProjectAllocation>(`/projects/${projectId}/allocations/${userId}`, { method: 'PATCH', body: JSON.stringify(data) });
+}
