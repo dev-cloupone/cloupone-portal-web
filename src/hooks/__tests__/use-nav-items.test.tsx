@@ -19,19 +19,18 @@ describe('useNavItems', () => {
     expect(groups).toHaveLength(6)
   })
 
-  it('returns 4 groups for gestor', () => {
+  it('returns 3 groups for gestor', () => {
     mockUseAuth.mockReturnValue({ user: { role: 'gestor' } })
     const { result } = renderHook(() => useNavItems())
     const groups = result.current.filter(isNavGroup)
-    expect(groups).toHaveLength(4)
+    expect(groups).toHaveLength(3)
   })
 
-  it('returns 1 group (Meus Pagamentos) for consultor', () => {
+  it('returns no groups for consultor', () => {
     mockUseAuth.mockReturnValue({ user: { role: 'consultor' } })
     const { result } = renderHook(() => useNavItems())
     const groups = result.current.filter(isNavGroup)
-    expect(groups).toHaveLength(1)
-    expect((groups[0] as { group: string }).group).toBe('Meus Pagamentos')
+    expect(groups).toHaveLength(0)
   })
 
   it('returns 2 flat items for client', () => {
