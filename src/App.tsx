@@ -49,8 +49,6 @@ const ExpensesPage = lazy(() => import('./pages/expenses'));
 // Expense Approvals (super_admin only)
 const ExpenseApprovalsPage = lazy(() => import('./pages/expense-approvals'));
 
-// Expense Reimbursements (super_admin only)
-const ExpenseReimbursementsPage = lazy(() => import('./pages/expense-reimbursements'));
 
 // Dashboards
 const ManagerDashboardPage = lazy(() => import('./pages/manager-dashboard'));
@@ -235,17 +233,6 @@ export default function App() {
             }
           />
 
-          {/* Expense Reimbursements (super_admin only) */}
-          <Route
-            path="/expense-reimbursements"
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['super_admin']}>
-                  <ExpenseReimbursementsPage />
-                </RoleGuard>
-              </ProtectedRoute>
-            }
-          />
 
           {/* Reports system (gestor + super_admin) */}
           <Route
