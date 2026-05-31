@@ -19,7 +19,9 @@ export function useTimesheetList() {
   const isAdminOrGestor = user?.role === 'super_admin' || user?.role === 'gestor';
 
   const [currentMonth, setCurrentMonth] = useState(() => format(new Date(), 'yyyy-MM'));
-  const [filters, setFilters] = useState<Filters>({});
+  const [filters, setFilters] = useState<Filters>(() =>
+    isAdminOrGestor ? { all: true } : {}
+  );
   const [entries, setEntries] = useState<TimeEntryListItem[]>([]);
   const [totalHours, setTotalHours] = useState('0.00');
   const [loading, setLoading] = useState(true);

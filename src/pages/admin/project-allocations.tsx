@@ -160,8 +160,8 @@ export default function ProjectAllocationsPage() {
             <TableRow>
               <TableHeader>Consultor</TableHeader>
               <TableHeader>Email</TableHeader>
-              {isSuperAdmin && <TableHeader>Cost Rate (R$)</TableHeader>}
-              {isSuperAdmin && <TableHeader>Billing Rate (R$)</TableHeader>}
+              {isSuperAdmin && <TableHeader>Custo/Hora Consultor</TableHeader>}
+              {isSuperAdmin && <TableHeader>Valor/Hora Cliente</TableHeader>}
               <TableHeader>Ações</TableHeader>
             </TableRow>
           </TableHead>

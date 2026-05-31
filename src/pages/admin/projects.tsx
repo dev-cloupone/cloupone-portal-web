@@ -153,7 +153,7 @@ export default function ProjectsPage() {
       <Input label="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
       <Input label="Descrição" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
       <Select label="Cliente" options={clientOptions} value={form.clientId} onChange={(v) => setForm({ ...form, clientId: v })} placeholder="Selecione um cliente" required />
-      {isSuperAdmin && <Input label="Taxa/Hora (R$)" type="number" step="0.01" value={form.billingRate} onChange={(e) => setForm({ ...form, billingRate: e.target.value })} required />}
+      {isSuperAdmin && <Input label="Valor/Hora Cliente (R$)" type="number" step="0.01" value={form.billingRate} onChange={(e) => setForm({ ...form, billingRate: e.target.value })} required />}
       <div className="grid grid-cols-2 gap-4">
         <Input label="Horas Orçamento" type="number" value={form.budgetHours} onChange={(e) => setForm({ ...form, budgetHours: e.target.value })} />
         <Select label="Tipo Orçamento" options={budgetTypeOptions} value={form.budgetType} onChange={(v) => setForm({ ...form, budgetType: v })} />
