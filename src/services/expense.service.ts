@@ -31,8 +31,8 @@ export async function resubmitExpense(id: string): Promise<Expense> {
   return api<Expense>(`/expenses/${id}/resubmit`, { method: 'POST' });
 }
 
-export async function revertExpense(id: string): Promise<Expense> {
-  return api<Expense>(`/expenses/${id}/revert`, { method: 'POST' });
+export async function revertExpense(id: string): Promise<Expense & { paymentWarning?: string | null }> {
+  return api<Expense & { paymentWarning?: string | null }>(`/expenses/${id}/revert`, { method: 'POST' });
 }
 
 // Gestor/Admin: Approvals

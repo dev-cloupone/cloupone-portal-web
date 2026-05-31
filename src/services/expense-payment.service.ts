@@ -32,8 +32,8 @@ export async function listMyPayments(filters?: {
   return api(`/payments/expenses/my${qs ? `?${qs}` : ''}`);
 }
 
-export async function getAvailablePeriods(userId: string): Promise<AvailableExpensePeriod[]> {
-  const res = await api<{ data: AvailableExpensePeriod[] }>(`/payments/expenses/available-periods?userId=${userId}`);
+export async function getAvailablePeriods(userId: string): Promise<{ periods: AvailableExpensePeriod[]; existingDraftId: string | null }> {
+  const res = await api<{ data: { periods: AvailableExpensePeriod[]; existingDraftId: string | null } }>(`/payments/expenses/available-periods?userId=${userId}`);
   return res.data;
 }
 

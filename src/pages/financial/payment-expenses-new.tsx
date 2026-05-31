@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
+import { useNavigate, Link } from 'react-router';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
 import { Select } from '../../components/ui/select';
@@ -32,6 +32,7 @@ export default function PaymentExpensesNewPage() {
   const [loadingPeriods, setLoadingPeriods] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [existingDraftId, setExistingDraftId] = useState<string | null>(null);
 
   useEffect(() => {
     consultantService.listConsultants({ page: 1, limit: 100 })
@@ -43,13 +44,17 @@ export default function PaymentExpensesNewPage() {
     if (!selectedUser) {
       setPeriods([]);
       setSelectedPeriods(new Set());
+      setExistingDraftId(null);
       return;
     }
     setLoadingPeriods(true);
     setError('');
+    setExistingDraftId(null);
+
     paymentService.getAvailablePeriods(selectedUser)
       .then((data) => {
-        setPeriods(data);
+        setPeriods(data.periods);
+        setExistingDraftId(data.existingDraftId);
         setSelectedPeriods(new Set());
       })
       .catch((err) => setError(formatApiError(err)))
@@ -118,6 +123,22 @@ export default function PaymentExpensesNewPage() {
           onChange={setSelectedUser}
         />
       </div>
+
+      {/* Warning: existing draft */}
+      {existingDraftId && (
+        <div className="mb-4 rounded-lg bg-warning-muted border border-warning/20 px-4 py-3 flex items-start gap-3">
+          <AlertTriangle size={18} className="text-warning shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium text-text-primary">Já existe um pagamento em rascunho para este consultor.</p>
+            <p className="text-text-secondary mt-0.5">
+              Edite ou exclua o rascunho existente antes de gerar um novo.{' '}
+              <Link to={`/financial/payments/expenses/${existingDraftId}`} className="text-accent hover:underline font-medium">
+                Ver rascunho
+              </Link>
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Step 2: Available periods */}
       {selectedUser && (
