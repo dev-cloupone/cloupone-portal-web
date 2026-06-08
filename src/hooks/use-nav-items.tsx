@@ -61,6 +61,8 @@ export function useNavItems(): NavEntry[] {
         items: [
           { label: 'Pgto. Horas', path: '/financial/payments/hours', icon: <DollarSign size={18} /> },
           { label: 'Pgto. Despesas', path: '/financial/payments/expenses', icon: <HandCoins size={18} /> },
+          { label: 'Fat. Horas', path: '/financial/invoices/hours', icon: <FileText size={18} /> },
+          { label: 'Fat. Despesas', path: '/financial/invoices/expenses', icon: <Receipt size={18} /> },
         ],
       },
       {
@@ -81,6 +83,13 @@ export function useNavItems(): NavEntry[] {
         items: [
           { label: 'Pgto. Horas', path: '/financial/payments/hours', icon: <Clock size={18} /> },
           { label: 'Pgto. Despesas', path: '/financial/payments/expenses', icon: <Wallet size={18} /> },
+        ],
+      },
+      {
+        group: 'Faturas',
+        items: [
+          { label: 'Fat. Horas', path: '/financial/invoices/hours', icon: <FileText size={18} /> },
+          { label: 'Fat. Despesas', path: '/financial/invoices/expenses', icon: <Receipt size={18} /> },
         ],
       },
       {
@@ -130,6 +139,8 @@ export function useNavItems(): NavEntry[] {
 
   return [
     { label: 'Atendimento', path: '/tickets', icon: <Headset size={18} /> },
+    { label: 'Fat. Horas', path: '/my-invoices/hours', icon: <FileText size={18} /> },
+    { label: 'Fat. Despesas', path: '/my-invoices/expenses', icon: <Receipt size={18} /> },
     { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
   ];
 }

@@ -1,0 +1,337 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router';
+import { ArrowLeft, Download } from 'lucide-react';
+import { SidebarLayout } from '../../components/ui/sidebar-layout';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Skeleton } from '../../components/ui/skeleton';
+import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/ui/table';
+import * as invoiceService from '../../services/expense-invoice.service';
+import { formatApiError, apiFetch } from '../../services/api';
+import { useToastStore } from '../../stores/toast.store';
+import { useNavItems } from '../../hooks/use-nav-items';
+import type { ExpenseInvoice, ExpenseInvoiceItem } from '../../types/financial.types';
+import { INVOICE_STATUS_MAP } from '../../constants/invoice-status';
+import { formatCurrency } from '../../utils/formatters';
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');
+}
+
+interface EditableItem {
+  id: string;
+  description: string;
+  originalAmount: string;
+  appliedAmount: string;
+}
+
+export default function InvoiceExpensesDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navItems = useNavItems();
+  const navigate = useNavigate();
+  const addToast = useToastStore((s) => s.addToast);
+
+  const [invoice, setInvoice] = useState<ExpenseInvoice | null>(null);
+  const [items, setItems] = useState<EditableItem[]>([]);
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const loadInvoice = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    setError('');
+    try {
+      const data = await invoiceService.getInvoice(id);
+      setInvoice(data);
+      setNotes(data.notes || '');
+      setItems(
+        (data.items || []).map((item: ExpenseInvoiceItem) => ({
+          id: item.id,
+          description: item.description ?? '',
+          originalAmount: item.originalAmount,
+          appliedAmount: item.appliedAmount,
+        })),
+      );
+    } catch (err) {
+      setError(formatApiError(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => { loadInvoice(); }, [loadInvoice]);
+
+  function updateItem(index: number, field: 'appliedAmount' | 'description', value: string) {
+    setItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
+  }
+
+  function calcTotal(): number {
+    return Math.round(items.reduce((sum, item) => sum + Number(item.appliedAmount), 0) * 100) / 100;
+  }
+
+  async function handleSave() {
+    if (!id) return;
+    setActionLoading(true);
+    try {
+      await invoiceService.updateItems(id, {
+        items: items.map((item) => ({ id: item.id, appliedAmount: item.appliedAmount, description: item.description || undefined })),
+        notes: notes || undefined,
+      });
+      await loadInvoice();
+      addToast('Fatura salva.', 'success');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleIssue() {
+    if (!id || !confirm('Emitir esta fatura?')) return;
+    setActionLoading(true);
+    try {
+      await invoiceService.issueInvoice(id);
+      await loadInvoice();
+      addToast('Fatura emitida.', 'success');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handlePay() {
+    if (!id || !confirm('Marcar como paga?')) return;
+    setActionLoading(true);
+    try {
+      await invoiceService.payInvoice(id);
+      await loadInvoice();
+      addToast('Fatura marcada como paga.', 'success');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleCancel() {
+    if (!id || !confirm('Cancelar esta fatura?')) return;
+    setActionLoading(true);
+    try {
+      await invoiceService.cancelInvoice(id);
+      await loadInvoice();
+      addToast('Fatura cancelada.', 'success');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!id || !confirm('Excluir esta fatura?')) return;
+    setActionLoading(true);
+    try {
+      await invoiceService.deleteInvoice(id);
+      addToast('Fatura excluída.', 'success');
+      navigate('/financial/invoices/expenses');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+      setActionLoading(false);
+    }
+  }
+
+  async function handleDownloadPdf() {
+    if (!id) return;
+    try {
+      const response = await apiFetch(`/invoices/expenses/${id}/pdf`);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+    }
+  }
+
+  if (loading) {
+    return (
+      <SidebarLayout navItems={navItems} title="Fatura de Despesas">
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-64 rounded-lg" />
+          <Skeleton className="h-40 rounded-xl" />
+          <Skeleton className="h-60 rounded-xl" />
+        </div>
+      </SidebarLayout>
+    );
+  }
+
+  if (error || !invoice) {
+    return (
+      <SidebarLayout navItems={navItems} title="Fatura de Despesas">
+        <div className="flex flex-col items-center justify-center py-20">
+          <p className="text-danger mb-4">{error || 'Fatura não encontrada.'}</p>
+          <button
+            type="button"
+            onClick={() => navigate('/financial/invoices/expenses')}
+            className="text-sm text-accent hover:text-accent-hover"
+          >
+            Voltar para lista
+          </button>
+        </div>
+      </SidebarLayout>
+    );
+  }
+
+  const isDraft = invoice.status === 'draft';
+  const isIssued = invoice.status === 'issued';
+  const isPaid = invoice.status === 'paid';
+  const status = INVOICE_STATUS_MAP[invoice.status] ?? INVOICE_STATUS_MAP.draft;
+
+  return (
+    <SidebarLayout navItems={navItems} title="Fatura de Despesas">
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={() => navigate('/financial/invoices/expenses')}
+          className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
+        >
+          <ArrowLeft size={16} />
+          Voltar
+        </button>
+
+        <div className="flex items-start gap-3 flex-wrap">
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">
+            {invoice.invoiceNumber ? `Fatura Nº ${invoice.invoiceNumber}` : 'Rascunho'}
+            <span className="mx-2 text-text-muted">—</span>
+            <span className="text-lg">{invoice.projectName}</span>
+          </h2>
+          <Badge variant={status.variant}>{status.label}</Badge>
+        </div>
+        <p className="text-sm text-text-muted mt-1">
+          Cliente: {invoice.clientName} | Período: {formatDate(invoice.periodStart)} — {formatDate(invoice.periodEnd)}
+        </p>
+      </div>
+
+      {/* Items table */}
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface-1 mb-6">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader>Descrição</TableHeader>
+              <TableHeader className="text-right">Valor Original</TableHeader>
+              <TableHeader className="text-right">Valor Cobrado</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {items.map((item, index) => (
+              <TableRow key={item.id}>
+                <TableCell>
+                  {isDraft ? (
+                    <input
+                      type="text"
+                      value={item.description}
+                      onChange={(e) => updateItem(index, 'description', e.target.value)}
+                      className="w-full rounded-lg border border-border bg-surface-2 px-2 py-1 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+                    />
+                  ) : (
+                    <span className="text-sm">{item.description || '—'}</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right font-mono whitespace-nowrap">
+                  {formatCurrency(item.originalAmount)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {isDraft ? (
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={item.appliedAmount}
+                      onChange={(e) => updateItem(index, 'appliedAmount', e.target.value)}
+                      className="w-28 ml-auto rounded-lg border border-border bg-surface-2 px-2 py-1 text-sm text-right font-mono text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+                    />
+                  ) : (
+                    <span className="font-mono">{formatCurrency(item.appliedAmount)}</span>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+            <TableRow>
+              <TableCell colSpan={2} className="text-right">
+                <span className="font-semibold text-sm text-text-primary">Total</span>
+              </TableCell>
+              <TableCell className="text-right font-mono font-semibold whitespace-nowrap">
+                {formatCurrency(calcTotal())}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Notes */}
+      <div className="rounded-xl border border-border bg-surface-1 p-6 mb-6">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">Observações</h3>
+        {isDraft ? (
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            placeholder="Observações sobre a fatura..."
+            className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none placeholder:text-text-muted"
+          />
+        ) : (
+          <p className="text-sm text-text-secondary whitespace-pre-wrap">{notes || 'Nenhuma observação.'}</p>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-wrap gap-3">
+        {isDraft && (
+          <>
+            <Button onClick={handleSave} disabled={actionLoading}>
+              {actionLoading ? 'Salvando...' : 'Salvar'}
+            </Button>
+            <Button variant="secondary" onClick={handleIssue} disabled={actionLoading}>
+              Emitir
+            </Button>
+            <Button variant="danger" onClick={handleDelete} disabled={actionLoading}>
+              Excluir
+            </Button>
+          </>
+        )}
+        {isIssued && (
+          <>
+            <Button onClick={handlePay} disabled={actionLoading}>
+              Marcar Paga
+            </Button>
+            <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
+              Cancelar
+            </Button>
+            <Button variant="secondary" onClick={handleDownloadPdf}>
+              <Download size={15} className="mr-1.5" />
+              Download PDF
+            </Button>
+          </>
+        )}
+        {isPaid && (
+          <>
+            <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
+              Cancelar
+            </Button>
+            <Button variant="secondary" onClick={handleDownloadPdf}>
+              <Download size={15} className="mr-1.5" />
+              Download PDF
+            </Button>
+          </>
+        )}
+        {invoice.status === 'cancelled' && invoice.invoiceNumber && (
+          <Button variant="secondary" onClick={handleDownloadPdf}>
+            <Download size={15} className="mr-1.5" />
+            Download PDF
+          </Button>
+        )}
+      </div>
+    </SidebarLayout>
+  );
+}

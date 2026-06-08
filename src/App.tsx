@@ -67,9 +67,21 @@ const PaymentExpensesListPage = lazy(() => import('./pages/financial/payment-exp
 const PaymentExpensesNewPage = lazy(() => import('./pages/financial/payment-expenses-new'));
 const PaymentExpensesDetailPage = lazy(() => import('./pages/financial/payment-expenses-detail'));
 
+// Invoice pages (super_admin + administrative)
+const InvoiceHoursListPage = lazy(() => import('./pages/financial/invoice-hours-list'));
+const InvoiceHoursNewPage = lazy(() => import('./pages/financial/invoice-hours-new'));
+const InvoiceHoursDetailPage = lazy(() => import('./pages/financial/invoice-hours-detail'));
+const InvoiceExpensesListPage = lazy(() => import('./pages/financial/invoice-expenses-list'));
+const InvoiceExpensesNewPage = lazy(() => import('./pages/financial/invoice-expenses-new'));
+const InvoiceExpensesDetailPage = lazy(() => import('./pages/financial/invoice-expenses-detail'));
+
 // My Payments (consultor + gestor)
 const MyPaymentsHoursPage = lazy(() => import('./pages/my-payments-hours'));
 const MyPaymentsExpensesPage = lazy(() => import('./pages/my-payments-expenses'));
+
+// My Invoices (client)
+const MyInvoicesHoursPage = lazy(() => import('./pages/my-invoices-hours'));
+const MyInvoicesExpensesPage = lazy(() => import('./pages/my-invoices-expenses'));
 
 // Tickets (all authenticated roles)
 const TicketsPage = lazy(() => import('./pages/tickets'));
@@ -269,6 +281,12 @@ export default function App() {
                     <Route path="payments/expenses" element={<PaymentExpensesListPage />} />
                     <Route path="payments/expenses/new" element={<PaymentExpensesNewPage />} />
                     <Route path="payments/expenses/:id" element={<PaymentExpensesDetailPage />} />
+                    <Route path="invoices/hours" element={<InvoiceHoursListPage />} />
+                    <Route path="invoices/hours/new" element={<InvoiceHoursNewPage />} />
+                    <Route path="invoices/hours/:id" element={<InvoiceHoursDetailPage />} />
+                    <Route path="invoices/expenses" element={<InvoiceExpensesListPage />} />
+                    <Route path="invoices/expenses/new" element={<InvoiceExpensesNewPage />} />
+                    <Route path="invoices/expenses/:id" element={<InvoiceExpensesDetailPage />} />
                   </Routes>
                 </RoleGuard>
               </ProtectedRoute>
@@ -292,6 +310,28 @@ export default function App() {
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['consultor', 'gestor']}>
                   <MyPaymentsExpensesPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* My Invoices (client) */}
+          <Route
+            path="/my-invoices/hours"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['client']}>
+                  <MyInvoicesHoursPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-invoices/expenses"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['client']}>
+                  <MyInvoicesExpensesPage />
                 </RoleGuard>
               </ProtectedRoute>
             }
