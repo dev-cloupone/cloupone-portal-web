@@ -27,6 +27,10 @@ export async function deleteExpense(id: string): Promise<void> {
   return api<void>(`/expenses/${id}`, { method: 'DELETE' });
 }
 
+export async function getExpenseById(id: string): Promise<Expense> {
+  return api<Expense>(`/expenses/${id}`);
+}
+
 export async function resubmitExpense(id: string): Promise<Expense> {
   return api<Expense>(`/expenses/${id}/resubmit`, { method: 'POST' });
 }

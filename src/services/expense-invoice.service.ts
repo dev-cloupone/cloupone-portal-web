@@ -77,6 +77,10 @@ export async function deleteInvoice(id: string): Promise<void> {
   return api(`/invoices/expenses/${id}`, { method: 'DELETE' });
 }
 
+export async function removeItem(id: string, itemId: string): Promise<{ removed: boolean; invoiceDeleted: boolean }> {
+  return api(`/invoices/expenses/${id}/items/${itemId}`, { method: 'DELETE' });
+}
+
 export function getPdfUrl(id: string): string {
   const token = getAccessToken();
   return `${BASE_URL}/invoices/expenses/${id}/pdf${token ? `?token=${token}` : ''}`;

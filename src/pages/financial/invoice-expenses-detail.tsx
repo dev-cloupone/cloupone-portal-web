@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, Eye, Trash2 } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/ui/table';
+import { IconButton } from '../../components/ui/icon-button';
+import { ExpenseDetailModal } from '../../components/expenses/expense-detail-modal';
 import * as invoiceService from '../../services/expense-invoice.service';
 import { formatApiError, apiFetch } from '../../services/api';
 import { useToastStore } from '../../stores/toast.store';
@@ -20,6 +22,7 @@ function formatDate(dateStr: string): string {
 
 interface EditableItem {
   id: string;
+  expenseId: string;
   description: string;
   originalAmount: string;
   appliedAmount: string;
@@ -37,6 +40,7 @@ export default function InvoiceExpensesDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
 
   const loadInvoice = useCallback(async () => {
     if (!id) return;
@@ -49,6 +53,7 @@ export default function InvoiceExpensesDetailPage() {
       setItems(
         (data.items || []).map((item: ExpenseInvoiceItem) => ({
           id: item.id,
+          expenseId: item.expenseId,
           description: item.description ?? '',
           originalAmount: item.originalAmount,
           appliedAmount: item.appliedAmount,
@@ -155,6 +160,25 @@ export default function InvoiceExpensesDetailPage() {
     }
   }
 
+  async function handleRemoveItem(itemId: string) {
+    if (!id || !confirm('Remover este item da fatura?')) return;
+    setActionLoading(true);
+    try {
+      const result = await invoiceService.removeItem(id, itemId);
+      if (result.invoiceDeleted) {
+        addToast('Item removido. Fatura excluída por estar vazia.', 'success');
+        navigate('/financial/invoices/expenses');
+        return;
+      }
+      await loadInvoice();
+      addToast('Item removido.', 'success');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   if (loading) {
     return (
       <SidebarLayout navItems={navItems} title="Fatura de Despesas">
@@ -222,6 +246,7 @@ export default function InvoiceExpensesDetailPage() {
               <TableHeader>Descrição</TableHeader>
               <TableHeader className="text-right">Valor Original</TableHeader>
               <TableHeader className="text-right">Valor Cobrado</TableHeader>
+              <TableHeader className="w-20 text-center">Ações</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -255,6 +280,27 @@ export default function InvoiceExpensesDetailPage() {
                     <span className="font-mono">{formatCurrency(item.appliedAmount)}</span>
                   )}
                 </TableCell>
+                <TableCell className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <IconButton
+                      onClick={() => setSelectedExpenseId(item.expenseId)}
+                      aria-label="Ver despesa"
+                      title="Ver despesa"
+                    >
+                      <Eye size={15} />
+                    </IconButton>
+                    {isDraft && (
+                      <IconButton
+                        onClick={() => handleRemoveItem(item.id)}
+                        aria-label="Remover item"
+                        title="Remover item"
+                        disabled={actionLoading}
+                      >
+                        <Trash2 size={15} className="text-danger" />
+                      </IconButton>
+                    )}
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
             <TableRow>
@@ -264,6 +310,7 @@ export default function InvoiceExpensesDetailPage() {
               <TableCell className="text-right font-mono font-semibold whitespace-nowrap">
                 {formatCurrency(calcTotal())}
               </TableCell>
+              <TableCell />
             </TableRow>
           </TableBody>
         </Table>
@@ -332,6 +379,12 @@ export default function InvoiceExpensesDetailPage() {
           </Button>
         )}
       </div>
+
+      <ExpenseDetailModal
+        expenseId={selectedExpenseId}
+        isOpen={!!selectedExpenseId}
+        onClose={() => setSelectedExpenseId(null)}
+      />
     </SidebarLayout>
   );
 }
