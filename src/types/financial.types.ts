@@ -118,6 +118,8 @@ export interface ExpenseInvoiceItem {
   description: string | null;
   originalAmount: string;
   appliedAmount: string;
+  categoryName: string | null;
+  categoryMaxAmount: string | null;
 }
 
 export interface ExpenseInvoice {

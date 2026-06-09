@@ -17,11 +17,7 @@ import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { ExpenseInvoice, ExpenseInvoiceItem } from '../../types/financial.types';
 import { INVOICE_STATUS_MAP } from '../../constants/invoice-status';
-import { formatCurrency } from '../../utils/formatters';
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');
-}
+import { formatCurrency, formatDate } from '../../utils/formatters';
 
 interface EditableItem {
   id: string;
@@ -29,6 +25,8 @@ interface EditableItem {
   description: string;
   originalAmount: string;
   appliedAmount: string;
+  categoryName: string | null;
+  categoryMaxAmount: string | null;
 }
 
 export default function InvoiceExpensesDetailPage() {
@@ -65,6 +63,8 @@ export default function InvoiceExpensesDetailPage() {
           description: item.description ?? '',
           originalAmount: item.originalAmount,
           appliedAmount: item.appliedAmount,
+          categoryName: item.categoryName,
+          categoryMaxAmount: item.categoryMaxAmount,
         })),
       );
     } catch (err) {
@@ -109,9 +109,13 @@ export default function InvoiceExpensesDetailPage() {
     if (!id || !confirm('Emitir esta fatura?')) return;
     setActionLoading(true);
     try {
+      await invoiceService.updateItems(id, {
+        items: items.map((item) => ({ id: item.id, appliedAmount: item.appliedAmount, description: item.description || undefined })),
+        notes: notes || undefined,
+      });
       await invoiceService.issueInvoice(id);
       await loadInvoice();
-      addToast('Fatura emitida.', 'success');
+      addToast('Fatura salva e emitida.', 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -308,6 +312,7 @@ export default function InvoiceExpensesDetailPage() {
           <TableHead>
             <TableRow>
               <TableHeader>Descrição</TableHeader>
+              <TableHeader>Categoria / Limite</TableHeader>
               <TableHeader className="text-right">Valor Original</TableHeader>
               <TableHeader className="text-right">Valor Cobrado</TableHeader>
               <TableHeader className="w-20 text-center">Ações</TableHeader>
@@ -326,6 +331,14 @@ export default function InvoiceExpensesDetailPage() {
                     />
                   ) : (
                     <span className="text-sm">{item.description || '—'}</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm">{item.categoryName || '—'}</span>
+                  {item.categoryMaxAmount != null && Number(item.categoryMaxAmount) > 0 && (
+                    <div className={`text-xs ${Number(item.originalAmount) > Number(item.categoryMaxAmount) ? 'text-danger font-medium' : 'text-text-muted'}`}>
+                      Limite: {formatCurrency(item.categoryMaxAmount)}
+                    </div>
                   )}
                 </TableCell>
                 <TableCell className="text-right font-mono whitespace-nowrap">
@@ -368,7 +381,7 @@ export default function InvoiceExpensesDetailPage() {
               </TableRow>
             ))}
             <TableRow>
-              <TableCell colSpan={2} className="text-right">
+              <TableCell colSpan={3} className="text-right">
                 <span className="font-semibold text-sm text-text-primary">Total</span>
               </TableCell>
               <TableCell className="text-right font-mono font-semibold whitespace-nowrap">

@@ -1,4 +1,7 @@
 export function formatDate(date: string | Date): string {
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return new Date(date + 'T12:00:00').toLocaleDateString('pt-BR');
+  }
   return new Date(date).toLocaleDateString('pt-BR');
 }
 
