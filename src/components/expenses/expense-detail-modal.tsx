@@ -4,7 +4,7 @@ import { Modal } from '../ui/modal';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
 import { getExpenseById } from '../../services/expense.service';
-import { formatApiError } from '../../services/api';
+import { formatApiError, BASE_URL } from '../../services/api';
 import type { Expense } from '../../types/expense.types';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -105,12 +105,12 @@ export function ExpenseDetailModal({ expenseId, isOpen, onClose }: ExpenseDetail
               </>
             )}
 
-            <dt className="text-text-muted">Valor</dt>
+            <dt className="text-text-muted">Valor lançado</dt>
             <dd className="text-text-primary font-mono">{formatCurrency(expense.amount)}</dd>
 
             {expense.approvedAmount && expense.approvedAmount !== expense.amount && (
               <>
-                <dt className="text-text-muted">Valor Aprovado</dt>
+                <dt className="text-text-muted">Valor Aprovado para Reembolso</dt>
                 <dd className="text-text-primary font-mono">{formatCurrency(expense.approvedAmount)}</dd>
               </>
             )}
@@ -139,9 +139,9 @@ export function ExpenseDetailModal({ expenseId, isOpen, onClose }: ExpenseDetail
             )}
           </dl>
 
-          {expense.receiptUrl && (
+          {expense.receiptFileId && (
             <a
-              href={expense.receiptUrl}
+              href={`${BASE_URL}/uploads/download/${expense.receiptFileId}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent-hover transition-colors"
