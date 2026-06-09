@@ -81,6 +81,14 @@ export async function removeItem(id: string, itemId: string): Promise<{ removed:
   return api(`/invoices/expenses/${id}/items/${itemId}`, { method: 'DELETE' });
 }
 
+export async function revertToDraft(id: string): Promise<ExpenseInvoice> {
+  return api(`/invoices/expenses/${id}/revert-to-draft`, { method: 'POST' });
+}
+
+export async function revertToIssued(id: string): Promise<ExpenseInvoice> {
+  return api(`/invoices/expenses/${id}/revert-to-issued`, { method: 'POST' });
+}
+
 export function getPdfUrl(id: string): string {
   const token = getAccessToken();
   return `${BASE_URL}/invoices/expenses/${id}/pdf${token ? `?token=${token}` : ''}`;

@@ -8,6 +8,7 @@ import { Skeleton } from '../../components/ui/skeleton';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/ui/table';
 import { IconButton } from '../../components/ui/icon-button';
 import { ExpenseDetailModal } from '../../components/expenses/expense-detail-modal';
+import { RevertInvoiceModal } from '../../components/financial/revert-invoice-modal';
 import * as invoiceService from '../../services/expense-invoice.service';
 import { formatApiError, apiFetch } from '../../services/api';
 import { useToastStore } from '../../stores/toast.store';
@@ -41,6 +42,7 @@ export default function InvoiceExpensesDetailPage() {
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
+  const [revertModal, setRevertModal] = useState<'to-draft' | 'to-issued' | null>(null);
 
   const loadInvoice = useCallback(async () => {
     if (!id) return;
@@ -176,6 +178,54 @@ export default function InvoiceExpensesDetailPage() {
       addToast(formatApiError(err), 'error');
     } finally {
       setActionLoading(false);
+    }
+  }
+
+  async function handleRevertToDraft() {
+    if (!id) return;
+    setActionLoading(true);
+    try {
+      await invoiceService.revertToDraft(id);
+      await loadInvoice();
+      addToast('Fatura revertida para rascunho.', 'success');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+      throw err;
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleRevertToIssued() {
+    if (!id) return;
+    setActionLoading(true);
+    try {
+      await invoiceService.revertToIssued(id);
+      await loadInvoice();
+      addToast('Fatura revertida para emitida.', 'success');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+      throw err;
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleDownloadReceipts() {
+    if (!id) return;
+    try {
+      const response = await apiFetch(`/invoices/expenses/${id}/receipts-zip`);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const disposition = response.headers.get('content-disposition');
+      const match = disposition?.match(/filename="?(.+?)"?$/);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = match?.[1] ?? 'comprovantes.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
     }
   }
 
@@ -352,17 +402,27 @@ export default function InvoiceExpensesDetailPage() {
             <Button onClick={handlePay} disabled={actionLoading}>
               Marcar Paga
             </Button>
+            <Button variant="secondary" onClick={() => setRevertModal('to-draft')} disabled={actionLoading}>
+              Reverter para Rascunho
+            </Button>
             <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
               Cancelar
             </Button>
             <Button variant="secondary" onClick={handleDownloadPdf}>
               <Download size={15} className="mr-1.5" />
               Download PDF
+            </Button>
+            <Button variant="secondary" onClick={handleDownloadReceipts}>
+              <Download size={15} className="mr-1.5" />
+              Download Comprovantes
             </Button>
           </>
         )}
         {isPaid && (
           <>
+            <Button variant="secondary" onClick={() => setRevertModal('to-issued')} disabled={actionLoading}>
+              Reverter para Emitida
+            </Button>
             <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
               Cancelar
             </Button>
@@ -370,13 +430,23 @@ export default function InvoiceExpensesDetailPage() {
               <Download size={15} className="mr-1.5" />
               Download PDF
             </Button>
+            <Button variant="secondary" onClick={handleDownloadReceipts}>
+              <Download size={15} className="mr-1.5" />
+              Download Comprovantes
+            </Button>
           </>
         )}
         {invoice.status === 'cancelled' && invoice.invoiceNumber && (
-          <Button variant="secondary" onClick={handleDownloadPdf}>
-            <Download size={15} className="mr-1.5" />
-            Download PDF
-          </Button>
+          <>
+            <Button variant="secondary" onClick={handleDownloadPdf}>
+              <Download size={15} className="mr-1.5" />
+              Download PDF
+            </Button>
+            <Button variant="secondary" onClick={handleDownloadReceipts}>
+              <Download size={15} className="mr-1.5" />
+              Download Comprovantes
+            </Button>
+          </>
         )}
       </div>
 
@@ -384,6 +454,14 @@ export default function InvoiceExpensesDetailPage() {
         expenseId={selectedExpenseId}
         isOpen={!!selectedExpenseId}
         onClose={() => setSelectedExpenseId(null)}
+      />
+
+      <RevertInvoiceModal
+        isOpen={!!revertModal}
+        onClose={() => setRevertModal(null)}
+        onConfirm={revertModal === 'to-draft' ? handleRevertToDraft : handleRevertToIssued}
+        type={revertModal ?? 'to-draft'}
+        invoiceNumber={invoice.invoiceNumber}
       />
     </SidebarLayout>
   );
