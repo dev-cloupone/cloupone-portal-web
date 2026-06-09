@@ -150,9 +150,17 @@ export default function InvoiceHoursDetailPage() {
     if (!id || !confirm('Emitir esta fatura? Um número sequencial será atribuído.')) return;
     setActionLoading(true);
     try {
+      const allLines = [
+        ...hoursLines.map((l) => ({ id: l.id, appliedHours: l.appliedHours, appliedRate: l.appliedRate })),
+        ...customLines.map((l) => ({ id: l.id, appliedHours: l.quantity, appliedRate: l.unitPrice, description: l.description })),
+      ];
+      await invoiceService.updateLines(id, {
+        lines: allLines,
+        notes: notes || undefined,
+      });
       await invoiceService.issueInvoice(id);
       await loadInvoice();
-      addToast('Fatura emitida.', 'success');
+      addToast('Fatura salva e emitida.', 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
