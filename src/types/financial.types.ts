@@ -69,3 +69,76 @@ export interface AvailableExpensePeriod {
   expenseCount: number;
   totalAmount: string;
 }
+
+// Fatura de Horas
+export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'cancelled';
+
+export type InvoiceLineType = 'hours' | 'custom';
+
+export interface InvoiceLine {
+  id: string;
+  invoiceId: string;
+  lineType: InvoiceLineType;
+  consultantId: string | null;
+  consultantName: string | null;
+  description: string | null;
+  calculatedHours: string | null;
+  appliedHours: string;
+  originalRate: string | null;
+  appliedRate: string;
+  subtotal: string;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: number | null;
+  clientId: string;
+  clientName: string;
+  clientCnpj: string | null;
+  projectId: string;
+  projectName: string;
+  year: number;
+  month: number;
+  status: InvoiceStatus;
+  totalHours: string;
+  totalAmount: string;
+  issuedAt: string | null;
+  paidAt: string | null;
+  cancelledAt: string | null;
+  notes: string | null;
+  createdAt: string;
+  lines?: InvoiceLine[];
+}
+
+// Fatura de Despesas
+export interface ExpenseInvoiceItem {
+  id: string;
+  expenseInvoiceId: string;
+  expenseId: string;
+  description: string | null;
+  originalAmount: string;
+  appliedAmount: string;
+  categoryName: string | null;
+  categoryMaxAmount: string | null;
+}
+
+export interface ExpenseInvoice {
+  id: string;
+  invoiceNumber: number | null;
+  clientId: string;
+  clientName: string;
+  clientCnpj: string | null;
+  projectId: string;
+  projectName: string;
+  periodId: string;
+  periodStart: string;
+  periodEnd: string;
+  status: InvoiceStatus;
+  totalAmount: string;
+  issuedAt: string | null;
+  paidAt: string | null;
+  cancelledAt: string | null;
+  notes: string | null;
+  createdAt: string;
+  items?: ExpenseInvoiceItem[];
+}
