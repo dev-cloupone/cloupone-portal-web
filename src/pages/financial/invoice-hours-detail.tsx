@@ -7,7 +7,9 @@ import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 import { Modal } from '../../components/ui/modal';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/ui/table';
+import { RevertInvoiceModal } from '../../components/financial/revert-invoice-modal';
 import * as invoiceService from '../../services/invoice.service';
+import { listActiveBankAccounts, type BankAccountOption } from '../../services/bank-accounts.service';
 import { formatApiError, apiFetch } from '../../services/api';
 import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
@@ -46,6 +48,11 @@ export default function InvoiceHoursDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [revertModal, setRevertModal] = useState<'to-draft' | 'to-issued' | null>(null);
+  const [bankAccounts, setBankAccounts] = useState<BankAccountOption[]>([]);
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   // Add custom line modal
   const [addLineModalOpen, setAddLineModalOpen] = useState(false);
@@ -90,6 +97,10 @@ export default function InvoiceHoursDetailPage() {
   useEffect(() => {
     loadInvoice();
   }, [loadInvoice]);
+
+  useEffect(() => {
+    listActiveBankAccounts().then(setBankAccounts).catch(() => {});
+  }, []);
 
   function updateHoursLine(index: number, field: 'appliedHours' | 'appliedRate', value: string) {
     setHoursLines((prev) => prev.map((l, i) => (i === index ? { ...l, [field]: value } : l)));
@@ -191,14 +202,48 @@ export default function InvoiceHoursDetailPage() {
   }
 
   async function handleDownloadPdf() {
-    if (!id) return;
+    if (!id || !selectedBankAccountId) return;
+    setPdfLoading(true);
     try {
-      const response = await apiFetch(`/invoices/hours/${id}/pdf`);
+      const response = await apiFetch(`/invoices/hours/${id}/pdf?bankAccountId=${selectedBankAccountId}`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
+      setShowPdfModal(false);
     } catch (err) {
       addToast(formatApiError(err), 'error');
+    } finally {
+      setPdfLoading(false);
+    }
+  }
+
+  async function handleRevertToDraft() {
+    if (!id) return;
+    setActionLoading(true);
+    try {
+      await invoiceService.revertToDraft(id);
+      await loadInvoice();
+      addToast('Fatura revertida para rascunho.', 'success');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+      throw err;
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleRevertToIssued() {
+    if (!id) return;
+    setActionLoading(true);
+    try {
+      await invoiceService.revertToIssued(id);
+      await loadInvoice();
+      addToast('Fatura revertida para emitida.', 'success');
+    } catch (err) {
+      addToast(formatApiError(err), 'error');
+      throw err;
+    } finally {
+      setActionLoading(false);
     }
   }
 
@@ -216,7 +261,7 @@ export default function InvoiceHoursDetailPage() {
       setNewQuantity('');
       setNewUnitPrice('');
       await loadInvoice();
-      addToast('Item avulso adicionado.', 'success');
+      addToast('Item adicional adicionado.', 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -358,7 +403,7 @@ export default function InvoiceHoursDetailPage() {
       {(customLines.length > 0 || isDraft) && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-text-tertiary">Itens Avulsos</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-text-tertiary">Itens Adicionais</h3>
             {isDraft && (
               <Button variant="secondary" size="sm" onClick={() => setAddLineModalOpen(true)}>
                 <Plus size={14} className="mr-1" />
@@ -490,10 +535,13 @@ export default function InvoiceHoursDetailPage() {
             <Button onClick={handlePay} disabled={actionLoading}>
               Marcar Paga
             </Button>
+            <Button variant="secondary" onClick={() => setRevertModal('to-draft')} disabled={actionLoading}>
+              Reverter para Rascunho
+            </Button>
             <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
               Cancelar
             </Button>
-            <Button variant="secondary" onClick={handleDownloadPdf}>
+            <Button variant="secondary" onClick={() => setShowPdfModal(true)}>
               <Download size={15} className="mr-1.5" />
               Download PDF
             </Button>
@@ -501,17 +549,20 @@ export default function InvoiceHoursDetailPage() {
         )}
         {isPaid && (
           <>
+            <Button variant="secondary" onClick={() => setRevertModal('to-issued')} disabled={actionLoading}>
+              Reverter para Emitida
+            </Button>
             <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
               Cancelar
             </Button>
-            <Button variant="secondary" onClick={handleDownloadPdf}>
+            <Button variant="secondary" onClick={() => setShowPdfModal(true)}>
               <Download size={15} className="mr-1.5" />
               Download PDF
             </Button>
           </>
         )}
         {invoice.status === 'cancelled' && invoice.invoiceNumber && (
-          <Button variant="secondary" onClick={handleDownloadPdf}>
+          <Button variant="secondary" onClick={() => setShowPdfModal(true)}>
             <Download size={15} className="mr-1.5" />
             Download PDF
           </Button>
@@ -519,7 +570,7 @@ export default function InvoiceHoursDetailPage() {
       </div>
 
       {/* Add custom line modal */}
-      <Modal isOpen={addLineModalOpen} onClose={() => setAddLineModalOpen(false)} title="Adicionar Item Avulso">
+      <Modal isOpen={addLineModalOpen} onClose={() => setAddLineModalOpen(false)} title="Adicionar Item Adicional">
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1">Descrição</label>
@@ -561,6 +612,40 @@ export default function InvoiceHoursDetailPage() {
               {actionLoading ? 'Adicionando...' : 'Adicionar'}
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      <RevertInvoiceModal
+        isOpen={!!revertModal}
+        onClose={() => setRevertModal(null)}
+        onConfirm={revertModal === 'to-draft' ? handleRevertToDraft : handleRevertToIssued}
+        type={revertModal ?? 'to-draft'}
+        invoiceNumber={invoice.invoiceNumber}
+      />
+
+      <Modal isOpen={showPdfModal} onClose={() => setShowPdfModal(false)} title="Gerar PDF da Fatura">
+        {bankAccounts.length === 0 ? (
+          <p className="text-sm text-text-muted">Cadastre contas bancárias em Configurações.</p>
+        ) : (
+          <>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Conta para pagamento</label>
+            <select
+              value={selectedBankAccountId}
+              onChange={(e) => setSelectedBankAccountId(e.target.value)}
+              className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+            >
+              <option value="">Selecione uma conta...</option>
+              {bankAccounts.map((ba) => (
+                <option key={ba.id} value={ba.id}>{ba.label}</option>
+              ))}
+            </select>
+          </>
+        )}
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="secondary" onClick={() => setShowPdfModal(false)}>Cancelar</Button>
+          <Button onClick={handleDownloadPdf} disabled={!selectedBankAccountId || pdfLoading}>
+            {pdfLoading ? 'Gerando...' : 'Gerar PDF'}
+          </Button>
         </div>
       </Modal>
     </SidebarLayout>

@@ -78,6 +78,14 @@ export async function deleteInvoice(id: string): Promise<void> {
   return api(`/invoices/hours/${id}`, { method: 'DELETE' });
 }
 
+export async function revertToDraft(id: string): Promise<Invoice> {
+  return api(`/invoices/hours/${id}/revert-to-draft`, { method: 'POST' });
+}
+
+export async function revertToIssued(id: string): Promise<Invoice> {
+  return api(`/invoices/hours/${id}/revert-to-issued`, { method: 'POST' });
+}
+
 export function getPdfUrl(id: string): string {
   const token = getAccessToken();
   return `${BASE_URL}/invoices/hours/${id}/pdf${token ? `?token=${token}` : ''}`;
