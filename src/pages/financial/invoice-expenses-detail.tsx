@@ -7,9 +7,11 @@ import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/ui/table';
 import { IconButton } from '../../components/ui/icon-button';
+import { Modal } from '../../components/ui/modal';
 import { ExpenseDetailModal } from '../../components/expenses/expense-detail-modal';
 import { RevertInvoiceModal } from '../../components/financial/revert-invoice-modal';
 import * as invoiceService from '../../services/expense-invoice.service';
+import { listActiveBankAccounts, type BankAccountOption } from '../../services/bank-accounts.service';
 import { formatApiError, apiFetch } from '../../services/api';
 import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
@@ -43,6 +45,10 @@ export default function InvoiceExpensesDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
   const [revertModal, setRevertModal] = useState<'to-draft' | 'to-issued' | null>(null);
+  const [bankAccounts, setBankAccounts] = useState<BankAccountOption[]>([]);
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const loadInvoice = useCallback(async () => {
     if (!id) return;
@@ -69,6 +75,10 @@ export default function InvoiceExpensesDetailPage() {
   }, [id]);
 
   useEffect(() => { loadInvoice(); }, [loadInvoice]);
+
+  useEffect(() => {
+    listActiveBankAccounts().then(setBankAccounts).catch(() => {});
+  }, []);
 
   function updateItem(index: number, field: 'appliedAmount' | 'description', value: string) {
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
@@ -151,14 +161,18 @@ export default function InvoiceExpensesDetailPage() {
   }
 
   async function handleDownloadPdf() {
-    if (!id) return;
+    if (!id || !selectedBankAccountId) return;
+    setPdfLoading(true);
     try {
-      const response = await apiFetch(`/invoices/expenses/${id}/pdf`);
+      const response = await apiFetch(`/invoices/expenses/${id}/pdf?bankAccountId=${selectedBankAccountId}`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
+      setShowPdfModal(false);
     } catch (err) {
       addToast(formatApiError(err), 'error');
+    } finally {
+      setPdfLoading(false);
     }
   }
 
@@ -408,7 +422,7 @@ export default function InvoiceExpensesDetailPage() {
             <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
               Cancelar
             </Button>
-            <Button variant="secondary" onClick={handleDownloadPdf}>
+            <Button variant="secondary" onClick={() => setShowPdfModal(true)}>
               <Download size={15} className="mr-1.5" />
               Download PDF
             </Button>
@@ -426,7 +440,7 @@ export default function InvoiceExpensesDetailPage() {
             <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
               Cancelar
             </Button>
-            <Button variant="secondary" onClick={handleDownloadPdf}>
+            <Button variant="secondary" onClick={() => setShowPdfModal(true)}>
               <Download size={15} className="mr-1.5" />
               Download PDF
             </Button>
@@ -438,7 +452,7 @@ export default function InvoiceExpensesDetailPage() {
         )}
         {invoice.status === 'cancelled' && invoice.invoiceNumber && (
           <>
-            <Button variant="secondary" onClick={handleDownloadPdf}>
+            <Button variant="secondary" onClick={() => setShowPdfModal(true)}>
               <Download size={15} className="mr-1.5" />
               Download PDF
             </Button>
@@ -463,6 +477,32 @@ export default function InvoiceExpensesDetailPage() {
         type={revertModal ?? 'to-draft'}
         invoiceNumber={invoice.invoiceNumber}
       />
+
+      <Modal isOpen={showPdfModal} onClose={() => setShowPdfModal(false)} title="Gerar PDF da Fatura">
+        {bankAccounts.length === 0 ? (
+          <p className="text-sm text-text-muted">Cadastre contas bancárias em Configurações.</p>
+        ) : (
+          <>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Conta para pagamento</label>
+            <select
+              value={selectedBankAccountId}
+              onChange={(e) => setSelectedBankAccountId(e.target.value)}
+              className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+            >
+              <option value="">Selecione uma conta...</option>
+              {bankAccounts.map((ba) => (
+                <option key={ba.id} value={ba.id}>{ba.label}</option>
+              ))}
+            </select>
+          </>
+        )}
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="secondary" onClick={() => setShowPdfModal(false)}>Cancelar</Button>
+          <Button onClick={handleDownloadPdf} disabled={!selectedBankAccountId || pdfLoading}>
+            {pdfLoading ? 'Gerando...' : 'Gerar PDF'}
+          </Button>
+        </div>
+      </Modal>
     </SidebarLayout>
   );
 }
