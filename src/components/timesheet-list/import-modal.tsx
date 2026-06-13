@@ -243,19 +243,29 @@ export function ImportModal({
             </table>
           </div>
 
-          {/* Messages for rows with issues */}
-          {validationResult.rows.some(r => r.message) && (
-            <div className="space-y-1 text-xs">
-              {validationResult.rows.filter(r => r.message).map((row) => {
-                const cfg = STATUS_CONFIG[row.status];
-                return (
-                  <p key={row.row} className={cfg.color}>
-                    Linha {row.row}: {row.message}
+          {/* Messages for rows with issues (max 5 visible) */}
+          {validationResult.rows.some(r => r.message) && (() => {
+            const rowsWithMessages = validationResult.rows.filter(r => r.message);
+            const maxVisible = 5;
+            const hidden = rowsWithMessages.length - maxVisible;
+            return (
+              <div className="space-y-1 text-xs">
+                {rowsWithMessages.slice(0, maxVisible).map((row) => {
+                  const cfg = STATUS_CONFIG[row.status];
+                  return (
+                    <p key={row.row} className={cfg.color}>
+                      Linha {row.row}: {row.message}
+                    </p>
+                  );
+                })}
+                {hidden > 0 && (
+                  <p className="text-text-secondary italic">
+                    ...e mais {hidden} {hidden === 1 ? 'problema' : 'problemas'}
                   </p>
-                );
-              })}
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })()}
 
           {/* Duplicate checkbox */}
           {validationResult.warnings > 0 && (
