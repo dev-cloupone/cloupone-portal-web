@@ -38,7 +38,7 @@ function formatDate(dateStr: string): string {
 function getHeaders(showConsultant: boolean): string[] {
   const headers = ['Data'];
   if (showConsultant) headers.push('Consultor');
-  headers.push('Projeto', 'Subfase', 'Ticket', 'Início', 'Fim', 'Horas', 'Descrição');
+  headers.push('Projeto', 'Fase', 'Subfase', 'Ticket', 'Início', 'Fim', 'Horas', 'Descrição');
   return headers;
 }
 
@@ -48,6 +48,7 @@ function buildRows(entries: TimeEntryListItem[], showConsultant: boolean): strin
     if (showConsultant) row.push(e.consultantName);
     row.push(
       e.projectName,
+      e.phaseName || '-',
       e.subphaseName || '-',
       e.ticketCode || '-',
       e.startTime.slice(0, 5),

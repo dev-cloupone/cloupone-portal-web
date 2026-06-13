@@ -56,7 +56,7 @@ const mockEntries: TimeEntryListItem[] = [
   {
     id: 'e1', date: '2024-06-10', startTime: '08:00:00', endTime: '09:00:00',
     hours: '1.00', description: 'Test', consultantId: 'u1', consultantName: 'John',
-    projectId: 'p1', projectName: 'Project A', subphaseId: null, subphaseName: '',
+    projectId: 'p1', projectName: 'Project A', subphaseId: null, subphaseName: '', phaseName: null,
     ticketId: null, ticketCode: '', ticketTitle: '',
   },
 ]

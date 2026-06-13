@@ -89,6 +89,7 @@ export interface TimeEntryListItem {
   projectName: string;
   subphaseId: string | null;
   subphaseName: string | null;
+  phaseName: string | null;
   ticketId: string | null;
   ticketCode: string | null;
   ticketTitle: string | null;
