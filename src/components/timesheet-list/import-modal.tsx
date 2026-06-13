@@ -213,6 +213,7 @@ export function ImportModal({
                   <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">#</th>
                   <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Data</th>
                   <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Projeto</th>
+                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Fase</th>
                   <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Subfase</th>
                   <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Início</th>
                   <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Fim</th>
@@ -228,6 +229,7 @@ export function ImportModal({
                       <td className="px-2 py-1.5 text-text-muted">{row.row}</td>
                       <td className="px-2 py-1.5">{row.data.date}</td>
                       <td className="px-2 py-1.5 max-w-[120px] truncate">{row.data.project}</td>
+                      <td className="px-2 py-1.5 max-w-[120px] truncate">{row.data.phase}</td>
                       <td className="px-2 py-1.5 max-w-[120px] truncate">{row.data.subphase}</td>
                       <td className="px-2 py-1.5">{row.data.startTime}</td>
                       <td className="px-2 py-1.5">{row.data.endTime}</td>

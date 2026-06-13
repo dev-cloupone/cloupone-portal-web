@@ -1,6 +1,7 @@
 export interface ImportRawRowData {
   date: string;
   project: string;
+  phase: string;
   subphase: string;
   ticket: string | null;
   startTime: string;
