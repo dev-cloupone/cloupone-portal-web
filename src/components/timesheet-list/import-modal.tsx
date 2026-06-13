@@ -15,6 +15,7 @@ interface ImportModalProps {
   onImportSuccess: () => void;
   consultants: Array<{ id: string; name: string }>;
   isAdminOrGestor: boolean;
+  userId: string;
 }
 
 type ModalStep = 'upload' | 'preview' | 'result';
@@ -34,7 +35,7 @@ function convertDateToISO(ddmmyyyy: string): string {
 
 export function ImportModal({
   isOpen, onClose, onImportSuccess,
-  consultants, isAdminOrGestor,
+  consultants, isAdminOrGestor, userId,
 }: ImportModalProps) {
   const [step, setStep] = useState<ModalStep>('upload');
   const [file, setFile] = useState<File | null>(null);
@@ -90,7 +91,7 @@ export function ImportModal({
           description: r.data.description || null,
         }));
 
-      const cId = isAdminOrGestor ? consultantId : '';
+      const cId = isAdminOrGestor ? consultantId : userId;
       const result = await confirmImport({
         consultantId: cId,
         rows: rowsToImport,

@@ -86,6 +86,7 @@ export default function TimesheetListPage() {
         onImportSuccess={refetch}
         consultants={consultants}
         isAdminOrGestor={isAdminOrGestor}
+        userId={user!.id}
       />
     </SidebarLayout>
   );

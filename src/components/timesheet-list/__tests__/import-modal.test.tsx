@@ -33,6 +33,7 @@ const defaultProps = {
     { id: 'c2', name: 'Maria' },
   ],
   isAdminOrGestor: false,
+  userId: 'user-uuid-123',
 }
 
 const mockValidationResult = {
