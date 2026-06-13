@@ -26,6 +26,7 @@ export function useTimesheetList() {
   const [totalHours, setTotalHours] = useState('0.00');
   const [loading, setLoading] = useState(true);
   const [filtering, setFiltering] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const isFilterChangeRef = useRef(false);
 
   const [consultants, setConsultants] = useState<ConsultantOption[]>([]);
@@ -100,7 +101,11 @@ export function useTimesheetList() {
         setFiltering(false);
         isFilterChangeRef.current = false;
       });
-  }, [currentMonth, filters]);
+  }, [currentMonth, filters, refreshKey]);
+
+  const refetch = useCallback(() => {
+    setRefreshKey(k => k + 1);
+  }, []);
 
   return {
     currentMonth,
@@ -119,5 +124,6 @@ export function useTimesheetList() {
     goToToday,
     isAdminOrGestor,
     user,
+    refetch,
   };
 }

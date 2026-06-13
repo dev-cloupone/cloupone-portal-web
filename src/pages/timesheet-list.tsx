@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { useTimesheetList } from '../hooks/use-timesheet-list';
 import { ListFilters } from '../components/timesheet-list/list-filters';
 import { ListTable } from '../components/timesheet-list/list-table';
 import { ExportButtons } from '../components/timesheet-list/export-buttons';
+import { ImportModal } from '../components/timesheet-list/import-modal';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { MonthNavigator } from '../components/ui/month-navigator';
 import { useNavItems } from '../hooks/use-nav-items';
-import { Calendar } from 'lucide-react';
+import { Calendar, Upload } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router';
 
@@ -19,7 +21,9 @@ export default function TimesheetListPage() {
     goToPreviousMonth, goToNextMonth, goToToday,
     isAdminOrGestor,
     user,
+    refetch,
   } = useTimesheetList();
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const selectedProjectName = filters.projectId ? projects.find(p => p.id === filters.projectId)?.name : undefined;
   const selectedConsultantName = filters.consultantId ? consultants.find(c => c.id === filters.consultantId)?.name : undefined;
@@ -46,6 +50,9 @@ export default function TimesheetListPage() {
               showConsultantColumn={isAdminOrGestor}
               disabled={loading || entries.length === 0}
             />
+            <Button variant="ghost" size="sm" onClick={() => setShowImportModal(true)}>
+              <Upload className="w-4 h-4 mr-1" /> Importar
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate('/timesheet')}>
               <Calendar className="w-4 h-4 mr-1" /> Calendário
             </Button>
@@ -72,6 +79,14 @@ export default function TimesheetListPage() {
           showConsultantColumn={isAdminOrGestor}
         />
       </div>
+
+      <ImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImportSuccess={refetch}
+        consultants={consultants}
+        isAdminOrGestor={isAdminOrGestor}
+      />
     </SidebarLayout>
   );
 }
