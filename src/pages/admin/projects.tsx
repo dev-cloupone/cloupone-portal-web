@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Plus, Pencil, XCircle, UserPlus, Layers, Receipt } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -17,17 +17,7 @@ import { useNavItems } from '../../hooks/use-nav-items';
 import { useAuth } from '../../hooks/use-auth';
 import type { Project } from '../../types/project.types';
 import type { Client } from '../../types/client.types';
-
-const statusOptions = [
-  { value: 'active', label: 'Ativo' },
-  { value: 'paused', label: 'Pausado' },
-  { value: 'finished', label: 'Finalizado' },
-];
-
-const budgetTypeOptions = [
-  { value: 'monthly', label: 'Mensal' },
-  { value: 'total', label: 'Total' },
-];
+import { statusOptions, budgetTypeOptions, STATUS_VARIANTS, STATUS_LABELS, BUDGET_TYPE_LABELS } from '../../constants/project.constants';
 
 const emptyForm = { name: '', description: '', clientId: '', billingRate: '', budgetHours: '', budgetType: 'monthly', startDate: '', endDate: '' };
 
@@ -39,10 +29,8 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [clientsList, setClientsList] = useState<Client[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editing, setEditing] = useState<Project | null>(null);
   const [error, setError] = useState('');
   const [form, setForm] = useState(emptyForm);
-  const [editStatus, setEditStatus] = useState('active');
   const [filterClient, setFilterClient] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const { page, limit, meta, setMeta, goToPage } = usePagination({ initialLimit: 20 });
@@ -83,55 +71,6 @@ export default function ProjectsPage() {
     }
   }
 
-  async function handleUpdate(e: React.FormEvent) {
-    e.preventDefault();
-    if (!editing) return;
-    setError('');
-    try {
-      await projectService.updateProject(editing.id, {
-        name: form.name,
-        description: form.description || undefined,
-        clientId: form.clientId,
-        status: editStatus,
-        billingRate: Number(form.billingRate),
-        budgetHours: form.budgetHours ? Number(form.budgetHours) : undefined,
-        budgetType: form.budgetType || undefined,
-        startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
-        endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
-      });
-      setEditing(null);
-      await loadData();
-    } catch (err) {
-      setError(formatApiError(err));
-    }
-  }
-
-  async function handleDeactivate(project: Project) {
-    if (!confirm(`Desativar ${project.name}?`)) return;
-    try {
-      await projectService.deactivateProject(project.id);
-      await loadData();
-    } catch (err) {
-      setError(formatApiError(err));
-    }
-  }
-
-  function openEdit(project: Project) {
-    setForm({
-      name: project.name,
-      description: project.description || '',
-      clientId: project.clientId,
-      billingRate: String(project.billingRate),
-      budgetHours: project.budgetHours ? String(project.budgetHours) : '',
-      budgetType: project.budgetType || 'monthly',
-      startDate: project.startDate ? project.startDate.split('T')[0] : '',
-      endDate: project.endDate ? project.endDate.split('T')[0] : '',
-    });
-    setEditStatus(project.status);
-    setError('');
-    setEditing(project);
-  }
-
   function openCreate() {
     setForm(emptyForm);
     setError('');
@@ -141,29 +80,6 @@ export default function ProjectsPage() {
   useEffect(() => { loadData(); }, [page, limit, filterClient, filterStatus]);
 
   const clientOptions = clientsList.map((c) => ({ value: c.id, label: c.companyName }));
-
-  const statusBadge = (status: string) => {
-    const map: Record<string, 'success' | 'warning' | 'default'> = { active: 'success', paused: 'warning', finished: 'default' };
-    const labels: Record<string, string> = { active: 'Ativo', paused: 'Pausado', finished: 'Finalizado' };
-    return <Badge variant={map[status] || 'default'}>{labels[status] || status}</Badge>;
-  };
-
-  const formFields = (
-    <>
-      <Input label="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-      <Input label="Descrição" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-      <Select label="Cliente" options={clientOptions} value={form.clientId} onChange={(v) => setForm({ ...form, clientId: v })} placeholder="Selecione um cliente" required />
-      {isSuperAdmin && <Input label="Valor/Hora Cliente (R$)" type="number" step="0.01" value={form.billingRate} onChange={(e) => setForm({ ...form, billingRate: e.target.value })} required />}
-      <div className="grid grid-cols-2 gap-4">
-        <Input label="Horas Orçamento" type="number" value={form.budgetHours} onChange={(e) => setForm({ ...form, budgetHours: e.target.value })} />
-        <Select label="Tipo Orçamento" options={budgetTypeOptions} value={form.budgetType} onChange={(v) => setForm({ ...form, budgetType: v })} />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <Input label="Data Início" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
-        <Input label="Data Fim" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
-      </div>
-    </>
-  );
 
   return (
     <SidebarLayout navItems={navItems} title="Admin">
@@ -181,7 +97,7 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {error && !isCreateOpen && !editing && (
+      {error && !isCreateOpen && (
         <div className="mb-4 rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">
           <p className="text-xs text-danger whitespace-pre-line">{error}</p>
         </div>
@@ -193,30 +109,20 @@ export default function ProjectsPage() {
             <TableHeader>Nome</TableHeader>
             <TableHeader>Cliente</TableHeader>
             <TableHeader>Status</TableHeader>
-            {isSuperAdmin && <TableHeader>Taxa/h</TableHeader>}
             <TableHeader>Orçamento</TableHeader>
-            <TableHeader>Ações</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
           {projects.map((p) => (
-            <TableRow key={p.id}>
+            <TableRow
+              key={p.id}
+              onClick={() => navigate(`/admin/projects/${p.id}`)}
+              className="cursor-pointer"
+            >
               <TableCell className="font-medium">{p.name}</TableCell>
               <TableCell>{p.clientName || '—'}</TableCell>
-              <TableCell>{statusBadge(p.status)}</TableCell>
-              {isSuperAdmin && <TableCell>R$ {Number(p.billingRate).toFixed(2)}</TableCell>}
-              <TableCell>{p.budgetHours ? `${p.budgetHours}h (${p.budgetType === 'monthly' ? 'mensal' : 'total'})` : '—'}</TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <button onClick={() => openEdit(p)} className="text-accent hover:text-accent-hover" title="Editar"><Pencil size={16} /></button>
-                  <button onClick={() => navigate(`/admin/projects/${p.id}/phases`)} className="text-accent hover:text-accent-hover" title="Fases"><Layers size={16} /></button>
-                  <button onClick={() => navigate(`/admin/projects/${p.id}/expenses`)} className="text-accent hover:text-accent-hover" title="Despesas"><Receipt size={16} /></button>
-                  <button onClick={() => navigate(`/admin/projects/${p.id}/allocations`)} className="text-accent hover:text-accent-hover" title="Equipe"><UserPlus size={16} /></button>
-                  {p.isActive && (
-                    <button onClick={() => handleDeactivate(p)} className="text-danger hover:text-danger/80" title="Desativar"><XCircle size={16} /></button>
-                  )}
-                </div>
-              </TableCell>
+              <TableCell><Badge variant={STATUS_VARIANTS[p.status] || 'default'}>{STATUS_LABELS[p.status] || p.status}</Badge></TableCell>
+              <TableCell>{p.budgetHours ? `${p.budgetHours}h (${BUDGET_TYPE_LABELS[p.budgetType || 'total'] || 'total'})` : '—'}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -226,7 +132,18 @@ export default function ProjectsPage() {
       {/* Create Modal */}
       <Modal isOpen={isCreateOpen} onClose={() => { setIsCreateOpen(false); setError(''); }} title="Novo Projeto">
         <form onSubmit={handleCreate} className="space-y-4">
-          {formFields}
+          <Input label="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          <Input label="Descrição" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <Select label="Cliente" options={clientOptions} value={form.clientId} onChange={(v) => setForm({ ...form, clientId: v })} placeholder="Selecione um cliente" required />
+          {isSuperAdmin && <Input label="Valor/Hora Cliente (R$)" type="number" step="0.01" value={form.billingRate} onChange={(e) => setForm({ ...form, billingRate: e.target.value })} required />}
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Horas Orçamento" type="number" value={form.budgetHours} onChange={(e) => setForm({ ...form, budgetHours: e.target.value })} />
+            <Select label="Tipo Orçamento" options={budgetTypeOptions} value={form.budgetType} onChange={(v) => setForm({ ...form, budgetType: v })} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Data Início" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
+            <Input label="Data Fim" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+          </div>
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
             <Button variant="secondary" type="button" onClick={() => { setIsCreateOpen(false); setError(''); }}>Cancelar</Button>
@@ -234,20 +151,6 @@ export default function ProjectsPage() {
           </div>
         </form>
       </Modal>
-
-      {/* Edit Modal */}
-      <Modal isOpen={!!editing} onClose={() => { setEditing(null); setError(''); }} title="Editar Projeto">
-        <form onSubmit={handleUpdate} className="space-y-4">
-          {formFields}
-          <Select label="Status" options={statusOptions} value={editStatus} onChange={setEditStatus} />
-          {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
-          <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => { setEditing(null); setError(''); }}>Cancelar</Button>
-            <Button type="submit">Salvar</Button>
-          </div>
-        </form>
-      </Modal>
-
     </SidebarLayout>
   );
 }

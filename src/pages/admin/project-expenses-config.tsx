@@ -24,7 +24,7 @@ export default function ProjectExpensesConfigPage() {
     <SidebarLayout navItems={navItems} title="Despesas do Projeto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <IconButton onClick={() => navigate('/admin/projects')} aria-label="Voltar">
+        <IconButton onClick={() => navigate(`/admin/projects/${projectId}`)} aria-label="Voltar">
           <ArrowLeft size={18} />
         </IconButton>
         <div className="flex-1">

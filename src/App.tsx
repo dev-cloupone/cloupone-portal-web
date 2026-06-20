@@ -58,8 +58,12 @@ const ConsultantDashboardPage = lazy(() => import('./pages/consultant-dashboard'
 const ReportsPage = lazy(() => import('./pages/reports'));
 const ExpenseReportNewPage = lazy(() => import('./pages/reports/expenses'));
 
+// Project sub-pages
+const AdminProjectHubPage = lazy(() => import('./pages/admin/project-hub'));
+const AdminProjectGeneralPage = lazy(() => import('./pages/admin/project-general'));
+const AdminProjectTeamPage = lazy(() => import('./pages/admin/project-team'));
+
 // Financial (super_admin + administrative)
-const AdminProjectAllocationsPage = lazy(() => import('./pages/admin/project-allocations'));
 const PaymentHoursListPage = lazy(() => import('./pages/financial/payment-hours-list'));
 const PaymentHoursNewPage = lazy(() => import('./pages/financial/payment-hours-new'));
 const PaymentHoursDetailPage = lazy(() => import('./pages/financial/payment-hours-detail'));
@@ -153,10 +157,12 @@ export default function App() {
                     <Route path="expense-categories" element={<RoleGuard allowedRoles={['super_admin']}><AdminExpenseCategoriesPage /></RoleGuard>} />
                     {/* super_admin + gestor */}
                     <Route path="projects" element={<AdminProjectsPage />} />
+                    <Route path="projects/:id" element={<AdminProjectHubPage />} />
+                    <Route path="projects/:id/general" element={<AdminProjectGeneralPage />} />
                     <Route path="projects/:id/phases" element={<AdminProjectPhasesPage />} />
+                    <Route path="projects/:id/team" element={<AdminProjectTeamPage />} />
                     <Route path="projects/:id/expenses" element={<AdminProjectExpensesConfigPage />} />
                     <Route path="projects/:id/expense-categories" element={<AdminProjectExpenseCategoriesConfigPage />} />
-                    <Route path="projects/:id/allocations" element={<AdminProjectAllocationsPage />} />
                   </Routes>
                 </RoleGuard>
               </ProtectedRoute>

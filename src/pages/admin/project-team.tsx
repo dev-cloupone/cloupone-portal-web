@@ -21,7 +21,7 @@ interface AllocationRow extends ProjectAllocation {
   editBillingRate: string;
 }
 
-export default function ProjectAllocationsPage() {
+export default function ProjectTeamPage() {
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const navItems = useNavItems();
@@ -114,7 +114,7 @@ export default function ProjectAllocationsPage() {
   return (
     <SidebarLayout navItems={navItems} title="Equipe do Projeto">
       <div className="flex items-center gap-3 mb-6">
-        <IconButton onClick={() => navigate('/admin/projects')} aria-label="Voltar">
+        <IconButton onClick={() => navigate(`/admin/projects/${projectId}`)} aria-label="Voltar">
           <ArrowLeft size={18} />
         </IconButton>
         <div className="flex-1">
