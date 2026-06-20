@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 interface BadgeProps {
   children: ReactNode;
-  variant?: 'default' | 'success' | 'warning' | 'danger';
+  variant?: 'default' | 'success' | 'warning' | 'danger' | 'accent';
   className?: string;
 }
 
@@ -11,6 +11,7 @@ const variantClasses = {
   success: 'bg-success-muted text-accent border-accent/20',
   warning: 'bg-warning-muted text-warning border-warning/20',
   danger: 'bg-danger-muted text-danger border-danger/20',
+  accent: 'bg-accent/10 text-accent border-accent/20',
 };
 
 export function Badge({ children, variant = 'default', className = '' }: BadgeProps) {

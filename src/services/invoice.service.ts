@@ -10,6 +10,7 @@ export async function listInvoices(filters?: {
   year?: number;
   month?: number;
   status?: string;
+  invoiceType?: string;
 }): Promise<PaginatedResponse<Invoice>> {
   const params = new URLSearchParams();
   if (filters?.page) params.set('page', String(filters.page));
@@ -19,6 +20,7 @@ export async function listInvoices(filters?: {
   if (filters?.year) params.set('year', String(filters.year));
   if (filters?.month) params.set('month', String(filters.month));
   if (filters?.status) params.set('status', filters.status);
+  if (filters?.invoiceType) params.set('invoiceType', filters.invoiceType);
   const qs = params.toString();
   return api(`/invoices/hours${qs ? `?${qs}` : ''}`);
 }
@@ -108,4 +110,23 @@ export async function removeCustomLine(id: string, lineId: string): Promise<void
 
 export async function getPendingApprovals(year: number, month: number): Promise<{ count: number; consultants: string[] }> {
   return api(`/invoices/hours/pending-approvals?year=${year}&month=${month}`);
+}
+
+export async function generateFromInstallments(data: {
+  projectId: string;
+  installmentIds: string[];
+  year: number;
+  month: number;
+}): Promise<Invoice> {
+  return api<Invoice>('/invoices/hours/from-installments', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getPendingInstallments(): Promise<{
+  count: number;
+  projects: { projectId: string; projectName: string; count: number }[];
+}> {
+  return api('/invoices/hours/pending-installments');
 }

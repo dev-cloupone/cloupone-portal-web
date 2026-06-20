@@ -17,9 +17,9 @@ import { useNavItems } from '../../hooks/use-nav-items';
 import { useAuth } from '../../hooks/use-auth';
 import type { Project } from '../../types/project.types';
 import type { Client } from '../../types/client.types';
-import { statusOptions, budgetTypeOptions, STATUS_VARIANTS, STATUS_LABELS, BUDGET_TYPE_LABELS } from '../../constants/project.constants';
+import { statusOptions, budgetTypeOptions, STATUS_VARIANTS, STATUS_LABELS, BUDGET_TYPE_LABELS, BILLING_TYPE_LABELS, BILLING_TYPE_VARIANTS, billingTypeOptions } from '../../constants/project.constants';
 
-const emptyForm = { name: '', description: '', clientId: '', billingRate: '', budgetHours: '', budgetType: 'monthly', startDate: '', endDate: '' };
+const emptyForm = { name: '', description: '', clientId: '', billingType: 'hourly', billingRate: '', fixedPriceTotal: '', budgetHours: '', budgetType: 'monthly', startDate: '', endDate: '' };
 
 export default function ProjectsPage() {
   const navItems = useNavItems();
@@ -57,7 +57,9 @@ export default function ProjectsPage() {
         name: form.name,
         description: form.description || undefined,
         clientId: form.clientId,
-        billingRate: Number(form.billingRate),
+        billingType: form.billingType || 'hourly',
+        billingRate: form.billingType === 'fixed_price' ? 0 : Number(form.billingRate),
+        ...(form.billingType === 'fixed_price' && { fixedPriceTotal: Number(form.fixedPriceTotal) }),
         budgetHours: form.budgetHours ? Number(form.budgetHours) : undefined,
         budgetType: form.budgetType || undefined,
         startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
@@ -108,6 +110,7 @@ export default function ProjectsPage() {
           <TableRow>
             <TableHeader>Nome</TableHeader>
             <TableHeader>Cliente</TableHeader>
+            <TableHeader>Tipo</TableHeader>
             <TableHeader>Status</TableHeader>
             <TableHeader>Orçamento</TableHeader>
           </TableRow>
@@ -121,6 +124,7 @@ export default function ProjectsPage() {
             >
               <TableCell className="font-medium">{p.name}</TableCell>
               <TableCell>{p.clientName || '—'}</TableCell>
+              <TableCell><Badge variant={BILLING_TYPE_VARIANTS[p.billingType] || 'default'}>{BILLING_TYPE_LABELS[p.billingType] || p.billingType}</Badge></TableCell>
               <TableCell><Badge variant={STATUS_VARIANTS[p.status] || 'default'}>{STATUS_LABELS[p.status] || p.status}</Badge></TableCell>
               <TableCell>{p.budgetHours ? `${p.budgetHours}h (${BUDGET_TYPE_LABELS[p.budgetType || 'total'] || 'total'})` : '—'}</TableCell>
             </TableRow>
@@ -135,7 +139,16 @@ export default function ProjectsPage() {
           <Input label="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <Input label="Descrição" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           <Select label="Cliente" options={clientOptions} value={form.clientId} onChange={(v) => setForm({ ...form, clientId: v })} placeholder="Selecione um cliente" required />
-          {isSuperAdmin && <Input label="Valor/Hora Cliente (R$)" type="number" step="0.01" value={form.billingRate} onChange={(e) => setForm({ ...form, billingRate: e.target.value })} required />}
+          {isSuperAdmin && (
+            <>
+              <Select label="Tipo de Cobrança" options={billingTypeOptions} value={form.billingType} onChange={(v) => setForm({ ...form, billingType: v })} />
+              {form.billingType === 'hourly' ? (
+                <Input label="Valor/Hora Cliente (R$)" type="number" step="0.01" value={form.billingRate} onChange={(e) => setForm({ ...form, billingRate: e.target.value })} required />
+              ) : (
+                <Input label="Valor Total do Contrato (R$)" type="number" step="0.01" value={form.fixedPriceTotal} onChange={(e) => setForm({ ...form, fixedPriceTotal: e.target.value })} required />
+              )}
+            </>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <Input label="Horas Orçamento" type="number" value={form.budgetHours} onChange={(e) => setForm({ ...form, budgetHours: e.target.value })} />
             <Select label="Tipo Orçamento" options={budgetTypeOptions} value={form.budgetType} onChange={(v) => setForm({ ...form, budgetType: v })} />

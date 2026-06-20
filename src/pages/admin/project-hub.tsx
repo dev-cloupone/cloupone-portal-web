@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, Settings, Layers, Users, Receipt } from 'lucide-react';
+import { ArrowLeft, Settings, Layers, Users, Receipt, DollarSign } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { IconButton } from '../../components/ui/icon-button';
 import { Button } from '../../components/ui/button';
@@ -12,6 +12,7 @@ import { formatApiError } from '../../services/api';
 import * as projectService from '../../services/project.service';
 import * as phaseService from '../../services/phase.service';
 import type { Project } from '../../types/project.types';
+import { useAuth } from '../../hooks/use-auth';
 import { STATUS_LABELS, STATUS_VARIANTS, BUDGET_TYPE_LABELS } from '../../constants/project.constants';
 
 export default function ProjectHubPage() {
@@ -19,6 +20,8 @@ export default function ProjectHubPage() {
   const navigate = useNavigate();
   const navItems = useNavItems();
   const addToast = useToastStore((s) => s.addToast);
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super_admin';
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -104,6 +107,14 @@ export default function ProjectHubPage() {
       description: 'Períodos e categorias',
       path: `/admin/projects/${id}/expenses`,
     },
+    ...(isSuperAdmin ? [{
+      title: 'Financeiro',
+      icon: <DollarSign size={20} />,
+      description: project.billingType === 'fixed_price'
+        ? `Valor Fixo · R$ ${Number(project.fixedPriceTotal || 0).toLocaleString('pt-BR')}`
+        : `R$ ${Number(project.billingRate).toLocaleString('pt-BR')}/h`,
+      path: `/admin/projects/${id}/financial`,
+    }] : []),
   ];
 
   const budgetLabel = project.budgetHours

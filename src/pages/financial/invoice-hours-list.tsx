@@ -45,9 +45,12 @@ export default function InvoiceHoursListPage() {
   const [currentMonth, setCurrentMonth] = useState(getLastMonth);
   const [pendingWarning, setPendingWarning] = useState<{ count: number; consultants: string[] } | null>(null);
   const [warningDismissed, setWarningDismissed] = useState(false);
+  const [installmentWarning, setInstallmentWarning] = useState<{ count: number; projects: { projectId: string; projectName: string; count: number }[] } | null>(null);
+  const [installmentWarningDismissed, setInstallmentWarningDismissed] = useState(false);
 
   const [filterProject, setFilterProject] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterInvoiceType, setFilterInvoiceType] = useState('');
   const [page, setPage] = useState(1);
 
   const [projectOptions, setProjectOptions] = useState<{ value: string; label: string }[]>([]);
@@ -82,6 +85,7 @@ export default function InvoiceHoursListPage() {
         limit: 20,
         projectId: filterProject || undefined,
         status: filterStatus || undefined,
+        invoiceType: filterInvoiceType || undefined,
         year,
         month,
       });
@@ -92,7 +96,7 @@ export default function InvoiceHoursListPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, filterProject, filterStatus, currentMonth]);
+  }, [page, filterProject, filterStatus, filterInvoiceType, currentMonth]);
 
   useEffect(() => {
     loadData();
@@ -101,9 +105,13 @@ export default function InvoiceHoursListPage() {
   useEffect(() => {
     const { year, month } = parseMonth(currentMonth);
     setWarningDismissed(false);
+    setInstallmentWarningDismissed(false);
     invoiceService.getPendingApprovals(year, month)
       .then((result) => setPendingWarning(result.count > 0 ? result : null))
       .catch(() => setPendingWarning(null));
+    invoiceService.getPendingInstallments()
+      .then((result) => setInstallmentWarning(result.count > 0 ? result : null))
+      .catch(() => setInstallmentWarning(null));
   }, [currentMonth]);
 
   useEffect(() => {
@@ -114,7 +122,7 @@ export default function InvoiceHoursListPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [filterProject, filterStatus, currentMonth]);
+  }, [filterProject, filterStatus, filterInvoiceType, currentMonth]);
 
   async function handleDelete(id: string) {
     if (!confirm('Excluir esta fatura?')) return;
@@ -162,6 +170,23 @@ export default function InvoiceHoursListPage() {
           </div>
         )}
 
+        {installmentWarning && !installmentWarningDismissed && (
+          <div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3">
+            <AlertTriangle size={18} className="text-warning shrink-0" />
+            <p className="text-sm text-text-secondary flex-1">
+              <strong>{installmentWarning.count}</strong> parcela(s) com vencimento até este mês ainda não possuem fatura gerada.
+              {installmentWarning.projects.map(p => ` ${p.projectName} (${p.count})`).join(', ')}
+            </p>
+            <button
+              onClick={() => setInstallmentWarningDismissed(true)}
+              className="rounded-md p-1 text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors"
+              aria-label="Fechar aviso"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
         <div className="flex flex-wrap gap-3 items-end">
           <div className="w-48">
             <Select
@@ -183,6 +208,18 @@ export default function InvoiceHoursListPage() {
               ]}
               value={filterStatus}
               onChange={setFilterStatus}
+            />
+          </div>
+          <div className="w-40">
+            <Select
+              label="Tipo"
+              options={[
+                { value: '', label: 'Todos' },
+                { value: 'hourly', label: 'Por Hora' },
+                { value: 'fixed_price', label: 'Valor Fixo' },
+              ]}
+              value={filterInvoiceType}
+              onChange={setFilterInvoiceType}
             />
           </div>
         </div>
@@ -217,6 +254,7 @@ export default function InvoiceHoursListPage() {
                     <TableHeader>Mês/Ano</TableHeader>
                     <TableHeader className="text-right">Total Horas</TableHeader>
                     <TableHeader className="text-right">Total Valor</TableHeader>
+                    <TableHeader>Tipo</TableHeader>
                     <TableHeader>Status</TableHeader>
                     <TableHeader className="w-24">Ações</TableHeader>
                   </TableRow>
@@ -237,10 +275,15 @@ export default function InvoiceHoursListPage() {
                           {MONTH_NAMES[invoice.month - 1]}/{invoice.year}
                         </TableCell>
                         <TableCell className="text-right font-mono whitespace-nowrap">
-                          {Number(invoice.totalHours).toFixed(2)}
+                          {invoice.invoiceType === 'fixed_price' ? '—' : Number(invoice.totalHours).toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right font-mono whitespace-nowrap">
                           {formatCurrency(invoice.totalAmount)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={invoice.invoiceType === 'fixed_price' ? 'accent' : 'default'}>
+                            {invoice.invoiceType === 'fixed_price' ? 'Valor Fixo' : 'Por Hora'}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge variant={status.variant}>{status.label}</Badge>

@@ -43,6 +43,7 @@ export default function InvoiceHoursDetailPage() {
 
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [hoursLines, setHoursLines] = useState<EditableHoursLine[]>([]);
+  const [installmentLines, setInstallmentLines] = useState<{ id: string; description: string; amount: string }[]>([]);
   const [customLines, setCustomLines] = useState<EditableCustomLine[]>([]);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
@@ -77,6 +78,13 @@ export default function InvoiceHoursDetailPage() {
           appliedHours: l.appliedHours,
           originalRate: l.originalRate ?? '0',
           appliedRate: l.appliedRate,
+        })),
+      );
+      setInstallmentLines(
+        lines.filter((l: InvoiceLine) => l.lineType === 'installment').map((l: InvoiceLine) => ({
+          id: l.id,
+          description: l.description ?? '',
+          amount: l.subtotal,
         })),
       );
       setCustomLines(
@@ -120,8 +128,9 @@ export default function InvoiceHoursDetailPage() {
 
   function calcTotalAmount(): number {
     const hoursTotal = hoursLines.reduce((sum, l) => sum + calcSubtotal(l.appliedHours, l.appliedRate), 0);
+    const installmentTotal = installmentLines.reduce((sum, l) => sum + Number(l.amount), 0);
     const customTotal = customLines.reduce((sum, l) => sum + calcSubtotal(l.quantity, l.unitPrice), 0);
-    return hoursTotal + customTotal;
+    return hoursTotal + installmentTotal + customTotal;
   }
 
   async function handleSave() {
@@ -320,6 +329,7 @@ export default function InvoiceHoursDetailPage() {
   const isDraft = invoice.status === 'draft';
   const isIssued = invoice.status === 'issued';
   const isPaid = invoice.status === 'paid';
+  const isFixedPrice = invoice.invoiceType === 'fixed_price';
   const status = INVOICE_STATUS_MAP[invoice.status] ?? INVOICE_STATUS_MAP.draft;
 
   return (
@@ -348,7 +358,7 @@ export default function InvoiceHoursDetailPage() {
       </div>
 
       {/* Hours lines table */}
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface-1 mb-6">
+      {hoursLines.length > 0 && <div className="overflow-x-auto rounded-xl border border-border bg-surface-1 mb-6">
         <Table>
           <TableHead>
             <TableRow>
@@ -405,7 +415,34 @@ export default function InvoiceHoursDetailPage() {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </div>}
+
+      {/* Installment lines (fixed_price) */}
+      {installmentLines.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-text-tertiary mb-3">Parcelas</h3>
+          <div className="overflow-x-auto rounded-xl border border-border bg-surface-1">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Descrição</TableHeader>
+                  <TableHeader className="text-right">Valor</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {installmentLines.map((line) => (
+                  <TableRow key={line.id}>
+                    <TableCell><span className="text-sm">{line.description}</span></TableCell>
+                    <TableCell className="text-right font-mono whitespace-nowrap">
+                      {formatCurrency(line.amount)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
 
       {/* Custom lines table */}
       {(customLines.length > 0 || isDraft) && (
@@ -497,10 +534,12 @@ export default function InvoiceHoursDetailPage() {
 
       {/* Totals */}
       <div className="mb-6 flex justify-end gap-6">
-        <div className="rounded-xl border border-border bg-surface-1 px-5 py-3">
-          <span className="text-sm text-text-muted mr-3">Total Horas:</span>
-          <span className="text-lg font-bold font-mono text-text-primary">{calcTotalHours().toFixed(2)}</span>
-        </div>
+        {!isFixedPrice && (
+          <div className="rounded-xl border border-border bg-surface-1 px-5 py-3">
+            <span className="text-sm text-text-muted mr-3">Total Horas:</span>
+            <span className="text-lg font-bold font-mono text-text-primary">{calcTotalHours().toFixed(2)}</span>
+          </div>
+        )}
         <div className="rounded-xl border border-border bg-surface-1 px-5 py-3">
           <span className="text-sm text-text-muted mr-3">Total Valor:</span>
           <span className="text-lg font-bold font-mono text-text-primary">{formatCurrency(calcTotalAmount())}</span>
