@@ -71,6 +71,7 @@ export default function ProjectFinancialPage() {
       if (proj.billingType === 'fixed_price') {
         const result = await installmentService.listInstallments(id!);
         setInstallments(result.data);
+        setSelectedIds(new Set());
       }
     } catch {
       addToast('Erro ao carregar dados financeiros', 'error');
