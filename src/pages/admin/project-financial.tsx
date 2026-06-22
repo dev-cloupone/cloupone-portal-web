@@ -43,7 +43,7 @@ export default function ProjectFinancialPage() {
 
   // Batch modal
   const [isBatchOpen, setIsBatchOpen] = useState(false);
-  const [batchForm, setBatchForm] = useState({ count: '', amount: '', startDate: '' });
+  const [batchForm, setBatchForm] = useState({ count: '', startDate: '' });
 
   // Edit modal
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -129,13 +129,20 @@ export default function ProjectFinancialPage() {
   async function handleCreateBatch(e: React.FormEvent) {
     e.preventDefault();
     try {
+      const total = Number(fixedPriceTotal);
+      const count = Number(batchForm.count);
+      if (!total || total <= 0) {
+        addToast('Valor total do contrato não definido', 'error');
+        return;
+      }
+      const amount = Math.round((total / count) * 100) / 100;
       await installmentService.createInstallmentBatch(id!, {
-        count: Number(batchForm.count),
-        amount: Number(batchForm.amount),
+        count,
+        amount,
         startDate: batchForm.startDate || undefined,
       });
       setIsBatchOpen(false);
-      setBatchForm({ count: '', amount: '', startDate: '' });
+      setBatchForm({ count: '', startDate: '' });
       addToast('Parcelas criadas em lote', 'success');
       await loadData();
     } catch (err) {
@@ -328,7 +335,7 @@ export default function ProjectFinancialPage() {
                   <FileText size={16} className="mr-2" /> Gerar Fatura ({selectedIds.size})
                 </Button>
               )}
-              <Button variant="secondary" onClick={() => { setBatchForm({ count: '', amount: '', startDate: '' }); setIsBatchOpen(true); }}>
+              <Button variant="secondary" onClick={() => { setBatchForm({ count: '', startDate: '' }); setIsBatchOpen(true); }}>
                 <Layers size={16} className="mr-2" /> Gerar em Lote
               </Button>
               <Button onClick={() => { setCreateForm({ description: '', amount: '', dueDate: '' }); setIsCreateOpen(true); }}>
@@ -431,7 +438,11 @@ export default function ProjectFinancialPage() {
       <Modal isOpen={isBatchOpen} onClose={() => setIsBatchOpen(false)} title="Gerar Parcelas em Lote">
         <form onSubmit={handleCreateBatch} className="space-y-4">
           <Input label="Quantidade de Parcelas" type="number" min="1" max="60" value={batchForm.count} onChange={(e) => setBatchForm({ ...batchForm, count: e.target.value })} required />
-          <Input label="Valor por Parcela (R$)" type="number" step="0.01" value={batchForm.amount} onChange={(e) => setBatchForm({ ...batchForm, amount: e.target.value })} required />
+          {Number(batchForm.count) > 0 && Number(fixedPriceTotal) > 0 && (
+            <p className="text-sm text-text-secondary">
+              Valor por parcela: <strong>R$ {(Number(fixedPriceTotal) / Number(batchForm.count)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+            </p>
+          )}
           <Input label="Data do Primeiro Vencimento" type="date" value={batchForm.startDate} onChange={(e) => setBatchForm({ ...batchForm, startDate: e.target.value })} />
           <div className="modal-actions">
             <Button variant="secondary" type="button" onClick={() => setIsBatchOpen(false)}>Cancelar</Button>
