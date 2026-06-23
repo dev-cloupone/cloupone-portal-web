@@ -210,14 +210,14 @@ export default function InvoiceHoursNewPage() {
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
-              variant={invoiceType === 'hours' ? 'default' : 'outline'}
+              variant={invoiceType === 'hours' ? 'primary' : 'secondary'}
               onClick={() => setInvoiceType('hours')}
             >
               Por Hora
             </Button>
             <Button
               type="button"
-              variant={invoiceType === 'fixed_price' ? 'default' : 'outline'}
+              variant={invoiceType === 'fixed_price' ? 'primary' : 'secondary'}
               onClick={() => setInvoiceType('fixed_price')}
             >
               Valor Fixo

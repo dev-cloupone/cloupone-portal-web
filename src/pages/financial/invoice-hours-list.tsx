@@ -185,7 +185,7 @@ export default function InvoiceHoursListPage() {
               </p>
               <Button
                 size="sm"
-                variant="outline"
+                variant="secondary"
                 onClick={() => navigate('/financial/invoices/hours/new?type=fixed_price')}
               >
                 Gerar Faturas
