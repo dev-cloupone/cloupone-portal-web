@@ -124,6 +124,25 @@ export async function generateFromInstallments(data: {
   });
 }
 
+export async function getPendingInstallmentsDetailed(year: number, month: number): Promise<{
+  projects: {
+    projectId: string;
+    projectName: string;
+    clientName: string;
+    fixedPriceTotal: string;
+    totalInstallments: number;
+    installments: {
+      id: string;
+      installmentNumber: number;
+      description: string | null;
+      amount: string;
+      dueDate: string | null;
+    }[];
+  }[];
+}> {
+  return api(`/invoices/hours/pending-installments-detailed?year=${year}&month=${month}`);
+}
+
 export async function getPendingInstallments(): Promise<{
   count: number;
   projects: { projectId: string; projectName: string; count: number }[];

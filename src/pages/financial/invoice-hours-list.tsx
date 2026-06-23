@@ -170,22 +170,36 @@ export default function InvoiceHoursListPage() {
           </div>
         )}
 
-        {installmentWarning && !installmentWarningDismissed && (
-          <div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3">
-            <AlertTriangle size={18} className="text-warning shrink-0" />
-            <p className="text-sm text-text-secondary flex-1">
-              <strong>{installmentWarning.count}</strong> parcela(s) com vencimento até este mês ainda não possuem fatura gerada.
-              {installmentWarning.projects.map(p => ` ${p.projectName} (${p.count})`).join(', ')}
-            </p>
-            <button
-              onClick={() => setInstallmentWarningDismissed(true)}
-              className="rounded-md p-1 text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors"
-              aria-label="Fechar aviso"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        )}
+        {installmentWarning && !installmentWarningDismissed && (() => {
+          const MAX_PROJECTS = 2;
+          const displayed = installmentWarning.projects.slice(0, MAX_PROJECTS);
+          const remaining = installmentWarning.projects.length - MAX_PROJECTS;
+          const projectText = displayed.map(p => `${p.projectName} (${p.count})`).join(', ')
+            + (remaining > 0 ? ` e mais ${remaining} projeto${remaining > 1 ? 's' : ''}` : '');
+          return (
+            <div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3">
+              <AlertTriangle size={18} className="text-warning shrink-0" />
+              <p className="text-sm text-text-secondary flex-1">
+                <strong>{installmentWarning.count}</strong> parcela(s) com vencimento até este mês ainda não possuem fatura gerada.{' '}
+                {projectText}
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate('/financial/invoices/hours/new?type=fixed_price')}
+              >
+                Gerar Faturas
+              </Button>
+              <button
+                onClick={() => setInstallmentWarningDismissed(true)}
+                className="rounded-md p-1 text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors"
+                aria-label="Fechar aviso"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          );
+        })()}
 
         <div className="flex flex-wrap gap-3 items-end">
           <div className="w-48">

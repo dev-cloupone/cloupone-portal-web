@@ -114,6 +114,10 @@ export default function InvoiceHoursDetailPage() {
     setHoursLines((prev) => prev.map((l, i) => (i === index ? { ...l, [field]: value } : l)));
   }
 
+  function updateInstallmentLine(index: number, field: 'description', value: string) {
+    setInstallmentLines(prev => prev.map((l, i) => i === index ? { ...l, [field]: value } : l));
+  }
+
   function updateCustomLine(index: number, field: 'description' | 'quantity' | 'unitPrice', value: string) {
     setCustomLines((prev) => prev.map((l, i) => (i === index ? { ...l, [field]: value } : l)));
   }
@@ -139,6 +143,8 @@ export default function InvoiceHoursDetailPage() {
     try {
       const allLines = [
         ...hoursLines.map((l) => ({ id: l.id, appliedHours: l.appliedHours, appliedRate: l.appliedRate })),
+        // Installment lines: API reuses appliedHours/appliedRate schema (installments use appliedHours='1', appliedRate=amount)
+        ...installmentLines.map((l) => ({ id: l.id, description: l.description, appliedHours: '1', appliedRate: l.amount })),
         // Custom lines: map quantity/unitPrice back to API's appliedHours/appliedRate fields
         ...customLines.map((l) => ({ id: l.id, appliedHours: l.quantity, appliedRate: l.unitPrice, description: l.description })),
       ];
@@ -161,6 +167,8 @@ export default function InvoiceHoursDetailPage() {
     try {
       const allLines = [
         ...hoursLines.map((l) => ({ id: l.id, appliedHours: l.appliedHours, appliedRate: l.appliedRate })),
+        // Installment lines: API reuses appliedHours/appliedRate schema (installments use appliedHours='1', appliedRate=amount)
+        ...installmentLines.map((l) => ({ id: l.id, description: l.description, appliedHours: '1', appliedRate: l.amount })),
         ...customLines.map((l) => ({ id: l.id, appliedHours: l.quantity, appliedRate: l.unitPrice, description: l.description })),
       ];
       await invoiceService.updateLines(id, {
@@ -430,9 +438,20 @@ export default function InvoiceHoursDetailPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {installmentLines.map((line) => (
+                {installmentLines.map((line, index) => (
                   <TableRow key={line.id}>
-                    <TableCell><span className="text-sm">{line.description}</span></TableCell>
+                    <TableCell>
+                      {isDraft ? (
+                        <textarea
+                          value={line.description}
+                          onChange={(e) => updateInstallmentLine(index, 'description', e.target.value)}
+                          className="w-full rounded-md border border-border bg-surface-0 px-2 py-1 text-sm resize-none"
+                          rows={2}
+                        />
+                      ) : (
+                        <span className="text-sm whitespace-pre-line">{line.description}</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right font-mono whitespace-nowrap">
                       {formatCurrency(line.amount)}
                     </TableCell>
