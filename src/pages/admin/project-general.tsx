@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, Link } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { IconButton } from '../../components/ui/icon-button';
@@ -7,21 +7,17 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Select } from '../../components/ui/select';
 import { useNavItems } from '../../hooks/use-nav-items';
-import { useAuth } from '../../hooks/use-auth';
 import { useToastStore } from '../../stores/toast.store';
 import { formatApiError } from '../../services/api';
 import * as projectService from '../../services/project.service';
 import * as clientService from '../../services/client.service';
-import { statusOptions, budgetTypeOptions } from '../../constants/project.constants';
+import { statusOptions } from '../../constants/project.constants';
 
 export default function ProjectGeneralPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const navItems = useNavItems();
-  const { user } = useAuth();
   const addToast = useToastStore((s) => s.addToast);
-  const isSuperAdmin = user?.role === 'super_admin';
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -31,9 +27,7 @@ export default function ProjectGeneralPage() {
     name: '',
     description: '',
     clientId: '',
-    billingRate: '',
     budgetHours: '',
-    budgetType: 'monthly',
     startDate: '',
     endDate: '',
     status: 'active',
@@ -50,9 +44,7 @@ export default function ProjectGeneralPage() {
         name: project.name,
         description: project.description || '',
         clientId: project.clientId,
-        billingRate: String(project.billingRate || ''),
         budgetHours: String(project.budgetHours || ''),
-        budgetType: project.budgetType || 'monthly',
         startDate: project.startDate ? project.startDate.split('T')[0] : '',
         endDate: project.endDate ? project.endDate.split('T')[0] : '',
         status: project.status,
@@ -81,9 +73,7 @@ export default function ProjectGeneralPage() {
         name: form.name,
         description: form.description || undefined,
         clientId: form.clientId,
-        ...(isSuperAdmin && { billingRate: Number(form.billingRate) || 0 }),
         budgetHours: form.budgetHours ? Number(form.budgetHours) : undefined,
-        budgetType: form.budgetType || undefined,
         startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
         endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
         status: form.status,
@@ -146,29 +136,18 @@ export default function ProjectGeneralPage() {
           placeholder="Selecione um cliente"
           required
         />
-        {isSuperAdmin && (
-          <Input
-            label="Valor/Hora Cliente (R$)"
-            type="number"
-            step="0.01"
-            value={form.billingRate}
-            onChange={(e) => setForm({ ...form, billingRate: e.target.value })}
-            required
-          />
-        )}
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Horas Orçamento"
-            type="number"
-            value={form.budgetHours}
-            onChange={(e) => setForm({ ...form, budgetHours: e.target.value })}
-          />
-          <Select
-            label="Tipo Orçamento"
-            options={budgetTypeOptions}
-            value={form.budgetType}
-            onChange={(v) => setForm({ ...form, budgetType: v })}
-          />
+        <Input
+          label="Horas Orçamento"
+          type="number"
+          value={form.budgetHours}
+          onChange={(e) => setForm({ ...form, budgetHours: e.target.value })}
+        />
+        <div className="rounded-lg bg-surface-2 border border-border px-4 py-3 text-sm text-text-secondary">
+          Dados financeiros e de orçamento (valor/hora, tipo de orçamento, parcelas) podem ser visualizados e editados na{' '}
+          <Link to={`/admin/projects/${id}/financial`} className="text-primary underline hover:text-primary/80">
+            aba Financeiro
+          </Link>
+          .
         </div>
         <div className="grid grid-cols-2 gap-4">
           <Input
