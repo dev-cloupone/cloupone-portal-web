@@ -58,7 +58,7 @@ export default function ProjectsPage() {
         description: form.description || undefined,
         clientId: form.clientId,
         billingType: form.billingType || 'hourly',
-        billingRate: form.billingType === 'fixed_price' ? 0 : Number(form.billingRate),
+        billingRate: (form.billingType !== 'fixed_price' && form.billingRate) ? Number(form.billingRate) : undefined,
         ...(form.billingType === 'fixed_price' && { fixedPriceTotal: Number(form.fixedPriceTotal) }),
         budgetHours: form.budgetHours ? Number(form.budgetHours) : undefined,
         budgetType: form.budgetType || undefined,
