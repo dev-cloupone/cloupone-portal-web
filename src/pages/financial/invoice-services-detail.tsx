@@ -35,7 +35,7 @@ interface EditableCustomLine {
   unitPrice: string;
 }
 
-export default function InvoiceHoursDetailPage() {
+export default function InvoiceServicesDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navItems = useNavItems();
   const navigate = useNavigate();
@@ -43,6 +43,7 @@ export default function InvoiceHoursDetailPage() {
 
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [hoursLines, setHoursLines] = useState<EditableHoursLine[]>([]);
+  const [installmentLines, setInstallmentLines] = useState<{ id: string; description: string; amount: string }[]>([]);
   const [customLines, setCustomLines] = useState<EditableCustomLine[]>([]);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
@@ -79,6 +80,13 @@ export default function InvoiceHoursDetailPage() {
           appliedRate: l.appliedRate,
         })),
       );
+      setInstallmentLines(
+        lines.filter((l: InvoiceLine) => l.lineType === 'installment').map((l: InvoiceLine) => ({
+          id: l.id,
+          description: l.description ?? '',
+          amount: l.subtotal,
+        })),
+      );
       setCustomLines(
         lines.filter((l: InvoiceLine) => l.lineType === 'custom').map((l: InvoiceLine) => ({
           id: l.id,
@@ -106,6 +114,10 @@ export default function InvoiceHoursDetailPage() {
     setHoursLines((prev) => prev.map((l, i) => (i === index ? { ...l, [field]: value } : l)));
   }
 
+  function updateInstallmentLine(index: number, field: 'description', value: string) {
+    setInstallmentLines(prev => prev.map((l, i) => i === index ? { ...l, [field]: value } : l));
+  }
+
   function updateCustomLine(index: number, field: 'description' | 'quantity' | 'unitPrice', value: string) {
     setCustomLines((prev) => prev.map((l, i) => (i === index ? { ...l, [field]: value } : l)));
   }
@@ -120,8 +132,9 @@ export default function InvoiceHoursDetailPage() {
 
   function calcTotalAmount(): number {
     const hoursTotal = hoursLines.reduce((sum, l) => sum + calcSubtotal(l.appliedHours, l.appliedRate), 0);
+    const installmentTotal = installmentLines.reduce((sum, l) => sum + Number(l.amount), 0);
     const customTotal = customLines.reduce((sum, l) => sum + calcSubtotal(l.quantity, l.unitPrice), 0);
-    return hoursTotal + customTotal;
+    return hoursTotal + installmentTotal + customTotal;
   }
 
   async function handleSave() {
@@ -130,6 +143,8 @@ export default function InvoiceHoursDetailPage() {
     try {
       const allLines = [
         ...hoursLines.map((l) => ({ id: l.id, appliedHours: l.appliedHours, appliedRate: l.appliedRate })),
+        // Installment lines: API reuses appliedHours/appliedRate schema (installments use appliedHours='1', appliedRate=amount)
+        ...installmentLines.map((l) => ({ id: l.id, description: l.description, appliedHours: '1', appliedRate: l.amount })),
         // Custom lines: map quantity/unitPrice back to API's appliedHours/appliedRate fields
         ...customLines.map((l) => ({ id: l.id, appliedHours: l.quantity, appliedRate: l.unitPrice, description: l.description })),
       ];
@@ -152,6 +167,8 @@ export default function InvoiceHoursDetailPage() {
     try {
       const allLines = [
         ...hoursLines.map((l) => ({ id: l.id, appliedHours: l.appliedHours, appliedRate: l.appliedRate })),
+        // Installment lines: API reuses appliedHours/appliedRate schema (installments use appliedHours='1', appliedRate=amount)
+        ...installmentLines.map((l) => ({ id: l.id, description: l.description, appliedHours: '1', appliedRate: l.amount })),
         ...customLines.map((l) => ({ id: l.id, appliedHours: l.quantity, appliedRate: l.unitPrice, description: l.description })),
       ];
       await invoiceService.updateLines(id, {
@@ -202,7 +219,7 @@ export default function InvoiceHoursDetailPage() {
     try {
       await invoiceService.deleteInvoice(id);
       addToast('Fatura excluída.', 'success');
-      navigate('/financial/invoices/hours');
+      navigate('/financial/invoices/services');
     } catch (err) {
       addToast(formatApiError(err), 'error');
       setActionLoading(false);
@@ -213,7 +230,7 @@ export default function InvoiceHoursDetailPage() {
     if (!id || !selectedBankAccountId) return;
     setPdfLoading(true);
     try {
-      const response = await apiFetch(`/invoices/hours/${id}/pdf?bankAccountId=${selectedBankAccountId}`);
+      const response = await apiFetch(`/invoices/services/${id}/pdf?bankAccountId=${selectedBankAccountId}`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
@@ -290,7 +307,7 @@ export default function InvoiceHoursDetailPage() {
 
   if (loading) {
     return (
-      <SidebarLayout navItems={navItems} title="Fatura de Horas">
+      <SidebarLayout navItems={navItems} title="Fatura de Serviços">
         <div className="space-y-4">
           <Skeleton className="h-8 w-64 rounded-lg" />
           <Skeleton className="h-40 rounded-xl" />
@@ -302,12 +319,12 @@ export default function InvoiceHoursDetailPage() {
 
   if (error || !invoice) {
     return (
-      <SidebarLayout navItems={navItems} title="Fatura de Horas">
+      <SidebarLayout navItems={navItems} title="Fatura de Serviços">
         <div className="flex flex-col items-center justify-center py-20">
           <p className="text-danger mb-4">{error || 'Fatura não encontrada.'}</p>
           <button
             type="button"
-            onClick={() => navigate('/financial/invoices/hours')}
+            onClick={() => navigate('/financial/invoices/services')}
             className="text-sm text-accent hover:text-accent-hover"
           >
             Voltar para lista
@@ -320,14 +337,15 @@ export default function InvoiceHoursDetailPage() {
   const isDraft = invoice.status === 'draft';
   const isIssued = invoice.status === 'issued';
   const isPaid = invoice.status === 'paid';
+  const isFixedPrice = invoice.invoiceType === 'fixed_price';
   const status = INVOICE_STATUS_MAP[invoice.status] ?? INVOICE_STATUS_MAP.draft;
 
   return (
-    <SidebarLayout navItems={navItems} title="Fatura de Horas">
+    <SidebarLayout navItems={navItems} title="Fatura de Serviços">
       <div className="mb-6">
         <button
           type="button"
-          onClick={() => navigate('/financial/invoices/hours')}
+          onClick={() => navigate('/financial/invoices/services')}
           className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
@@ -348,7 +366,7 @@ export default function InvoiceHoursDetailPage() {
       </div>
 
       {/* Hours lines table */}
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface-1 mb-6">
+      {hoursLines.length > 0 && <div className="overflow-x-auto rounded-xl border border-border bg-surface-1 mb-6">
         <Table>
           <TableHead>
             <TableRow>
@@ -405,7 +423,45 @@ export default function InvoiceHoursDetailPage() {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </div>}
+
+      {/* Installment lines (fixed_price) */}
+      {installmentLines.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-text-tertiary mb-3">Parcelas</h3>
+          <div className="overflow-x-auto rounded-xl border border-border bg-surface-1">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Descrição</TableHeader>
+                  <TableHeader className="text-right">Valor</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {installmentLines.map((line, index) => (
+                  <TableRow key={line.id}>
+                    <TableCell>
+                      {isDraft ? (
+                        <textarea
+                          value={line.description}
+                          onChange={(e) => updateInstallmentLine(index, 'description', e.target.value)}
+                          className="w-full rounded-md border border-border bg-surface-0 px-2 py-1 text-sm resize-none"
+                          rows={2}
+                        />
+                      ) : (
+                        <span className="text-sm whitespace-pre-line">{line.description}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono whitespace-nowrap">
+                      {formatCurrency(line.amount)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
 
       {/* Custom lines table */}
       {(customLines.length > 0 || isDraft) && (
@@ -497,10 +553,12 @@ export default function InvoiceHoursDetailPage() {
 
       {/* Totals */}
       <div className="mb-6 flex justify-end gap-6">
-        <div className="rounded-xl border border-border bg-surface-1 px-5 py-3">
-          <span className="text-sm text-text-muted mr-3">Total Horas:</span>
-          <span className="text-lg font-bold font-mono text-text-primary">{calcTotalHours().toFixed(2)}</span>
-        </div>
+        {!isFixedPrice && (
+          <div className="rounded-xl border border-border bg-surface-1 px-5 py-3">
+            <span className="text-sm text-text-muted mr-3">Total Horas:</span>
+            <span className="text-lg font-bold font-mono text-text-primary">{calcTotalHours().toFixed(2)}</span>
+          </div>
+        )}
         <div className="rounded-xl border border-border bg-surface-1 px-5 py-3">
           <span className="text-sm text-text-muted mr-3">Total Valor:</span>
           <span className="text-lg font-bold font-mono text-text-primary">{formatCurrency(calcTotalAmount())}</span>

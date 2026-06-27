@@ -2,6 +2,7 @@ import { Pencil, Trash2, AlertTriangle, Paperclip, RotateCcw, Undo2 } from 'luci
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import type { Expense } from '../../types/expense.types';
+import { formatCurrency } from '../../utils/formatters';
 
 interface ExpenseCardProps {
   expense: Expense;
@@ -26,10 +27,6 @@ const STATUS_LABELS: Record<string, string> = {
   approved: 'Aprovado',
   rejected: 'Rejeitado',
 };
-
-function formatCurrency(value: string | number): string {
-  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
 
 export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert }: ExpenseCardProps) {
   const canEdit = ['created', 'rejected'].includes(expense.status);

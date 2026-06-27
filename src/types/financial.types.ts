@@ -70,10 +70,12 @@ export interface AvailableExpensePeriod {
   totalAmount: string;
 }
 
-// Fatura de Horas
+// Fatura de Serviços
 export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'cancelled';
 
-export type InvoiceLineType = 'hours' | 'custom';
+export type InvoiceType = 'hourly' | 'fixed_price';
+
+export type InvoiceLineType = 'hours' | 'custom' | 'installment';
 
 export interface InvoiceLine {
   id: string;
@@ -87,6 +89,7 @@ export interface InvoiceLine {
   originalRate: string | null;
   appliedRate: string;
   subtotal: string;
+  installmentId?: string | null;
 }
 
 export interface Invoice {
@@ -100,6 +103,7 @@ export interface Invoice {
   year: number;
   month: number;
   status: InvoiceStatus;
+  invoiceType: InvoiceType;
   totalHours: string;
   totalAmount: string;
   issuedAt: string | null;

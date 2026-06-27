@@ -14,6 +14,7 @@ import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import { FileUpload } from '../../components/ui/file-upload';
 import type { ConsultantPayment, ConsultantPaymentLine } from '../../types/financial.types';
+import { formatCurrency } from '../../utils/formatters';
 
 const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -23,10 +24,6 @@ const STATUS_MAP: Record<string, { variant: 'default' | 'success' | 'warning' | 
   paid: { variant: 'success', label: 'Pago' },
   cancelled: { variant: 'danger', label: 'Cancelado' },
 };
-
-function formatCurrency(value: number | string): string {
-  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
 
 interface EditableLine {
   id: string;

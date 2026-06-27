@@ -17,7 +17,7 @@ import { formatCurrency } from '../utils/formatters';
 
 const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-export default function MyInvoicesHoursPage() {
+export default function MyInvoicesServicesPage() {
   const navItems = useNavItems();
   const addToast = useToastStore((s) => s.addToast);
 
@@ -62,7 +62,7 @@ export default function MyInvoicesHoursPage() {
 
   async function handleDownloadPdf(id: string) {
     try {
-      const response = await apiFetch(`/invoices/hours/${id}/pdf`);
+      const response = await apiFetch(`/invoices/services/${id}/pdf`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
@@ -72,9 +72,9 @@ export default function MyInvoicesHoursPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Fat. Horas">
+    <SidebarLayout navItems={navItems} title="Fat. Serviços">
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Minhas Faturas de Horas</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Minhas Faturas de Serviços</h2>
 
         {error && (
           <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">

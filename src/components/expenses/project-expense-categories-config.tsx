@@ -10,6 +10,7 @@ import * as projectCategoryService from '../../services/project-expense-category
 import * as categoryTemplateService from '../../services/expense-category.service';
 import { formatApiError } from '../../services/api';
 import type { ProjectExpenseCategory, ExpenseCategoryTemplate } from '../../types/expense.types';
+import { formatCurrency } from '../../utils/formatters';
 
 interface Props {
   projectId: string;
@@ -106,9 +107,9 @@ export function ProjectExpenseCategoriesConfig({ projectId }: Props) {
     }
   }
 
-  function formatCurrency(value: string | null) {
+  function formatCurrencyOrDash(value: string | null) {
     if (!value) return '—';
-    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return formatCurrency(value);
   }
 
   // Filter templates not already imported (only check active categories)
@@ -155,7 +156,7 @@ export function ProjectExpenseCategoriesConfig({ projectId }: Props) {
             {categories.map((c) => (
               <TableRow key={c.id}>
                 <TableCell className="font-medium">{c.name}</TableCell>
-                <TableCell>{formatCurrency(c.maxAmount)}</TableCell>
+                <TableCell>{formatCurrencyOrDash(c.maxAmount)}</TableCell>
                 <TableCell>
                   {c.isKmCategory ? (
                     <Badge variant="default">{c.kmRate ? `R$ ${Number(c.kmRate).toFixed(2)}/km` : 'Sim'}</Badge>
@@ -195,7 +196,7 @@ export function ProjectExpenseCategoriesConfig({ projectId }: Props) {
           {selectedTemplate && (
             <div className="text-xs text-text-tertiary space-y-1 bg-surface-2 rounded-lg p-3">
               {selectedTemplate.description && <p>{selectedTemplate.description}</p>}
-              <p>Teto padrão: {formatCurrency(selectedTemplate.defaultMaxAmount)}</p>
+              <p>Teto padrão: {formatCurrencyOrDash(selectedTemplate.defaultMaxAmount)}</p>
               {selectedTemplate.isKmCategory && (
                 <p>Taxa KM padrão: {selectedTemplate.defaultKmRate ? `R$ ${Number(selectedTemplate.defaultKmRate).toFixed(2)}/km` : '—'}</p>
               )}

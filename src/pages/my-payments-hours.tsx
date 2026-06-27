@@ -12,6 +12,7 @@ import { useToastStore } from '../stores/toast.store';
 import { useNavItems } from '../hooks/use-nav-items';
 import type { ConsultantPayment, ConsultantPaymentLine, ConsultantPaymentStatus } from '../types/financial.types';
 import type { PaginationMeta } from '../types/pagination.types';
+import { formatCurrency } from '../utils/formatters';
 
 const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -21,10 +22,6 @@ const STATUS_MAP: Record<ConsultantPaymentStatus, { variant: 'default' | 'warnin
   paid: { variant: 'success', label: 'Pago' },
   cancelled: { variant: 'danger', label: 'Cancelado' },
 };
-
-function formatCurrency(value: number | string): string {
-  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
 
 export default function MyPaymentsHoursPage() {
   const navItems = useNavItems();

@@ -13,6 +13,7 @@ import { BASE_URL } from '../services/api';
 import * as consultantService from '../services/consultant.service';
 import { formatApiError } from '../services/api';
 import { useToastStore } from '../stores/toast.store';
+import { formatCurrency } from '../utils/formatters';
 import { useNavItems } from '../hooks/use-nav-items';
 import { toMonthString } from '../utils/formatters';
 import type { PendingExpense } from '../types/expense.types';
@@ -39,10 +40,6 @@ function formatWeekRange(start: string, end: string): string {
   const s = new Date(start + 'T12:00:00');
   const e = new Date(end + 'T12:00:00');
   return `${s.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} — ${e.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
-}
-
-function formatCurrency(value: number | string): string {
-  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function formatDate(dateStr: string): string {

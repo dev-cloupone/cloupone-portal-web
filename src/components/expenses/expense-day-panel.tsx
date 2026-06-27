@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { Modal } from '../ui/modal';
 import { ExpenseCard } from './expense-card';
 import type { Expense, ExpenseWeekSummary } from '../../types/expense.types';
+import { formatCurrency } from '../../utils/formatters';
 
 interface ExpenseDayPanelProps {
   selectedDate: string;
@@ -26,10 +27,6 @@ function formatDayHeader(dateStr: string): string {
     month: 'long',
   });
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-}
-
-function formatCurrency(value: number): string {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 export function ExpenseDayPanel({

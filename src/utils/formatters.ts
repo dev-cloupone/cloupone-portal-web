@@ -13,6 +13,16 @@ export function formatCurrency(value: number | string): string {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+export function parseCurrencyInput(value: string): number {
+  const clean = value.replace(/[R$\s]/g, '').trim();
+  if (clean.includes(',')) {
+    // Brazilian format: "R$ 100.000,50" — dots are thousands separators
+    return parseFloat(clean.replace(/\./g, '').replace(',', '.')) || 0;
+  }
+  // Plain number or US decimal from API: "100000.00" or "100000"
+  return parseFloat(clean) || 0;
+}
+
 export function toMonthString(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }

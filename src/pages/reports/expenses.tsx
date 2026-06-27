@@ -16,10 +16,7 @@ import { formatApiError } from '../../services/api';
 import { WeekMultiSelect } from './components/week-multi-select';
 import type { ProjectExpensePeriod } from '../../types/expense.types';
 import type { ExpenseReportResult } from '../../types/report.types';
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+import { formatCurrency } from '../../utils/formatters';
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR');

@@ -15,10 +15,7 @@ import { formatApiError } from '../services/api';
 import { useToastStore } from '../stores/toast.store';
 import { useNavItems } from '../hooks/use-nav-items';
 import type { PendingExpense, ProjectExpensePeriod } from '../types/expense.types';
-
-function formatCurrency(value: number | string): string {
-  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
+import { formatCurrency } from '../utils/formatters';
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');

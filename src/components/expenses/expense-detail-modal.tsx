@@ -6,6 +6,7 @@ import { Skeleton } from '../ui/skeleton';
 import { getExpenseById } from '../../services/expense.service';
 import { formatApiError, BASE_URL } from '../../services/api';
 import type { Expense } from '../../types/expense.types';
+import { formatCurrency } from '../../utils/formatters';
 
 const STATUS_LABELS: Record<string, string> = {
   created: 'Criado',
@@ -22,10 +23,6 @@ const STATUS_VARIANTS: Record<string, 'default' | 'success' | 'danger' | 'warnin
   approved: 'success',
   rejected: 'danger',
 };
-
-function formatCurrency(value: string | number): string {
-  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');
