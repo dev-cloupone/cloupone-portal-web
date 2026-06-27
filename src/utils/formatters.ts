@@ -14,8 +14,13 @@ export function formatCurrency(value: number | string): string {
 }
 
 export function parseCurrencyInput(value: string): number {
-  const cleaned = value.replace(/[R$\s.]/g, '').replace(',', '.');
-  return parseFloat(cleaned) || 0;
+  const clean = value.replace(/[R$\s]/g, '').trim();
+  if (clean.includes(',')) {
+    // Brazilian format: "R$ 100.000,50" — dots are thousands separators
+    return parseFloat(clean.replace(/\./g, '').replace(',', '.')) || 0;
+  }
+  // Plain number or US decimal from API: "100000.00" or "100000"
+  return parseFloat(clean) || 0;
 }
 
 export function toMonthString(date: Date): string {
