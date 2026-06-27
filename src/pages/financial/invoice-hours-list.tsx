@@ -180,7 +180,7 @@ export default function InvoiceHoursListPage() {
             <div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3">
               <AlertTriangle size={18} className="text-warning shrink-0" />
               <p className="text-sm text-text-secondary flex-1">
-                <strong>{installmentWarning.count}</strong> parcela(s) com vencimento até este mês ainda não possuem fatura gerada.{' '}
+                <strong>{installmentWarning.count}</strong> parcela(s) com vencimento até {MONTH_NAMES[new Date().getMonth()]}/{new Date().getFullYear()} ainda não possuem fatura gerada.{' '}
                 {projectText}
               </p>
               <Button
