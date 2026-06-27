@@ -11,10 +11,7 @@ import { formatApiError } from '../../services/api';
 import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { AvailableExpensePeriod } from '../../types/financial.types';
-
-function formatCurrency(value: number | string): string {
-  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
+import { formatCurrency } from '../../utils/formatters';
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');

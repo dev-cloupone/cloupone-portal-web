@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { Button } from '../ui/button';
 import type { ExpenseMonthData, ExpenseWeekSummary } from '../../types/expense.types';
+import { formatCurrency } from '../../utils/formatters';
 
 interface ExpenseMonthHeaderProps {
   currentMonthStr: string;
@@ -16,10 +17,6 @@ function formatMonthLabel(monthStr: string): string {
   const date = new Date(parseInt(yearStr), parseInt(mStr) - 1, 1);
   const label = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
   return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
-function formatCurrency(value: number): string {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 export function ExpenseMonthHeader({

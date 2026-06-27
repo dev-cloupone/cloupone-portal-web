@@ -17,6 +17,7 @@ import * as installmentService from '../../services/installment.service';
 import * as invoiceService from '../../services/invoice.service';
 import type { Project, ProjectInstallment } from '../../types/project.types';
 import { billingTypeOptions, INSTALLMENT_STATUS_LABELS, INSTALLMENT_STATUS_VARIANTS } from '../../constants/project.constants';
+import { formatCurrency, parseCurrencyInput } from '../../utils/formatters';
 
 export default function ProjectFinancialPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +34,9 @@ export default function ProjectFinancialPage() {
   // Billing config form
   const [billingType, setBillingType] = useState('hourly');
   const [billingRate, setBillingRate] = useState('');
+  const [billingRateDisplay, setBillingRateDisplay] = useState('');
   const [fixedPriceTotal, setFixedPriceTotal] = useState('');
+  const [fixedPriceTotalDisplay, setFixedPriceTotalDisplay] = useState('');
   const [budgetHours, setBudgetHours] = useState('');
   const [budgetType, setBudgetType] = useState('monthly');
 
@@ -63,8 +66,12 @@ export default function ProjectFinancialPage() {
       const proj = await projectService.getProject(id!);
       setProject(proj);
       setBillingType(proj.billingType || 'hourly');
-      setBillingRate(String(proj.billingRate || ''));
-      setFixedPriceTotal(proj.fixedPriceTotal ? String(proj.fixedPriceTotal) : '');
+      const rate = proj.billingRate ? String(proj.billingRate) : '';
+      setBillingRate(rate);
+      setBillingRateDisplay(proj.billingRate ? formatCurrency(Number(proj.billingRate)) : '');
+      const fixed = proj.fixedPriceTotal ? String(proj.fixedPriceTotal) : '';
+      setFixedPriceTotal(fixed);
+      setFixedPriceTotalDisplay(proj.fixedPriceTotal ? formatCurrency(Number(proj.fixedPriceTotal)) : '');
       setBudgetHours(proj.budgetHours ? String(proj.budgetHours) : '');
       setBudgetType(proj.budgetType || 'monthly');
 
@@ -92,10 +99,10 @@ export default function ProjectFinancialPage() {
     try {
       const data: Record<string, unknown> = { billingType };
       if (billingType === 'hourly') {
-        data.billingRate = Number(billingRate) || 0;
+        data.billingRate = parseCurrencyInput(billingRate);
         data.fixedPriceTotal = null;
       } else {
-        data.fixedPriceTotal = Number(fixedPriceTotal) || 0;
+        data.fixedPriceTotal = parseCurrencyInput(fixedPriceTotal);
         data.billingRate = 0;
       }
       data.budgetHours = budgetHours ? Number(budgetHours) : undefined;
@@ -114,7 +121,7 @@ export default function ProjectFinancialPage() {
     e.preventDefault();
     try {
       await installmentService.createInstallment(id!, {
-        amount: Number(createForm.amount),
+        amount: parseCurrencyInput(createForm.amount),
         description: createForm.description || undefined,
         dueDate: createForm.dueDate || undefined,
       });
@@ -130,7 +137,7 @@ export default function ProjectFinancialPage() {
   async function handleCreateBatch(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const total = Number(fixedPriceTotal);
+      const total = parseCurrencyInput(fixedPriceTotal);
       const count = Number(batchForm.count);
       if (!total || total <= 0) {
         addToast('Valor total do contrato não definido', 'error');
@@ -155,7 +162,7 @@ export default function ProjectFinancialPage() {
     setEditingInstallment(inst);
     setEditForm({
       description: inst.description || '',
-      amount: inst.amount,
+      amount: formatCurrency(inst.amount),
       dueDate: inst.dueDate || '',
     });
     setIsEditOpen(true);
@@ -167,7 +174,7 @@ export default function ProjectFinancialPage() {
     try {
       await installmentService.updateInstallment(id!, editingInstallment.id, {
         description: editForm.description || undefined,
-        amount: Number(editForm.amount),
+        amount: parseCurrencyInput(editForm.amount),
         dueDate: editForm.dueDate || undefined,
       });
       setIsEditOpen(false);
@@ -275,10 +282,15 @@ export default function ProjectFinancialPage() {
           <>
             <Input
               label="Valor/Hora Cliente (R$)"
-              type="number"
-              step="0.01"
-              value={billingRate}
-              onChange={(e) => setBillingRate(e.target.value)}
+              type="text"
+              value={billingRateDisplay}
+              onFocus={() => setBillingRateDisplay(billingRate)}
+              onChange={(e) => { setBillingRateDisplay(e.target.value); setBillingRate(e.target.value); }}
+              onBlur={() => {
+                const num = parseCurrencyInput(billingRateDisplay);
+                setBillingRate(String(num));
+                setBillingRateDisplay(num > 0 ? formatCurrency(num) : '');
+              }}
               required
             />
             <div className="grid grid-cols-2 gap-4">
@@ -299,10 +311,15 @@ export default function ProjectFinancialPage() {
         ) : (
           <Input
             label="Valor Total do Contrato (R$)"
-            type="number"
-            step="0.01"
-            value={fixedPriceTotal}
-            onChange={(e) => setFixedPriceTotal(e.target.value)}
+            type="text"
+            value={fixedPriceTotalDisplay}
+            onFocus={() => setFixedPriceTotalDisplay(fixedPriceTotal)}
+            onChange={(e) => { setFixedPriceTotalDisplay(e.target.value); setFixedPriceTotal(e.target.value); }}
+            onBlur={() => {
+              const num = parseCurrencyInput(fixedPriceTotalDisplay);
+              setFixedPriceTotal(String(num));
+              setFixedPriceTotalDisplay(num > 0 ? formatCurrency(num) : '');
+            }}
             required
           />
         )}
@@ -373,7 +390,7 @@ export default function ProjectFinancialPage() {
                       </TableCell>
                       <TableCell>{inst.installmentNumber}</TableCell>
                       <TableCell>{inst.description || '—'}</TableCell>
-                      <TableCell>R$ {Number(inst.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell>{formatCurrency(inst.amount)}</TableCell>
                       <TableCell>
                         {inst.dueDate ? new Date(inst.dueDate + 'T12:00:00').toLocaleDateString('pt-BR') : '—'}
                       </TableCell>
@@ -410,10 +427,10 @@ export default function ProjectFinancialPage() {
                 </TableBody>
               </Table>
               <div className="mt-3 text-sm text-text-secondary">
-                Total das parcelas: <strong>R$ {totalInstallments.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+                Total das parcelas: <strong>{formatCurrency(totalInstallments)}</strong>
                 {fixedPriceTotal && (
                   <span className="ml-2 text-text-tertiary">
-                    / R$ {Number(fixedPriceTotal).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (contrato)
+                    / {formatCurrency(parseCurrencyInput(fixedPriceTotal))} (contrato)
                   </span>
                 )}
               </div>
@@ -426,7 +443,17 @@ export default function ProjectFinancialPage() {
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Nova Parcela">
         <form onSubmit={handleCreateInstallment} className="space-y-4">
           <Input label="Descrição" value={createForm.description} onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })} />
-          <Input label="Valor (R$)" type="number" step="0.01" value={createForm.amount} onChange={(e) => setCreateForm({ ...createForm, amount: e.target.value })} required />
+          <Input
+            label="Valor (R$)"
+            type="text"
+            value={createForm.amount}
+            onChange={(e) => setCreateForm({ ...createForm, amount: e.target.value })}
+            onBlur={() => {
+              const num = parseCurrencyInput(createForm.amount);
+              setCreateForm((f) => ({ ...f, amount: num > 0 ? formatCurrency(num) : '' }));
+            }}
+            required
+          />
           <Input label="Vencimento" type="date" value={createForm.dueDate} onChange={(e) => setCreateForm({ ...createForm, dueDate: e.target.value })} />
           <div className="modal-actions">
             <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
@@ -441,7 +468,7 @@ export default function ProjectFinancialPage() {
           <Input label="Quantidade de Parcelas" type="number" min="1" max="60" value={batchForm.count} onChange={(e) => setBatchForm({ ...batchForm, count: e.target.value })} required />
           {Number(batchForm.count) > 0 && Number(fixedPriceTotal) > 0 && (
             <p className="text-sm text-text-secondary">
-              Valor por parcela: <strong>R$ {(Number(fixedPriceTotal) / Number(batchForm.count)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+              Valor por parcela: <strong>{formatCurrency(parseCurrencyInput(fixedPriceTotal) / Number(batchForm.count))}</strong>
             </p>
           )}
           <Input label="Data do Primeiro Vencimento" type="date" value={batchForm.startDate} onChange={(e) => setBatchForm({ ...batchForm, startDate: e.target.value })} />
@@ -456,7 +483,17 @@ export default function ProjectFinancialPage() {
       <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Editar Parcela">
         <form onSubmit={handleEditInstallment} className="space-y-4">
           <Input label="Descrição" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
-          <Input label="Valor (R$)" type="number" step="0.01" value={editForm.amount} onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })} required />
+          <Input
+            label="Valor (R$)"
+            type="text"
+            value={editForm.amount}
+            onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
+            onBlur={() => {
+              const num = parseCurrencyInput(editForm.amount);
+              setEditForm((f) => ({ ...f, amount: num > 0 ? formatCurrency(num) : '' }));
+            }}
+            required
+          />
           <Input label="Vencimento" type="date" value={editForm.dueDate} onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })} />
           <div className="modal-actions">
             <Button variant="secondary" type="button" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
@@ -472,10 +509,10 @@ export default function ProjectFinancialPage() {
             <p className="mb-2"><strong>{selectedInstallments.length}</strong> parcela(s) selecionada(s):</p>
             <ul className="list-disc list-inside space-y-1">
               {selectedInstallments.map(i => (
-                <li key={i.id}>{i.description || `Parcela ${i.installmentNumber}`} — R$ {Number(i.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</li>
+                <li key={i.id}>{i.description || `Parcela ${i.installmentNumber}`} — {formatCurrency(i.amount)}</li>
               ))}
             </ul>
-            <p className="mt-3 font-semibold">Total: R$ {selectedTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <p className="mt-3 font-semibold">Total: {formatCurrency(selectedTotal)}</p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Ano" type="number" value={invoiceYear} onChange={(e) => setInvoiceYear(e.target.value)} required />

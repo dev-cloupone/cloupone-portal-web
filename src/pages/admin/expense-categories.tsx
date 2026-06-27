@@ -10,6 +10,7 @@ import * as categoryService from '../../services/expense-category.service';
 import { formatApiError } from '../../services/api';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { ExpenseCategory } from '../../types/expense.types';
+import { formatCurrency } from '../../utils/formatters';
 
 const emptyForm = {
   name: '',
@@ -118,9 +119,9 @@ export default function ExpenseCategoriesPage() {
 
   useEffect(() => { loadData(); }, []);
 
-  function formatCurrency(value: string | null) {
+  function formatCurrencyOrDash(value: string | null) {
     if (!value) return '—';
-    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return formatCurrency(value);
   }
 
   const formFields = (
@@ -184,7 +185,7 @@ export default function ExpenseCategoriesPage() {
             <TableRow key={c.id}>
               <TableCell className="font-medium">{c.name}</TableCell>
               <TableCell>{c.description || '—'}</TableCell>
-              <TableCell>{formatCurrency(c.defaultMaxAmount)}</TableCell>
+              <TableCell>{formatCurrencyOrDash(c.defaultMaxAmount)}</TableCell>
               <TableCell>
                 {c.isKmCategory ? (
                   <Badge variant="default">{c.defaultKmRate ? `R$ ${Number(c.defaultKmRate).toFixed(2)}/km` : 'Sim'}</Badge>

@@ -12,6 +12,7 @@ import { useToastStore } from '../stores/toast.store';
 import { useNavItems } from '../hooks/use-nav-items';
 import type { ExpensePayment, ExpensePaymentItem, ExpensePaymentStatus } from '../types/financial.types';
 import type { PaginationMeta } from '../types/pagination.types';
+import { formatCurrency } from '../utils/formatters';
 
 const STATUS_MAP: Record<ExpensePaymentStatus, { variant: 'default' | 'warning' | 'success' | 'danger'; label: string }> = {
   draft: { variant: 'default', label: 'Rascunho' },
@@ -19,10 +20,6 @@ const STATUS_MAP: Record<ExpensePaymentStatus, { variant: 'default' | 'warning' 
   paid: { variant: 'success', label: 'Pago' },
   cancelled: { variant: 'danger', label: 'Cancelado' },
 };
-
-function formatCurrency(value: number | string): string {
-  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');

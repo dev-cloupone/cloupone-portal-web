@@ -16,10 +16,7 @@ import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { ExpensePayment } from '../../types/financial.types';
 import type { PaginationMeta } from '../../types/pagination.types';
-
-function formatCurrency(value: number | string): string {
-  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
+import { formatCurrency } from '../../utils/formatters';
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');

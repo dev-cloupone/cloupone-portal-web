@@ -1,5 +1,6 @@
 import { Calendar, BarChart3 } from 'lucide-react';
 import type { ExpenseMonthData, ExpenseWeekSummary } from '../../types/expense.types';
+import { formatCurrency } from '../../utils/formatters';
 
 interface ExpenseMonthSummaryProps {
   monthData: ExpenseMonthData;
@@ -13,10 +14,6 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   approved: { label: 'Aprovado', color: 'bg-success' },
   rejected: { label: 'Rejeitado', color: 'bg-danger' },
 };
-
-function formatCurrency(value: number): string {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
 
 export function ExpenseMonthSummary({ monthData, weekSummaries }: ExpenseMonthSummaryProps) {
   const expenses = monthData.expenses;

@@ -14,6 +14,7 @@ import * as phaseService from '../../services/phase.service';
 import type { Project } from '../../types/project.types';
 import { useAuth } from '../../hooks/use-auth';
 import { STATUS_LABELS, STATUS_VARIANTS, BUDGET_TYPE_LABELS } from '../../constants/project.constants';
+import { formatCurrency } from '../../utils/formatters';
 
 export default function ProjectHubPage() {
   const { id } = useParams<{ id: string }>();
@@ -111,8 +112,8 @@ export default function ProjectHubPage() {
       title: 'Financeiro',
       icon: <DollarSign size={20} />,
       description: project.billingType === 'fixed_price'
-        ? `Valor Fixo · R$ ${Number(project.fixedPriceTotal || 0).toLocaleString('pt-BR')}`
-        : `R$ ${Number(project.billingRate).toLocaleString('pt-BR')}/h`,
+        ? `Valor Fixo · ${formatCurrency(project.fixedPriceTotal || 0)}`
+        : `${formatCurrency(project.billingRate)}/h`,
       path: `/admin/projects/${id}/financial`,
     }] : []),
   ];

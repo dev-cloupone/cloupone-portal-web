@@ -13,6 +13,11 @@ export function formatCurrency(value: number | string): string {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+export function parseCurrencyInput(value: string): number {
+  const cleaned = value.replace(/[R$\s.]/g, '').replace(',', '.');
+  return parseFloat(cleaned) || 0;
+}
+
 export function toMonthString(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
