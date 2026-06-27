@@ -231,7 +231,7 @@ export default function ProjectFinancialPage() {
       setIsInvoiceModalOpen(false);
       setSelectedIds(new Set());
       addToast('Fatura gerada com sucesso', 'success');
-      navigate(`/financial/invoices/hours/${invoice.id}`);
+      navigate(`/financial/invoices/services/${invoice.id}`);
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -415,7 +415,7 @@ export default function ProjectFinancialPage() {
                             <Button
                               variant="secondary"
                               size="sm"
-                              onClick={() => navigate(`/financial/invoices/hours/${inst.invoiceId}`)}
+                              onClick={() => navigate(`/financial/invoices/services/${inst.invoiceId}`)}
                             >
                               Ver Fatura
                             </Button>

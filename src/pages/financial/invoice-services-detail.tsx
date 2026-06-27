@@ -35,7 +35,7 @@ interface EditableCustomLine {
   unitPrice: string;
 }
 
-export default function InvoiceHoursDetailPage() {
+export default function InvoiceServicesDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navItems = useNavItems();
   const navigate = useNavigate();
@@ -219,7 +219,7 @@ export default function InvoiceHoursDetailPage() {
     try {
       await invoiceService.deleteInvoice(id);
       addToast('Fatura excluída.', 'success');
-      navigate('/financial/invoices/hours');
+      navigate('/financial/invoices/services');
     } catch (err) {
       addToast(formatApiError(err), 'error');
       setActionLoading(false);
@@ -230,7 +230,7 @@ export default function InvoiceHoursDetailPage() {
     if (!id || !selectedBankAccountId) return;
     setPdfLoading(true);
     try {
-      const response = await apiFetch(`/invoices/hours/${id}/pdf?bankAccountId=${selectedBankAccountId}`);
+      const response = await apiFetch(`/invoices/services/${id}/pdf?bankAccountId=${selectedBankAccountId}`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
@@ -307,7 +307,7 @@ export default function InvoiceHoursDetailPage() {
 
   if (loading) {
     return (
-      <SidebarLayout navItems={navItems} title="Fatura de Horas">
+      <SidebarLayout navItems={navItems} title="Fatura de Serviços">
         <div className="space-y-4">
           <Skeleton className="h-8 w-64 rounded-lg" />
           <Skeleton className="h-40 rounded-xl" />
@@ -319,12 +319,12 @@ export default function InvoiceHoursDetailPage() {
 
   if (error || !invoice) {
     return (
-      <SidebarLayout navItems={navItems} title="Fatura de Horas">
+      <SidebarLayout navItems={navItems} title="Fatura de Serviços">
         <div className="flex flex-col items-center justify-center py-20">
           <p className="text-danger mb-4">{error || 'Fatura não encontrada.'}</p>
           <button
             type="button"
-            onClick={() => navigate('/financial/invoices/hours')}
+            onClick={() => navigate('/financial/invoices/services')}
             className="text-sm text-accent hover:text-accent-hover"
           >
             Voltar para lista
@@ -341,11 +341,11 @@ export default function InvoiceHoursDetailPage() {
   const status = INVOICE_STATUS_MAP[invoice.status] ?? INVOICE_STATUS_MAP.draft;
 
   return (
-    <SidebarLayout navItems={navItems} title="Fatura de Horas">
+    <SidebarLayout navItems={navItems} title="Fatura de Serviços">
       <div className="mb-6">
         <button
           type="button"
-          onClick={() => navigate('/financial/invoices/hours')}
+          onClick={() => navigate('/financial/invoices/services')}
           className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
         >
           <ArrowLeft size={16} />

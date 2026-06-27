@@ -32,7 +32,7 @@ function parseMonth(m: string): { year: number; month: number } {
   return { year: y, month: mo };
 }
 
-export default function InvoiceHoursListPage() {
+export default function InvoiceServicesListPage() {
   const navItems = useNavItems();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
@@ -136,11 +136,11 @@ export default function InvoiceHoursListPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Fat. Horas">
+    <SidebarLayout navItems={navItems} title="Fat. Serviços">
       <div className="space-y-6">
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Faturamento de Horas</h2>
-          <Button onClick={() => navigate('/financial/invoices/hours/new')}>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Faturamento de Serviços</h2>
+          <Button onClick={() => navigate('/financial/invoices/services/new')}>
             <FileText size={16} className="mr-1.5" />
             Gerar Fatura
           </Button>
@@ -186,7 +186,7 @@ export default function InvoiceHoursListPage() {
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={() => navigate('/financial/invoices/hours/new?type=fixed_price')}
+                onClick={() => navigate('/financial/invoices/services/new?type=fixed_price')}
               >
                 Gerar Faturas
               </Button>
@@ -305,7 +305,7 @@ export default function InvoiceHoursListPage() {
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <button
-                              onClick={() => navigate(`/financial/invoices/hours/${invoice.id}`)}
+                              onClick={() => navigate(`/financial/invoices/services/${invoice.id}`)}
                               className="rounded-md p-1.5 text-text-muted hover:text-accent hover:bg-accent/10 transition-colors"
                               title="Ver detalhes"
                             >

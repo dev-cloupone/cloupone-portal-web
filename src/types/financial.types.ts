@@ -70,7 +70,7 @@ export interface AvailableExpensePeriod {
   totalAmount: string;
 }
 
-// Fatura de Horas
+// Fatura de Serviços
 export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'cancelled';
 
 export type InvoiceType = 'hourly' | 'fixed_price';

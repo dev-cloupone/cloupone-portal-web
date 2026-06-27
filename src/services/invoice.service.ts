@@ -22,7 +22,7 @@ export async function listInvoices(filters?: {
   if (filters?.status) params.set('status', filters.status);
   if (filters?.invoiceType) params.set('invoiceType', filters.invoiceType);
   const qs = params.toString();
-  return api(`/invoices/hours${qs ? `?${qs}` : ''}`);
+  return api(`/invoices/services${qs ? `?${qs}` : ''}`);
 }
 
 export async function listMyInvoices(filters?: {
@@ -33,11 +33,11 @@ export async function listMyInvoices(filters?: {
   if (filters?.page) params.set('page', String(filters.page));
   if (filters?.limit) params.set('limit', String(filters.limit));
   const qs = params.toString();
-  return api(`/invoices/hours/my${qs ? `?${qs}` : ''}`);
+  return api(`/invoices/services/my${qs ? `?${qs}` : ''}`);
 }
 
 export async function getInvoice(id: string): Promise<Invoice> {
-  return api(`/invoices/hours/${id}`);
+  return api(`/invoices/services/${id}`);
 }
 
 export async function generateDraft(data: {
@@ -45,7 +45,7 @@ export async function generateDraft(data: {
   year: number;
   month: number;
 }): Promise<Invoice> {
-  return api('/invoices/hours', {
+  return api('/invoices/services', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -58,39 +58,39 @@ export async function updateLines(
     notes?: string;
   },
 ): Promise<Invoice> {
-  return api(`/invoices/hours/${id}`, {
+  return api(`/invoices/services/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
   });
 }
 
 export async function issueInvoice(id: string): Promise<Invoice> {
-  return api(`/invoices/hours/${id}/issue`, { method: 'POST' });
+  return api(`/invoices/services/${id}/issue`, { method: 'POST' });
 }
 
 export async function payInvoice(id: string): Promise<Invoice> {
-  return api(`/invoices/hours/${id}/pay`, { method: 'POST' });
+  return api(`/invoices/services/${id}/pay`, { method: 'POST' });
 }
 
 export async function cancelInvoice(id: string): Promise<Invoice> {
-  return api(`/invoices/hours/${id}/cancel`, { method: 'POST' });
+  return api(`/invoices/services/${id}/cancel`, { method: 'POST' });
 }
 
 export async function deleteInvoice(id: string): Promise<void> {
-  return api(`/invoices/hours/${id}`, { method: 'DELETE' });
+  return api(`/invoices/services/${id}`, { method: 'DELETE' });
 }
 
 export async function revertToDraft(id: string): Promise<Invoice> {
-  return api(`/invoices/hours/${id}/revert-to-draft`, { method: 'POST' });
+  return api(`/invoices/services/${id}/revert-to-draft`, { method: 'POST' });
 }
 
 export async function revertToIssued(id: string): Promise<Invoice> {
-  return api(`/invoices/hours/${id}/revert-to-issued`, { method: 'POST' });
+  return api(`/invoices/services/${id}/revert-to-issued`, { method: 'POST' });
 }
 
 export function getPdfUrl(id: string): string {
   const token = getAccessToken();
-  return `${BASE_URL}/invoices/hours/${id}/pdf${token ? `?token=${token}` : ''}`;
+  return `${BASE_URL}/invoices/services/${id}/pdf${token ? `?token=${token}` : ''}`;
 }
 
 export async function addCustomLine(id: string, data: {
@@ -98,18 +98,18 @@ export async function addCustomLine(id: string, data: {
   quantity: string;
   unitPrice: string;
 }): Promise<InvoiceLine> {
-  return api(`/invoices/hours/${id}/lines`, {
+  return api(`/invoices/services/${id}/lines`, {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
 export async function removeCustomLine(id: string, lineId: string): Promise<void> {
-  return api(`/invoices/hours/${id}/lines/${lineId}`, { method: 'DELETE' });
+  return api(`/invoices/services/${id}/lines/${lineId}`, { method: 'DELETE' });
 }
 
 export async function getPendingApprovals(year: number, month: number): Promise<{ count: number; consultants: string[] }> {
-  return api(`/invoices/hours/pending-approvals?year=${year}&month=${month}`);
+  return api(`/invoices/services/pending-approvals?year=${year}&month=${month}`);
 }
 
 export async function generateFromInstallments(data: {
@@ -118,7 +118,7 @@ export async function generateFromInstallments(data: {
   year: number;
   month: number;
 }): Promise<Invoice> {
-  return api<Invoice>('/invoices/hours/from-installments', {
+  return api<Invoice>('/invoices/services/from-installments', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -140,12 +140,12 @@ export async function getPendingInstallmentsDetailed(year: number, month: number
     }[];
   }[];
 }> {
-  return api(`/invoices/hours/pending-installments-detailed?year=${year}&month=${month}`);
+  return api(`/invoices/services/pending-installments-detailed?year=${year}&month=${month}`);
 }
 
 export async function getPendingInstallments(): Promise<{
   count: number;
   projects: { projectId: string; projectName: string; count: number }[];
 }> {
-  return api('/invoices/hours/pending-installments');
+  return api('/invoices/services/pending-installments');
 }

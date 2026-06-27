@@ -45,7 +45,7 @@ interface PendingProject {
   }[];
 }
 
-export default function InvoiceHoursNewPage() {
+export default function InvoiceServicesNewPage() {
   const navItems = useNavItems();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
@@ -128,7 +128,7 @@ export default function InvoiceHoursNewPage() {
         month: Number(month),
       });
       addToast('Fatura draft gerada com sucesso!', 'success');
-      navigate(`/financial/invoices/hours/${result.id}`);
+      navigate(`/financial/invoices/services/${result.id}`);
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -167,10 +167,10 @@ export default function InvoiceHoursNewPage() {
       );
 
       if (results.length === 1) {
-        navigate(`/financial/invoices/hours/${results[0].id}`);
+        navigate(`/financial/invoices/services/${results[0].id}`);
       } else {
         addToast(`${results.length} faturas geradas com sucesso!`, 'success');
-        navigate('/financial/invoices/hours');
+        navigate('/financial/invoices/services');
       }
     } catch (err) {
       setError(formatApiError(err));
@@ -184,7 +184,7 @@ export default function InvoiceHoursNewPage() {
       <div className="mb-6">
         <button
           type="button"
-          onClick={() => navigate('/financial/invoices/hours')}
+          onClick={() => navigate('/financial/invoices/services')}
           className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
@@ -309,7 +309,7 @@ export default function InvoiceHoursNewPage() {
         )}
 
         <div className="flex gap-3">
-          <Button variant="secondary" type="button" onClick={() => navigate('/financial/invoices/hours')}>
+          <Button variant="secondary" type="button" onClick={() => navigate('/financial/invoices/services')}>
             Cancelar
           </Button>
           {invoiceType === 'hours' ? (
