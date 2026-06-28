@@ -1256,5 +1256,38 @@
   },
   "markdown": {
     "nothingToPreview": "Nothing to preview"
+  },
+  "nav": {
+    "groups": {
+      "general": "General",
+      "registrations": "Registrations",
+      "operational": "Operational",
+      "approvals": "Approvals",
+      "financial": "Financial",
+      "system": "System",
+      "payments": "Payments",
+      "invoices": "Invoices"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "hours": "Hours",
+      "users": "Users",
+      "clients": "Clients",
+      "projects": "Projects",
+      "consultants": "Consultants",
+      "expenseCategories": "Expense Cat.",
+      "support": "Support",
+      "timesheet": "Timesheet",
+      "expenses": "Expenses",
+      "approvals": "Approvals",
+      "expenseApprovals": "Exp. Approvals",
+      "hoursPayment": "Hours Pmt.",
+      "expensesPayment": "Expenses Pmt.",
+      "serviceInvoices": "Svc. Invoices",
+      "expenseInvoices": "Exp. Invoices",
+      "reports": "Reports",
+      "settings": "Settings",
+      "profile": "Profile"
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 import { LayoutDashboard, Users, Settings, User, Building2, FolderKanban, Clock, CheckSquare, BarChart3, FileText, Headset, Receipt, Wallet, HandCoins, DollarSign } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from './use-auth';
 
 export interface NavItem {
@@ -21,56 +22,57 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 
 export function useNavItems(): NavEntry[] {
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   if (user?.role === 'super_admin') {
     return [
       {
-        group: 'Geral',
+        group: t('nav.groups.general'),
         items: [
-          { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={18} /> },
-          { label: 'Horas', path: '/manager-dashboard', icon: <BarChart3 size={18} /> },
+          { label: t('nav.items.dashboard'), path: '/admin/dashboard', icon: <LayoutDashboard size={18} /> },
+          { label: t('nav.items.hours'), path: '/manager-dashboard', icon: <BarChart3 size={18} /> },
         ],
       },
       {
-        group: 'Cadastros',
+        group: t('nav.groups.registrations'),
         items: [
-          { label: 'Usuarios', path: '/admin/users', icon: <Users size={18} /> },
-          { label: 'Clientes', path: '/admin/clients', icon: <Building2 size={18} /> },
-          { label: 'Projetos', path: '/admin/projects', icon: <FolderKanban size={18} /> },
-          { label: 'Consultores', path: '/admin/consultants', icon: <Users size={18} /> },
-          { label: 'Cat. Despesas', path: '/admin/expense-categories', icon: <Receipt size={18} /> },
+          { label: t('nav.items.users'), path: '/admin/users', icon: <Users size={18} /> },
+          { label: t('nav.items.clients'), path: '/admin/clients', icon: <Building2 size={18} /> },
+          { label: t('nav.items.projects'), path: '/admin/projects', icon: <FolderKanban size={18} /> },
+          { label: t('nav.items.consultants'), path: '/admin/consultants', icon: <Users size={18} /> },
+          { label: t('nav.items.expenseCategories'), path: '/admin/expense-categories', icon: <Receipt size={18} /> },
         ],
       },
       {
-        group: 'Operacional',
+        group: t('nav.groups.operational'),
         items: [
-          { label: 'Atendimento', path: '/tickets', icon: <Headset size={18} /> },
-          { label: 'Apontamento', path: '/timesheet', icon: <Clock size={18} /> },
-          { label: 'Despesas', path: '/expenses', icon: <Wallet size={18} /> },
+          { label: t('nav.items.support'), path: '/tickets', icon: <Headset size={18} /> },
+          { label: t('nav.items.timesheet'), path: '/timesheet', icon: <Clock size={18} /> },
+          { label: t('nav.items.expenses'), path: '/expenses', icon: <Wallet size={18} /> },
         ],
       },
       {
-        group: 'Aprovações',
+        group: t('nav.groups.approvals'),
         items: [
-          { label: 'Aprovações', path: '/approvals', icon: <CheckSquare size={18} /> },
-          { label: 'Aprov. Despesas', path: '/expense-approvals', icon: <Receipt size={18} /> },
+          { label: t('nav.items.approvals'), path: '/approvals', icon: <CheckSquare size={18} /> },
+          { label: t('nav.items.expenseApprovals'), path: '/expense-approvals', icon: <Receipt size={18} /> },
         ],
       },
       {
-        group: 'Financeiro',
+        group: t('nav.groups.financial'),
         items: [
-          { label: 'Pgto. Horas', path: '/financial/payments/hours', icon: <DollarSign size={18} /> },
-          { label: 'Pgto. Despesas', path: '/financial/payments/expenses', icon: <HandCoins size={18} /> },
-          { label: 'Fat. Serviços', path: '/financial/invoices/services', icon: <FileText size={18} /> },
-          { label: 'Fat. Despesas', path: '/financial/invoices/expenses', icon: <Receipt size={18} /> },
+          { label: t('nav.items.hoursPayment'), path: '/financial/payments/hours', icon: <DollarSign size={18} /> },
+          { label: t('nav.items.expensesPayment'), path: '/financial/payments/expenses', icon: <HandCoins size={18} /> },
+          { label: t('nav.items.serviceInvoices'), path: '/financial/invoices/services', icon: <FileText size={18} /> },
+          { label: t('nav.items.expenseInvoices'), path: '/financial/invoices/expenses', icon: <Receipt size={18} /> },
         ],
       },
       {
-        group: 'Sistema',
+        group: t('nav.groups.system'),
         items: [
-          { label: 'Relatórios', path: '/reports', icon: <FileText size={18} /> },
-          { label: 'Configurações', path: '/admin/settings', icon: <Settings size={18} /> },
-          { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
+          { label: t('nav.items.reports'), path: '/reports', icon: <FileText size={18} /> },
+          { label: t('nav.items.settings'), path: '/admin/settings', icon: <Settings size={18} /> },
+          { label: t('nav.items.profile'), path: '/profile', icon: <User size={18} /> },
         ],
       },
     ];
@@ -79,23 +81,23 @@ export function useNavItems(): NavEntry[] {
   if (user?.role === 'administrative') {
     return [
       {
-        group: 'Pagamentos',
+        group: t('nav.groups.payments'),
         items: [
-          { label: 'Pgto. Horas', path: '/financial/payments/hours', icon: <Clock size={18} /> },
-          { label: 'Pgto. Despesas', path: '/financial/payments/expenses', icon: <Wallet size={18} /> },
+          { label: t('nav.items.hoursPayment'), path: '/financial/payments/hours', icon: <Clock size={18} /> },
+          { label: t('nav.items.expensesPayment'), path: '/financial/payments/expenses', icon: <Wallet size={18} /> },
         ],
       },
       {
-        group: 'Faturas',
+        group: t('nav.groups.invoices'),
         items: [
-          { label: 'Fat. Serviços', path: '/financial/invoices/services', icon: <FileText size={18} /> },
-          { label: 'Fat. Despesas', path: '/financial/invoices/expenses', icon: <Receipt size={18} /> },
+          { label: t('nav.items.serviceInvoices'), path: '/financial/invoices/services', icon: <FileText size={18} /> },
+          { label: t('nav.items.expenseInvoices'), path: '/financial/invoices/expenses', icon: <Receipt size={18} /> },
         ],
       },
       {
-        group: 'Sistema',
+        group: t('nav.groups.system'),
         items: [
-          { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
+          { label: t('nav.items.profile'), path: '/profile', icon: <User size={18} /> },
         ],
       },
     ];
@@ -104,24 +106,24 @@ export function useNavItems(): NavEntry[] {
   if (user?.role === 'gestor') {
     return [
       {
-        group: 'Cadastros',
+        group: t('nav.groups.registrations'),
         items: [
-          { label: 'Projetos', path: '/admin/projects', icon: <FolderKanban size={18} /> },
+          { label: t('nav.items.projects'), path: '/admin/projects', icon: <FolderKanban size={18} /> },
         ],
       },
       {
-        group: 'Operacional',
+        group: t('nav.groups.operational'),
         items: [
-          { label: 'Atendimento', path: '/tickets', icon: <Headset size={18} /> },
-          { label: 'Apontamento', path: '/timesheet', icon: <Clock size={18} /> },
-          { label: 'Despesas', path: '/expenses', icon: <Wallet size={18} /> },
+          { label: t('nav.items.support'), path: '/tickets', icon: <Headset size={18} /> },
+          { label: t('nav.items.timesheet'), path: '/timesheet', icon: <Clock size={18} /> },
+          { label: t('nav.items.expenses'), path: '/expenses', icon: <Wallet size={18} /> },
         ],
       },
       {
-        group: 'Sistema',
+        group: t('nav.groups.system'),
         items: [
-          { label: 'Relatórios', path: '/reports', icon: <FileText size={18} /> },
-          { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
+          { label: t('nav.items.reports'), path: '/reports', icon: <FileText size={18} /> },
+          { label: t('nav.items.profile'), path: '/profile', icon: <User size={18} /> },
         ],
       },
     ];
@@ -129,18 +131,18 @@ export function useNavItems(): NavEntry[] {
 
   if (user?.role === 'consultor') {
     return [
-      { label: 'Dashboard', path: '/consultant-dashboard', icon: <BarChart3 size={18} /> },
-      { label: 'Atendimento', path: '/tickets', icon: <Headset size={18} /> },
-      { label: 'Apontamento', path: '/timesheet', icon: <Clock size={18} /> },
-      { label: 'Despesas', path: '/expenses', icon: <Wallet size={18} /> },
-      { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
+      { label: t('nav.items.dashboard'), path: '/consultant-dashboard', icon: <BarChart3 size={18} /> },
+      { label: t('nav.items.support'), path: '/tickets', icon: <Headset size={18} /> },
+      { label: t('nav.items.timesheet'), path: '/timesheet', icon: <Clock size={18} /> },
+      { label: t('nav.items.expenses'), path: '/expenses', icon: <Wallet size={18} /> },
+      { label: t('nav.items.profile'), path: '/profile', icon: <User size={18} /> },
     ];
   }
 
   return [
-    { label: 'Atendimento', path: '/tickets', icon: <Headset size={18} /> },
-    { label: 'Fat. Serviços', path: '/my-invoices/services', icon: <FileText size={18} /> },
-    { label: 'Fat. Despesas', path: '/my-invoices/expenses', icon: <Receipt size={18} /> },
-    { label: 'Perfil', path: '/profile', icon: <User size={18} /> },
+    { label: t('nav.items.support'), path: '/tickets', icon: <Headset size={18} /> },
+    { label: t('nav.items.serviceInvoices'), path: '/my-invoices/services', icon: <FileText size={18} /> },
+    { label: t('nav.items.expenseInvoices'), path: '/my-invoices/expenses', icon: <Receipt size={18} /> },
+    { label: t('nav.items.profile'), path: '/profile', icon: <User size={18} /> },
   ];
 }

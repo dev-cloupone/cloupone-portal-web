@@ -1260,5 +1260,38 @@
   },
   "markdown": {
     "nothingToPreview": "Nada para visualizar"
+  },
+  "nav": {
+    "groups": {
+      "general": "Geral",
+      "registrations": "Cadastros",
+      "operational": "Operacional",
+      "approvals": "Aprovações",
+      "financial": "Financeiro",
+      "system": "Sistema",
+      "payments": "Pagamentos",
+      "invoices": "Faturas"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "hours": "Horas",
+      "users": "Usuários",
+      "clients": "Clientes",
+      "projects": "Projetos",
+      "consultants": "Consultores",
+      "expenseCategories": "Cat. Despesas",
+      "support": "Atendimento",
+      "timesheet": "Apontamento",
+      "expenses": "Despesas",
+      "approvals": "Aprovações",
+      "expenseApprovals": "Aprov. Despesas",
+      "hoursPayment": "Pgto. Horas",
+      "expensesPayment": "Pgto. Despesas",
+      "serviceInvoices": "Fat. Serviços",
+      "expenseInvoices": "Fat. Despesas",
+      "reports": "Relatórios",
+      "settings": "Configurações",
+      "profile": "Perfil"
+    }
   }
 }

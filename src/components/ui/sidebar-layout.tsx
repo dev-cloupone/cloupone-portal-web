@@ -197,7 +197,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
       <div className="border-t border-border p-3">
         {collapsed ? (
           <div className="flex flex-col items-center gap-2">
-            <LanguageToggle />
+            <LanguageToggle compact />
             <ThemeToggle />
             <button
               onClick={() => void logout()}
@@ -209,10 +209,10 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
           </div>
         ) : (
           <>
-            <div className="mb-2 flex items-center justify-between px-3">
-              <div className="truncate text-xs font-medium text-text-tertiary">
-                {user?.name}
-              </div>
+            <div className="mb-2 truncate px-3 text-xs font-medium text-text-tertiary">
+              {user?.name}
+            </div>
+            <div className="mb-2 flex items-center gap-2 px-3">
               <LanguageToggle />
               <ThemeToggle />
             </div>
