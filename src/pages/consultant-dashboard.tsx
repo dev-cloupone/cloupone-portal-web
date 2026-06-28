@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Clock, Target, Ticket, PlayCircle } from 'lucide-react';
 import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -15,6 +16,7 @@ import { ticketService } from '../services/ticket.service';
 import { formatApiError } from '../services/api';
 import type { ConsultantDashboardData } from '../types/dashboard.types';
 import type { TicketStats } from '../types/ticket.types';
+import { getShortMonthName } from '../utils/formatters';
 
 interface StatCardProps {
   title: string;
@@ -52,18 +54,13 @@ const CHART_COLORS = {
 const PIE_COLORS = ['#3B82F6', '#2563EB', '#8b5cf6', '#f59e0b', '#f43f5e', '#38bdf8', '#a78bfa', '#fb7185'];
 
 
-const monthLabels: Record<string, string> = {
-  '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr',
-  '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Ago',
-  '09': 'Set', '10': 'Out', '11': 'Nov', '12': 'Dez',
-};
-
 function formatMonth(month: string): string {
   const [, m] = month.split('-');
-  return monthLabels[m] || month;
+  return getShortMonthName(Number(m) - 1);
 }
 
 export default function ConsultantDashboardPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const navigate = useNavigate();
   const [data, setData] = useState<ConsultantDashboardData | null>(null);
@@ -97,8 +94,8 @@ export default function ConsultantDashboardPage() {
   return (
     <SidebarLayout navItems={navItems} title="Dashboard">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Meu Dashboard</h2>
-        <p className="mt-1 text-sm text-text-tertiary">Acompanhe suas horas e atividades</p>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('dashboard.myDashboard')}</h2>
+        <p className="mt-1 text-sm text-text-tertiary">{t('dashboard.myDashboardSubtitle')}</p>
       </div>
 
       {isLoading ? (
@@ -108,18 +105,18 @@ export default function ConsultantDashboardPage() {
           ))}
         </div>
       ) : error ? (
-        <div className="py-12 text-center text-danger">Erro ao carregar dashboard: {error}</div>
+        <div className="py-12 text-center text-danger">{t('common.errorLoading', { error })}</div>
       ) : data ? (
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader>
-                <CardTitle>Progresso Semanal</CardTitle>
+                <CardTitle>{t('dashboard.weeklyProgress')}</CardTitle>
                 <div className="rounded-lg bg-accent/10 p-2 text-accent"><Target size={20} /></div>
               </CardHeader>
               <p className="text-3xl font-bold text-text-primary">{data.hoursThisWeek.toFixed(1)}h</p>
-              <p className="mt-1 text-xs text-text-tertiary">Meta: {data.weeklyTarget}h</p>
+              <p className="mt-1 text-xs text-text-tertiary">{t('dashboard.weeklyTarget', { hours: data.weeklyTarget })}</p>
               <div className="mt-3 h-2 w-full rounded-full bg-surface-3">
                 <div
                   className="h-2 rounded-full bg-accent transition-all"
@@ -130,10 +127,10 @@ export default function ConsultantDashboardPage() {
             </Card>
 
             <StatCard
-              title="Horas no Mês"
+              title={t('dashboard.totalMonthHours')}
               value={`${data.hoursThisMonth.toFixed(1)}h`}
               icon={<Clock size={20} />}
-              description="Total de horas no mês atual"
+              description={t('dashboard.totalMonthHoursDesc')}
             />
 
           </div>
@@ -143,8 +140,8 @@ export default function ConsultantDashboardPage() {
             {/* Project Breakdown Pie */}
             <Card>
               <CardHeader>
-                <CardTitle>Distribuição por Projeto</CardTitle>
-                <Badge>Mês Atual</Badge>
+                <CardTitle>{t('dashboard.distributionByProject')}</CardTitle>
+                <Badge>{t('dashboard.currentMonth')}</Badge>
               </CardHeader>
               {data.projectBreakdown.length > 0 ? (
                 <div className="h-64">
@@ -166,21 +163,21 @@ export default function ConsultantDashboardPage() {
                       </Pie>
                       <Tooltip
                         contentStyle={{ backgroundColor: CHART_COLORS.surface3, border: `1px solid ${CHART_COLORS.border}`, borderRadius: 8, fontSize: 12 }}
-                        formatter={(value) => [`${Number(value).toFixed(1)}h`, 'Horas']}
+                        formatter={(value) => [`${Number(value).toFixed(1)}h`, t('dashboard.hours')]}
                       />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-sm text-text-muted">Sem dados para exibir</p>
+                <p className="py-8 text-center text-sm text-text-muted">{t('dashboard.noDataToShow')}</p>
               )}
             </Card>
 
             {/* Monthly History */}
             <Card>
               <CardHeader>
-                <CardTitle>Histórico Mensal</CardTitle>
-                <Badge>Últimos 6 Meses</Badge>
+                <CardTitle>{t('dashboard.monthlyHistory')}</CardTitle>
+                <Badge>{t('dashboard.lastSixMonths')}</Badge>
               </CardHeader>
               {data.monthlyHistory.length > 0 ? (
                 <div className="h-64">
@@ -192,14 +189,14 @@ export default function ConsultantDashboardPage() {
                       <Tooltip
                         contentStyle={{ backgroundColor: CHART_COLORS.surface3, border: `1px solid ${CHART_COLORS.border}`, borderRadius: 8, fontSize: 12 }}
                         labelStyle={{ color: '#fafafa' }}
-                        formatter={(value) => [`${Number(value).toFixed(1)}h`, 'Horas']}
+                        formatter={(value) => [`${Number(value).toFixed(1)}h`, t('dashboard.hours')]}
                       />
                       <Line type="monotone" dataKey="hours" stroke={CHART_COLORS.accent} strokeWidth={2} dot={{ fill: CHART_COLORS.accent, r: 4 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-sm text-text-muted">Sem dados para exibir</p>
+                <p className="py-8 text-center text-sm text-text-muted">{t('dashboard.noDataToShow')}</p>
               )}
             </Card>
           </div>
@@ -207,25 +204,25 @@ export default function ConsultantDashboardPage() {
           {/* Ticket Stats */}
           {ticketStats && ticketStats.myAssigned > 0 && (
             <div className="mt-8">
-              <h3 className="mb-4 text-lg font-semibold text-text-primary">Meus Tickets</h3>
+              <h3 className="mb-4 text-lg font-semibold text-text-primary">{t('dashboard.myTickets')}</h3>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <StatCard
-                  title="Atribuidos a Mim"
+                  title={t('dashboard.assignedToMe')}
                   value={ticketStats.myAssigned}
                   icon={<Ticket size={20} />}
-                  description="Tickets sob minha responsabilidade"
+                  description={t('dashboard.assignedToMeDesc')}
                 />
                 <StatCard
-                  title="Em Andamento"
+                  title={t('dashboard.inProgressTickets')}
                   value={(ticketStats.byStatus.in_analysis || 0) + (ticketStats.byStatus.awaiting_customer || 0) + (ticketStats.byStatus.awaiting_third_party || 0)}
                   icon={<PlayCircle size={20} />}
-                  description="Tickets em análise ou aguardando"
+                  description={t('dashboard.inProgressTicketsDesc')}
                 />
                 <StatCard
-                  title="Novos esta Semana"
+                  title={t('dashboard.newThisWeek')}
                   value={ticketStats.recentlyOpened}
                   icon={<Clock size={20} />}
-                  description="Tickets abertos nos últimos 7 dias"
+                  description={t('dashboard.newThisWeekDesc')}
                 />
               </div>
             </div>
@@ -236,14 +233,14 @@ export default function ConsultantDashboardPage() {
             <Card>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Apontar horas</p>
-                  <p className="text-xs text-text-tertiary">Registre suas horas na timesheet semanal</p>
+                  <p className="text-sm font-medium text-text-primary">{t('dashboard.logHours')}</p>
+                  <p className="text-xs text-text-tertiary">{t('dashboard.logHoursDesc')}</p>
                 </div>
                 <button
                   onClick={() => navigate('/timesheet')}
                   className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface-0 transition-colors hover:bg-accent-hover"
                 >
-                  Abrir Timesheet
+                  {t('dashboard.openTimesheet')}
                 </button>
               </div>
             </Card>
@@ -252,15 +249,15 @@ export default function ConsultantDashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-text-primary">
-                      Você tem {ticketStats.myAssigned} ticket{ticketStats.myAssigned !== 1 ? 's' : ''} atribuído{ticketStats.myAssigned !== 1 ? 's' : ''}
+                      {t('dashboard.assignedTicketsBanner', { count: ticketStats.myAssigned })}
                     </p>
-                    <p className="text-xs text-text-tertiary">Veja seus tickets e atualize o andamento</p>
+                    <p className="text-xs text-text-tertiary">{t('dashboard.viewAndUpdateTickets')}</p>
                   </div>
                   <button
                     onClick={() => navigate('/tickets')}
                     className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface-0 transition-colors hover:bg-accent-hover"
                   >
-                    Ver Tickets
+                    {t('dashboard.viewTickets')}
                   </button>
                 </div>
               </Card>

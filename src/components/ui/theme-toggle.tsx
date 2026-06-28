@@ -1,4 +1,5 @@
 import { Sun, Moon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../../stores/theme.store';
 
 interface ThemeToggleProps {
@@ -6,6 +7,7 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ className = '' }: ThemeToggleProps) {
+  const { t } = useTranslation();
   const { theme, toggleTheme } = useThemeStore();
   const isLight = theme === 'light';
 
@@ -17,8 +19,8 @@ export function ThemeToggle({ className = '' }: ThemeToggleProps) {
           ? 'bg-gradient-to-r from-amber-50 to-sky-50 hover:from-amber-100 hover:to-sky-100'
           : 'bg-surface-3 hover:bg-surface-4'
       } ${className}`}
-      title={isLight ? 'Mudar para modo escuro' : 'Mudar para modo claro'}
-      aria-label={isLight ? 'Mudar para modo escuro' : 'Mudar para modo claro'}
+      title={isLight ? t('common.switchToDark') : t('common.switchToLight')}
+      aria-label={isLight ? t('common.switchToDark') : t('common.switchToLight')}
     >
       {/* Sliding pill indicator */}
       <span

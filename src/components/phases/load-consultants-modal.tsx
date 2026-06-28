@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Modal } from '../ui/modal';
 import { Button } from '../ui/button';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function LoadConsultantsModal({ isOpen, phaseName, subphaseCount, consultantCount, hasExistingLinks, onConfirm, onClose }: Props) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
   async function handleConfirm() {
@@ -26,7 +28,7 @@ export function LoadConsultantsModal({ isOpen, phaseName, subphaseCount, consult
   }
 
   return (
-    <Modal isOpen={isOpen} title="Carregar Consultores" onClose={onClose}>
+    <Modal isOpen={isOpen} title={t('phases.loadConsultantsTitle')} onClose={onClose}>
       <div className="space-y-4">
         <p className="text-sm text-text-secondary">
           Isso vinculará <strong>{consultantCount}</strong> consultores a todas as{' '}
@@ -42,10 +44,10 @@ export function LoadConsultantsModal({ isOpen, phaseName, subphaseCount, consult
         )}
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} disabled={loading} className="flex-1">
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleConfirm} disabled={loading} className="flex-1">
-            {loading ? 'Carregando...' : 'Confirmar'}
+            {loading ? t('phases.loadConsultantsLoading') : t('common.confirm')}
           </Button>
         </div>
       </div>

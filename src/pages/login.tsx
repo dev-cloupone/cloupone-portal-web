@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/use-auth';
 import { getHomeRoute } from '../utils/get-home-route';
 import { useAuthStore } from '../stores/auth.store';
@@ -11,6 +12,7 @@ import { Input } from '../components/ui/input';
 import { AuthLayout } from '../components/ui/auth-layout';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -45,9 +47,9 @@ export default function LoginPage() {
     } catch (err) {
       console.warn('[auth] Login failed:', err);
       if (err instanceof Error && err.message.includes('fetch')) {
-        setError(MSG.CONNECTION_ERROR);
+        setError(MSG.CONNECTION_ERROR());
       } else {
-        setError(MSG.WRONG_CREDENTIALS);
+        setError(MSG.WRONG_CREDENTIALS());
       }
     } finally {
       setIsSubmitting(false);
@@ -55,32 +57,32 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthLayout subtitle="Acesse sua conta">
+    <AuthLayout subtitle={t('auth.accessAccount')}>
       <form onSubmit={handleSubmit} className="space-y-5">
         <Input
-          label="Email"
+          label={t('auth.email')}
           type="email"
           autoComplete="email"
           inputMode="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="seu@email.com"
+          placeholder={t('auth.emailPlaceholder')}
           required
         />
 
         <div>
           <Input
-            label="Senha"
+            label={t('auth.password')}
             type="password"
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Sua senha"
+            placeholder={t('auth.yourPassword')}
             required
           />
           <div className="mt-1.5 text-right">
             <Link to="/forgot-password" className="text-xs text-text-tertiary hover:text-accent transition-colors">
-              Esqueceu sua senha?
+              {t('auth.forgotPasswordLink')}
             </Link>
           </div>
         </div>
@@ -92,15 +94,15 @@ export default function LoginPage() {
         )}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? 'Entrando...' : 'Entrar'}
+          {isSubmitting ? t('auth.loggingIn') : t('auth.login')}
         </Button>
       </form>
 
       {allowRegistration && (
         <p className="mt-5 text-center text-xs text-text-tertiary">
-          Nao tem uma conta?{' '}
+          {t('auth.noAccount')}{' '}
           <Link to="/register" className="text-accent hover:text-accent-hover transition-colors">
-            Criar conta
+            {t('auth.createAccount')}
           </Link>
         </p>
       )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Download, ChevronDown, ChevronRight } from 'lucide-react';
@@ -17,15 +18,17 @@ import { WeekMultiSelect } from './components/week-multi-select';
 import type { ProjectExpensePeriod } from '../../types/expense.types';
 import type { ExpenseReportResult } from '../../types/report.types';
 import { formatCurrency } from '../../utils/formatters';
+import { useLocaleStore } from '../../stores/locale.store';
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR');
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString(useLocaleStore.getState().locale);
 }
 
 function formatWeekRange(weekStart: string, weekEnd: string): string {
+  const locale = useLocaleStore.getState().locale;
   const s = new Date(weekStart + 'T12:00:00');
   const e = new Date(weekEnd + 'T12:00:00');
-  return `${s.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} a ${e.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+  return `${s.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' })} a ${e.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 }
 
 interface ProjectOption { value: string; label: string; }
@@ -33,6 +36,7 @@ interface ConsultantOption { value: string; label: string; }
 
 export default function ExpenseReportPage() {
   const navItems = useNavItems();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   // Filter state
@@ -154,17 +158,17 @@ export default function ExpenseReportPage() {
     });
   }
 
-  const valueLabel = view === 'client' ? 'Valor Cobrado' : 'Valor Lançado';
+  const valueLabel = view === 'client' ? t('reports.chargedAmount') : t('reports.postedAmount');
 
   return (
-    <SidebarLayout navItems={navItems} title="Relatório de Despesas">
+    <SidebarLayout navItems={navItems} title={t('reports.expenseReport')}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/reports')} className="rounded-lg p-1.5 text-text-secondary hover:bg-surface-3 hover:text-text-primary transition-colors">
             <ArrowLeft size={18} />
           </button>
-          <h1 className="text-lg font-semibold text-text-primary">Relatório de Despesas</h1>
+          <h1 className="text-lg font-semibold text-text-primary">{t('reports.expenseReport')}</h1>
         </div>
 
         {/* Filters */}
@@ -172,8 +176,8 @@ export default function ExpenseReportPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div>
               <Select
-                label="Projeto"
-                placeholder={loadingFilters ? 'Carregando...' : 'Selecione o projeto'}
+                label={t('common.project')}
+                placeholder={loadingFilters ? t('common.loading') : t('invoicesPages.selectProject')}
                 options={projects}
                 value={projectId}
                 onChange={setProjectId}
@@ -181,19 +185,19 @@ export default function ExpenseReportPage() {
             </div>
             <div>
               <Select
-                label="Consultor"
-                placeholder="Todos"
-                options={[{ value: '', label: 'Todos' }, ...consultants]}
+                label={t('common.consultant')}
+                placeholder={t('common.all')}
+                options={[{ value: '', label: t('common.all') }, ...consultants]}
                 value={consultantId}
                 onChange={setConsultantId}
               />
             </div>
             <div>
               <Select
-                label="Visão"
+                label={t('reports.viewLabel')}
                 options={[
-                  { value: 'consultant', label: 'Consultor' },
-                  { value: 'client', label: 'Cliente' },
+                  { value: 'consultant', label: t('reports.viewConsultant') },
+                  { value: 'client', label: t('reports.viewClient') },
                 ]}
                 value={view}
                 onChange={(v) => setView(v as 'consultant' | 'client')}
@@ -202,14 +206,14 @@ export default function ExpenseReportPage() {
             {view === 'client' && (
               <div>
                 <Select
-                  label="Conta Bancaria"
-                  placeholder={bankAccounts.length === 0 ? 'Nenhuma conta cadastrada' : 'Selecione a conta'}
+                  label={t('reports.bankAccount')}
+                  placeholder={bankAccounts.length === 0 ? t('reports.noBankAccounts') : t('reports.selectAccount')}
                   options={bankAccounts.map((a) => ({ value: a.id, label: a.label }))}
                   value={bankAccountId}
                   onChange={setBankAccountId}
                 />
                 {bankAccounts.length === 0 && (
-                  <p className="text-[10px] text-warning mt-1">Cadastre contas bancarias em Configuracoes.</p>
+                  <p className="text-[10px] text-warning mt-1">{t('reports.registerBankAccounts')}</p>
                 )}
               </div>
             )}
@@ -217,7 +221,7 @@ export default function ExpenseReportPage() {
 
           {/* Week selector - full width below filters */}
           <div className="mt-4 border-t border-border pt-4">
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-text-secondary">Período / Semanas</label>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-text-secondary">{t('reports.periodsWeeks')}</label>
             {projectId ? (
               <WeekMultiSelect
                 periods={periods}
@@ -225,7 +229,7 @@ export default function ExpenseReportPage() {
                 onChange={setSelectedWeekIds}
               />
             ) : (
-              <p className="py-3 text-sm text-text-muted">Selecione um projeto primeiro</p>
+              <p className="py-3 text-sm text-text-muted">{t('reports.selectProjectFirst')}</p>
             )}
           </div>
         </Card>
@@ -248,17 +252,17 @@ export default function ExpenseReportPage() {
               <div className="text-sm text-text-secondary">
                 <span className="font-medium text-text-primary">{reportData.project.name}</span>
                 <span className="mx-2">|</span>
-                Visão: {reportData.view === 'client' ? 'Cliente' : 'Consultor'}
+                Visão: {reportData.view === 'client' ? t('reports.viewClient') : t('reports.viewConsultant')}
               </div>
               <Button size="sm" onClick={handleDownloadPdf} disabled={pdfLoading || (view === 'client' && !bankAccountId)}>
                 <Download size={14} className="mr-1.5" />
-                {pdfLoading ? 'Gerando...' : 'Gerar PDF'}
+                {pdfLoading ? t('reports.generatingPdf') : t('reports.generatePdf')}
               </Button>
             </div>
 
             {reportData.weeks.length === 0 ? (
               <div className="py-12 text-center">
-                <p className="text-sm text-text-tertiary">Nenhuma despesa encontrada para os filtros selecionados.</p>
+                <p className="text-sm text-text-tertiary">{t('reports.noExpensesFound')}</p>
               </div>
             ) : (
               <>
@@ -288,9 +292,9 @@ export default function ExpenseReportPage() {
                               <Table>
                                 <TableHead>
                                   <TableRow>
-                                    <TableHeader>Data</TableHeader>
-                                    <TableHeader>Categoria</TableHeader>
-                                    <TableHeader>Descrição</TableHeader>
+                                    <TableHeader>{t('common.date')}</TableHeader>
+                                    <TableHeader>{t('expenses.category')}</TableHeader>
+                                    <TableHeader>{t('common.description')}</TableHeader>
                                     <TableHeader className="text-right">{valueLabel}</TableHeader>
                                   </TableRow>
                                 </TableHead>
@@ -304,7 +308,7 @@ export default function ExpenseReportPage() {
                                     </TableRow>
                                   ))}
                                   <tr className="transition-colors hover:bg-surface-2/50">
-                                    <td colSpan={3} className="px-4 py-3.5 text-sm text-right font-semibold text-text-primary">Subtotal</td>
+                                    <td colSpan={3} className="px-4 py-3.5 text-sm text-right font-semibold text-text-primary">{t('common.subtotal')}</td>
                                     <td className="px-4 py-3.5 text-sm text-right font-semibold text-text-primary">{formatCurrency(consultant.subtotal)}</td>
                                   </tr>
                                 </TableBody>
@@ -316,7 +320,7 @@ export default function ExpenseReportPage() {
                     })}
 
                     <div className="mt-2 flex items-center justify-end border-t border-border pt-2">
-                      <span className="text-sm font-semibold text-text-primary">Total da Semana: {formatCurrency(week.weekTotal)}</span>
+                      <span className="text-sm font-semibold text-text-primary">{t('reports.weekTotal')}: {formatCurrency(week.weekTotal)}</span>
                     </div>
                   </Card>
                 ))}
@@ -324,7 +328,7 @@ export default function ExpenseReportPage() {
                 {/* Grand total */}
                 <Card>
                   <div className="flex items-center justify-between">
-                    <span className="text-base font-bold text-text-primary">Total Geral</span>
+                    <span className="text-base font-bold text-text-primary">{t('reports.grandTotal')}</span>
                     <span className="text-base font-bold text-accent">{formatCurrency(reportData.grandTotal)}</span>
                   </div>
                 </Card>
@@ -336,7 +340,7 @@ export default function ExpenseReportPage() {
         {/* Empty state */}
         {!loading && !reportData && !error && projectId && selectedWeekIds.length > 0 && (
           <div className="py-12 text-center">
-            <p className="text-sm text-text-tertiary">Nenhum dado disponível.</p>
+            <p className="text-sm text-text-tertiary">{t('reports.noDataAvailable')}</p>
           </div>
         )}
       </div>

@@ -1,7 +1,9 @@
+import './i18n';
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { useAuthStore } from './stores/auth.store';
 import { useThemeStore } from './stores/theme.store';
+import { useLocaleStore } from './stores/locale.store';
 import { ProtectedRoute } from './components/protected-route';
 import { RoleGuard } from './components/role-guard';
 import { DefaultRedirect } from './components/default-redirect';
@@ -84,10 +86,6 @@ const InvoiceExpensesDetailPage = lazy(() => import('./pages/financial/invoice-e
 const MyPaymentsHoursPage = lazy(() => import('./pages/my-payments-hours'));
 const MyPaymentsExpensesPage = lazy(() => import('./pages/my-payments-expenses'));
 
-// My Invoices (client)
-const MyInvoicesServicesPage = lazy(() => import('./pages/my-invoices-services'));
-const MyInvoicesExpensesPage = lazy(() => import('./pages/my-invoices-expenses'));
-
 // Tickets (all authenticated roles)
 const TicketsPage = lazy(() => import('./pages/tickets'));
 const TicketNewPage = lazy(() => import('./pages/ticket-new'));
@@ -98,7 +96,10 @@ export default function App() {
   const initializeTheme = useThemeStore((s) => s.initialize);
 
   useEffect(() => {
-    void initialize();
+    void initialize().then(() => {
+      const user = useAuthStore.getState().user;
+      useLocaleStore.getState().initialize(user?.locale);
+    });
     initializeTheme();
   }, [initialize, initializeTheme]);
 
@@ -318,28 +319,6 @@ export default function App() {
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['consultor', 'gestor']}>
                   <MyPaymentsExpensesPage />
-                </RoleGuard>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* My Invoices (client) */}
-          <Route
-            path="/my-invoices/services"
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['client']}>
-                  <MyInvoicesServicesPage />
-                </RoleGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-invoices/expenses"
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['client']}>
-                  <MyInvoicesExpensesPage />
                 </RoleGuard>
               </ProtectedRoute>
             }

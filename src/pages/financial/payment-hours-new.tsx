@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
@@ -10,20 +11,7 @@ import { formatApiError } from '../../services/api';
 import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 
-const MONTH_OPTIONS = [
-  { value: '1', label: 'Janeiro' },
-  { value: '2', label: 'Fevereiro' },
-  { value: '3', label: 'Marco' },
-  { value: '4', label: 'Abril' },
-  { value: '5', label: 'Maio' },
-  { value: '6', label: 'Junho' },
-  { value: '7', label: 'Julho' },
-  { value: '8', label: 'Agosto' },
-  { value: '9', label: 'Setembro' },
-  { value: '10', label: 'Outubro' },
-  { value: '11', label: 'Novembro' },
-  { value: '12', label: 'Dezembro' },
-];
+
 
 function buildYearOptions(): { value: string; label: string }[] {
   const current = new Date().getFullYear();
@@ -36,8 +24,24 @@ function buildYearOptions(): { value: string; label: string }[] {
 
 export default function PaymentHoursNewPage() {
   const navItems = useNavItems();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
+
+  const MONTH_OPTIONS = [
+    { value: '1', label: t('months.january') },
+    { value: '2', label: t('months.february') },
+    { value: '3', label: t('months.march') },
+    { value: '4', label: t('months.april') },
+    { value: '5', label: t('months.may') },
+    { value: '6', label: t('months.june') },
+    { value: '7', label: t('months.july') },
+    { value: '8', label: t('months.august') },
+    { value: '9', label: t('months.september') },
+    { value: '10', label: t('months.october') },
+    { value: '11', label: t('months.november') },
+    { value: '12', label: t('months.december') },
+  ];
 
   const [consultantOptions, setConsultantOptions] = useState<{ value: string; label: string }[]>([]);
   const [userId, setUserId] = useState('');
@@ -66,7 +70,7 @@ export default function PaymentHoursNewPage() {
         year: Number(year),
         month: Number(month),
       });
-      addToast('Draft gerado com sucesso!', 'success');
+      addToast(t('payments.draftGenerated'), 'success');
       navigate(`/financial/payments/hours/${result.id}`);
     } catch (err) {
       setError(formatApiError(err));
@@ -76,7 +80,7 @@ export default function PaymentHoursNewPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Gerar Pagamento de Horas">
+    <SidebarLayout navItems={navItems} title={t('payments.generateHoursPayment')}>
       <div className="mb-6">
         <button
           type="button"
@@ -84,11 +88,11 @@ export default function PaymentHoursNewPage() {
           className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
-          Voltar
+          {t('common.back')}
         </button>
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Gerar Pagamento de Horas</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('payments.generateHoursPayment')}</h2>
         <p className="text-sm text-text-muted mt-1">
-          Selecione o consultor e o periodo para gerar o draft de pagamento.
+          {t('payments.selectConsultantAndPeriod')}
         </p>
       </div>
 
@@ -100,18 +104,18 @@ export default function PaymentHoursNewPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-lg">
         <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">Dados do Pagamento</h3>
+          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">{t('payments.paymentData')}</h3>
 
           <Select
-            label="Consultor"
-            options={[{ value: '', label: 'Selecione o consultor' }, ...consultantOptions]}
+            label={t('common.consultant')}
+            options={[{ value: '', label: t('payments.selectConsultant') }, ...consultantOptions]}
             value={userId}
             onChange={setUserId}
             required
           />
 
           <Select
-            label="Ano"
+            label={t('common.year')}
             options={buildYearOptions()}
             value={year}
             onChange={setYear}
@@ -119,8 +123,8 @@ export default function PaymentHoursNewPage() {
           />
 
           <Select
-            label="Mes"
-            options={[{ value: '', label: 'Selecione o mes' }, ...MONTH_OPTIONS]}
+            label={t('common.month')}
+            options={[{ value: '', label: t('payments.selectMonth') }, ...MONTH_OPTIONS]}
             value={month}
             onChange={setMonth}
             required
@@ -133,10 +137,10 @@ export default function PaymentHoursNewPage() {
             type="button"
             onClick={() => navigate('/financial/payments/hours')}
           >
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={submitting || !userId || !year || !month}>
-            {submitting ? 'Gerando...' : 'Gerar Draft'}
+            {submitting ? t('common.generating') : t('projects.generateDraft')}
           </Button>
         </div>
       </form>

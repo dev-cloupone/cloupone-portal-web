@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { Wallet, Eye, Trash2 } from 'lucide-react';
@@ -17,16 +18,17 @@ import { useNavItems } from '../../hooks/use-nav-items';
 import type { ExpensePayment } from '../../types/financial.types';
 import type { PaginationMeta } from '../../types/pagination.types';
 import { formatCurrency } from '../../utils/formatters';
+import { useLocaleStore } from '../../stores/locale.store';
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString(useLocaleStore.getState().locale);
 }
 
 const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'danger' }> = {
-  draft: { label: 'Rascunho', variant: 'default' },
-  confirmed: { label: 'Confirmado', variant: 'warning' },
-  paid: { label: 'Pago', variant: 'success' },
-  cancelled: { label: 'Cancelado', variant: 'danger' },
+  draft: { label: 'payments.statusDraft', variant: 'default' },
+  confirmed: { label: 'payments.statusConfirmed', variant: 'warning' },
+  paid: { label: 'payments.statusPaid', variant: 'success' },
+  cancelled: { label: 'payments.statusCancelled', variant: 'danger' },
 };
 
 function getCurrentMonth(): string {
@@ -41,6 +43,7 @@ function parseMonth(m: string): { year: number; month: number } {
 
 export default function PaymentExpensesListPage() {
   const navItems = useNavItems();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
   const [data, setData] = useState<ExpensePayment[]>([]);
@@ -114,10 +117,10 @@ export default function PaymentExpensesListPage() {
   }, [filterConsultant, filterStatus, currentMonth]);
 
   async function handleDelete(paymentId: string) {
-    if (!confirm('Excluir este pagamento?')) return;
+    if (!confirm(t('payments.deletePayment'))) return;
     try {
       await paymentService.deletePayment(paymentId);
-      addToast('Pagamento excluído.', 'success');
+      addToast(t('payments.paymentDeleted'), 'success');
       loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -125,13 +128,13 @@ export default function PaymentExpensesListPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Pgto. Despesas">
+    <SidebarLayout navItems={navItems} title={t('payments.expensesTitle')}>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Pagamento de Despesas</h2>
-          <p className="text-sm text-text-muted mt-1">Gerencie pagamentos de despesas dos consultores.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('payments.expensesTitle')}</h2>
+          <p className="text-sm text-text-muted mt-1">{t('payments.expensesSubtitle')}</p>
         </div>
-        <Button onClick={() => navigate('/financial/payments/expenses/new')}>Gerar Pagamento</Button>
+        <Button onClick={() => navigate('/financial/payments/expenses/new')}>{t('payments.generatePayment')}</Button>
       </div>
 
       {/* Month Navigator */}
@@ -147,21 +150,21 @@ export default function PaymentExpensesListPage() {
       <div className="mb-4 flex flex-wrap gap-3 items-end">
         <div className="w-48">
           <Select
-            label="Consultor"
-            options={[{ value: '', label: 'Todos' }, ...consultantOptions]}
+            label={t('common.consultant')}
+            options={[{ value: '', label: t('common.all') }, ...consultantOptions]}
             value={filterConsultant}
             onChange={setFilterConsultant}
           />
         </div>
         <div className="w-40">
           <Select
-            label="Status"
+            label={t('common.status')}
             options={[
-              { value: '', label: 'Todos' },
-              { value: 'draft', label: 'Rascunho' },
-              { value: 'confirmed', label: 'Confirmado' },
-              { value: 'paid', label: 'Pago' },
-              { value: 'cancelled', label: 'Cancelado' },
+              { value: '', label: t('common.all') },
+              { value: 'draft', label: t('payments.statusDraft') },
+              { value: 'confirmed', label: t('payments.statusConfirmed') },
+              { value: 'paid', label: t('payments.statusPaid') },
+              { value: 'cancelled', label: t('payments.statusCancelled') },
             ]}
             value={filterStatus}
             onChange={setFilterStatus}
@@ -173,7 +176,7 @@ export default function PaymentExpensesListPage() {
         <div className="mb-4 rounded-lg bg-danger-muted border border-danger/20 px-3 py-2 flex items-center justify-between">
           <p className="text-xs text-danger">{error}</p>
           <button type="button" onClick={loadData} className="text-xs text-danger underline ml-2 shrink-0">
-            Tentar novamente
+            {t('common.tryAgain')}
           </button>
         </div>
       )}
@@ -187,8 +190,8 @@ export default function PaymentExpensesListPage() {
       ) : data.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
           <Wallet size={40} className="text-accent mb-3" />
-          <p className="text-text-secondary font-medium">Nenhum pagamento encontrado</p>
-          <p className="text-text-muted text-sm mt-1">Ajuste os filtros ou gere um novo pagamento.</p>
+          <p className="text-text-secondary font-medium">{t('payments.noPaymentFound')}</p>
+          <p className="text-text-muted text-sm mt-1">{t('payments.adjustOrGenerate')}</p>
         </div>
       ) : (
         <>
@@ -196,11 +199,11 @@ export default function PaymentExpensesListPage() {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableHeader>Consultor</TableHeader>
-                  <TableHeader>Período</TableHeader>
-                  <TableHeader className="text-right">Total Valor</TableHeader>
-                  <TableHeader>Status</TableHeader>
-                  <TableHeader className="w-20">Ações</TableHeader>
+                  <TableHeader>{t('common.consultant')}</TableHeader>
+                  <TableHeader>{t('common.period')}</TableHeader>
+                  <TableHeader className="text-right">{t('payments.totalValue')}</TableHeader>
+                  <TableHeader>{t('common.status')}</TableHeader>
+                  <TableHeader className="w-20">{t('common.actions')}</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -218,14 +221,14 @@ export default function PaymentExpensesListPage() {
                         {formatCurrency(payment.totalAmount)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={st.variant}>{st.label}</Badge>
+                        <Badge variant={st.variant}>{t(st.label)}</Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => navigate(`/financial/payments/expenses/${payment.id}`)}
                             className="rounded-md p-1.5 text-text-muted hover:text-accent hover:bg-accent/10 transition-colors"
-                            title="Ver detalhes"
+                            title={t('payments.viewDetails')}
                           >
                             <Eye size={15} />
                           </button>
@@ -233,7 +236,7 @@ export default function PaymentExpensesListPage() {
                             <button
                               onClick={() => handleDelete(payment.id)}
                               className="rounded-md p-1.5 text-text-muted hover:text-danger hover:bg-danger/10 transition-colors"
-                              title="Excluir"
+                              title={t('common.delete')}
                             >
                               <Trash2 size={15} />
                             </button>

@@ -1,12 +1,15 @@
+import { useTranslation } from 'react-i18next';
+
 export function ExpenseCalendarLegend() {
+  const { t } = useTranslation();
   const items = [
-    { color: 'bg-success-15', border: 'border-success/30', label: 'Semana aberta' },
-    { color: 'bg-surface-2', border: 'border-border', label: 'Semana fechada' },
-    { color: 'bg-success', border: '', label: 'Aprovada', dot: true },
-    { color: 'bg-accent', border: '', label: 'Criada', dot: true },
-    { color: 'bg-text-muted', border: '', label: 'Rascunho', dot: true },
-    { color: 'bg-warning', border: '', label: 'Submetida', dot: true },
-    { color: 'bg-danger', border: '', label: 'Rejeitada', dot: true },
+    { color: 'bg-success-15', border: 'border-success/30', label: t('expenses.weekOpenLegend') },
+    { color: 'bg-surface-2', border: 'border-border', label: t('expenses.weekClosedLegend') },
+    { color: 'bg-success', border: '', label: t('expenses.legendApproved'), dot: true },
+    { color: 'bg-accent', border: '', label: t('expenses.legendCreated'), dot: true },
+    { color: 'bg-text-muted', border: '', label: t('expenses.legendDraft'), dot: true },
+    { color: 'bg-warning', border: '', label: t('expenses.legendSubmitted'), dot: true },
+    { color: 'bg-danger', border: '', label: t('expenses.legendRejected'), dot: true },
   ];
 
   return (

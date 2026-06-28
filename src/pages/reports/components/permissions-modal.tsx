@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Modal } from '../../../components/ui/modal';
 import { Button } from '../../../components/ui/button';
@@ -18,6 +19,7 @@ export function PermissionsModal({ isOpen, onClose, reportId, reportName }: Perm
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -60,7 +62,7 @@ export function PermissionsModal({ isOpen, onClose, reportId, reportName }: Perm
     : gestores;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Gerenciar Acesso — ${reportName}`}>
+    <Modal isOpen={isOpen} onClose={onClose} title={t('reports.manageAccessTitle', { name: reportName })}>
       {loading ? (
         <div className="flex items-center justify-center py-8">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
@@ -72,7 +74,7 @@ export function PermissionsModal({ isOpen, onClose, reportId, reportName }: Perm
           {gestores.length > 5 && (
             <input
               type="text"
-              placeholder="Buscar gestor..."
+              placeholder={t('reports.searchManager')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
@@ -80,7 +82,7 @@ export function PermissionsModal({ isOpen, onClose, reportId, reportName }: Perm
           )}
           <div className="max-h-64 space-y-1 overflow-y-auto">
             {filtered.length === 0 ? (
-              <p className="py-4 text-center text-sm text-text-tertiary">Nenhum gestor encontrado.</p>
+              <p className="py-4 text-center text-sm text-text-tertiary">{t('reports.noManagerFound')}</p>
             ) : (
               filtered.map((g) => (
                 <label
@@ -102,9 +104,9 @@ export function PermissionsModal({ isOpen, onClose, reportId, reportName }: Perm
             )}
           </div>
           <div className="flex justify-end gap-3 pt-2">
-            <Button variant="secondary" size="sm" onClick={onClose}>Cancelar</Button>
+            <Button variant="secondary" size="sm" onClick={onClose}>{t('common.cancel')}</Button>
             <Button size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar'}
+              {saving ? t('common.saving') : t('common.save')}
             </Button>
           </div>
         </div>

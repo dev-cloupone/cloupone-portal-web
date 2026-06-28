@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Pencil, XCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -16,6 +17,7 @@ import type { Client } from '../../types/client.types';
 const emptyForm = { companyName: '', cnpj: '', contactName: '', contactEmail: '', contactPhone: '', notes: '', address: '', city: '', state: '', zipCode: '' };
 
 export default function ClientsPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const [clients, setClients] = useState<Client[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -31,7 +33,7 @@ export default function ClientsPage() {
       setClients(result.data);
       setMeta(result.meta);
     } catch {
-      setError('Erro ao carregar clientes');
+      setError(t('admin.loadClientsError'));
     }
   }
 
@@ -62,7 +64,7 @@ export default function ClientsPage() {
   }
 
   async function handleDeactivate(client: Client) {
-    if (!confirm(`Desativar ${client.companyName}?`)) return;
+    if (!confirm(t('admin.confirmDeactivateClient', { name: client.companyName }))) return;
     try {
       await clientService.deactivateClient(client.id);
       await loadData();
@@ -98,19 +100,19 @@ export default function ClientsPage() {
 
   const formFields = (
     <>
-      <Input label="Razão Social" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} required />
-      <Input label="CNPJ" value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} placeholder="XX.XXX.XXX/XXXX-XX" />
-      <Input label="Nome do Contato" value={form.contactName} onChange={(e) => setForm({ ...form, contactName: e.target.value })} />
-      <Input label="Email do Contato" type="email" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
-      <Input label="Telefone" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
-      <Input label="Endereço" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Rua, número - complemento" />
+      <Input label={t('admin.companyName')} value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} required />
+      <Input label={t('admin.cnpj')} value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} placeholder="XX.XXX.XXX/XXXX-XX" />
+      <Input label={t('admin.contactName')} value={form.contactName} onChange={(e) => setForm({ ...form, contactName: e.target.value })} />
+      <Input label={t('admin.contactEmail')} type="email" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
+      <Input label={t('common.phone')} value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
+      <Input label={t('common.address')} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Rua, número - complemento" />
       <div className="grid grid-cols-3 gap-3">
-        <Input label="Cidade" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-        <Input label="Estado" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder="SC" maxLength={2} />
-        <Input label="CEP" value={form.zipCode} onChange={(e) => setForm({ ...form, zipCode: e.target.value })} placeholder="00000-000" />
+        <Input label={t('common.city')} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+        <Input label={t('common.state')} value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder="SC" maxLength={2} />
+        <Input label={t('common.zipCode')} value={form.zipCode} onChange={(e) => setForm({ ...form, zipCode: e.target.value })} placeholder="00000-000" />
       </div>
       <div className="space-y-1.5">
-        <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">Observações</label>
+        <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('common.observations')}</label>
         <textarea
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
@@ -124,12 +126,12 @@ export default function ClientsPage() {
   return (
     <SidebarLayout navItems={navItems} title="Admin">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Clientes</h2>
-        <Button onClick={openCreate}><Plus size={16} className="mr-2" /> Novo Cliente</Button>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('admin.clients')}</h2>
+        <Button onClick={openCreate}><Plus size={16} className="mr-2" /> {t('admin.newClient')}</Button>
       </div>
 
       <div className="mb-4">
-        <Input placeholder="Buscar por nome..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input placeholder={t('common.searchByName')} value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       {error && !isCreateOpen && !editing && (
@@ -141,12 +143,12 @@ export default function ClientsPage() {
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeader>Razão Social</TableHeader>
-            <TableHeader>CNPJ</TableHeader>
-            <TableHeader>Contato</TableHeader>
-            <TableHeader>Email</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Ações</TableHeader>
+            <TableHeader>{t('admin.companyName')}</TableHeader>
+            <TableHeader>{t('admin.cnpj')}</TableHeader>
+            <TableHeader>{t('common.contact')}</TableHeader>
+            <TableHeader>{t('common.email')}</TableHeader>
+            <TableHeader>{t('common.status')}</TableHeader>
+            <TableHeader>{t('common.actions')}</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -157,13 +159,13 @@ export default function ClientsPage() {
               <TableCell>{c.contactName || '—'}</TableCell>
               <TableCell>{c.contactEmail || '—'}</TableCell>
               <TableCell>
-                <Badge variant={c.isActive ? 'success' : 'danger'}>{c.isActive ? 'Ativo' : 'Inativo'}</Badge>
+                <Badge variant={c.isActive ? 'success' : 'danger'}>{c.isActive ? t('common.active') : t('common.inactive')}</Badge>
               </TableCell>
               <TableCell>
                 <div className="flex gap-2">
-                  <button onClick={() => openEdit(c)} className="text-accent hover:text-accent-hover" title="Editar"><Pencil size={16} /></button>
+                  <button onClick={() => openEdit(c)} className="text-accent hover:text-accent-hover" title={t('common.edit')}><Pencil size={16} /></button>
                   {c.isActive && (
-                    <button onClick={() => handleDeactivate(c)} className="text-danger hover:text-danger/80" title="Desativar"><XCircle size={16} /></button>
+                    <button onClick={() => handleDeactivate(c)} className="text-danger hover:text-danger/80" title={t('common.deactivate')}><XCircle size={16} /></button>
                   )}
                 </div>
               </TableCell>
@@ -173,24 +175,24 @@ export default function ClientsPage() {
       </Table>
       {meta && <PaginationControls meta={meta} onPageChange={goToPage} />}
 
-      <Modal isOpen={isCreateOpen} onClose={() => { setIsCreateOpen(false); setError(''); }} title="Novo Cliente">
+      <Modal isOpen={isCreateOpen} onClose={() => { setIsCreateOpen(false); setError(''); }} title={t('admin.newClient')}>
         <form onSubmit={handleCreate} className="space-y-4">
           {formFields}
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => { setIsCreateOpen(false); setError(''); }}>Cancelar</Button>
-            <Button type="submit">Criar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setIsCreateOpen(false); setError(''); }}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.create')}</Button>
           </div>
         </form>
       </Modal>
 
-      <Modal isOpen={!!editing} onClose={() => { setEditing(null); setError(''); }} title="Editar Cliente">
+      <Modal isOpen={!!editing} onClose={() => { setEditing(null); setError(''); }} title={t('admin.editClient')}>
         <form onSubmit={handleUpdate} className="space-y-4">
           {formFields}
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => { setEditing(null); setError(''); }}>Cancelar</Button>
-            <Button type="submit">Salvar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setEditing(null); setError(''); }}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.save')}</Button>
           </div>
         </form>
       </Modal>

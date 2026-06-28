@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, AlertTriangle, Paperclip, Upload, Settings } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Select } from '../ui/select';
@@ -6,6 +7,7 @@ import type { Expense, UpsertExpenseData, ProjectExpenseCategory, ExpenseTemplat
 import type { ProjectAllocation } from '../../types/project.types';
 import { apiFetch, BASE_URL } from '../../services/api';
 import { useAuth } from '../../hooks/use-auth';
+import { useLocaleStore } from '../../stores/locale.store';
 
 interface AllocatedProject {
   projectId: string;
@@ -45,6 +47,8 @@ export function ExpenseForm({
   onManageTemplates,
   onCancel,
 }: ExpenseFormProps) {
+  const { t } = useTranslation();
+  const locale = useLocaleStore((s) => s.locale);
   const { user } = useAuth();
   const isGestorOrAdmin = user?.role === 'gestor' || user?.role === 'super_admin';
 
@@ -157,7 +161,7 @@ export function ExpenseForm({
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      setError('Arquivo muito grande. Máximo: 10MB');
+      setError(t('expenses.fileTooLarge'));
       return;
     }
 
@@ -171,7 +175,7 @@ export function ExpenseForm({
       setReceiptFileId(data.id);
       setReceiptUrl(data.url);
     } catch {
-      setError('Erro ao enviar comprovante.');
+      setError(t('expenses.uploadError'));
     } finally {
       setIsUploading(false);
     }
@@ -183,7 +187,7 @@ export function ExpenseForm({
     if (isGestorOrAdmin && !consultantUserId) return;
     if (isKmCategory && !kmQuantity) return;
     if (needsReceipt) {
-      setError('Esta categoria exige comprovante. Anexe um comprovante antes de salvar.');
+      setError(t('expenses.receiptRequiredError'));
       return;
     }
 
@@ -203,7 +207,7 @@ export function ExpenseForm({
         requiresReimbursement,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar despesa.');
+      setError(err instanceof Error ? err.message : t('expenses.saveError'));
     } finally {
       setIsSaving(false);
     }
@@ -233,13 +237,13 @@ export function ExpenseForm({
     label: t.amount ? `${t.name} (R$ ${Number(t.amount).toFixed(2)})` : t.name,
   }));
 
-  const dateDisplay = new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', {
+  const dateDisplay = new Date(date + 'T12:00:00').toLocaleDateString(locale, {
     weekday: 'short',
     day: '2-digit',
     month: 'long',
   });
 
-  const title = expense ? 'Editar Despesa' : 'Nova Despesa';
+  const title = expense ? t('expenses.editExpense') : t('expenses.newExpense');
   const isReimbursementEditable = isEditable && (user?.role !== 'consultor' || !expense);
 
   return (
@@ -251,7 +255,7 @@ export function ExpenseForm({
           onClick={onCancel}
           className="flex items-center text-xs text-text-tertiary hover:text-text-secondary transition-colors"
         >
-          <ArrowLeft size={14} className="mr-1" /> Voltar
+          <ArrowLeft size={14} className="mr-1" /> {t('expenses.backLabel')}
         </button>
         <span className="text-sm font-semibold text-text-primary">{title}</span>
         {onManageTemplates && (
@@ -259,7 +263,7 @@ export function ExpenseForm({
             type="button"
             onClick={onManageTemplates}
             className="ml-auto flex items-center gap-1 text-xs text-text-tertiary hover:text-text-secondary transition-colors"
-            title="Gerenciar templates"
+            title={t('expenses.manageTemplates')}
           >
             <Settings size={14} />
           </button>
@@ -274,7 +278,7 @@ export function ExpenseForm({
           <div className="rounded-lg border border-danger/30 bg-danger/5 px-3.5 py-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <AlertTriangle size={12} className="text-danger" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-danger">Motivo da rejeição</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-danger">{t('expenses.rejectionReason')}</span>
             </div>
             <p className="text-sm text-text-primary">{expense.rejectionComment}</p>
           </div>
@@ -287,16 +291,16 @@ export function ExpenseForm({
             value=""
             onChange={handleApplyTemplate}
             options={templateOptions}
-            placeholder="Aplicar template..."
+            placeholder={t('expenses.applyTemplate')}
           />
         )}
 
         <Select
-          label="Projeto"
+          label={t('common.project')}
           value={projectId}
           onChange={(v) => { setProjectId(v); onProjectChange?.(v); }}
           options={projectOptions}
-          placeholder="Selecione um projeto"
+          placeholder={t('expenses.selectProject')}
           disabled={!isEditable || isContextMode}
           required
         />
@@ -304,22 +308,22 @@ export function ExpenseForm({
         {/* Consultant selector (gestor/admin only) */}
         {isGestorOrAdmin && projectId && (
           <Select
-            label="Consultor"
+            label={t('common.consultant')}
             value={consultantUserId}
             onChange={setConsultantUserId}
             options={consultantOptions}
-            placeholder={consultantOptions.length === 0 ? 'Nenhum consultor alocado' : 'Selecione o consultor'}
+            placeholder={consultantOptions.length === 0 ? t('expenses.noConsultantAllocated') : t('expenses.selectConsultant')}
             disabled={!isEditable || consultantOptions.length === 0 || isContextMode}
             required
           />
         )}
 
         <Select
-          label="Categoria"
+          label={t('expenses.category')}
           value={expenseCategoryId}
           onChange={setExpenseCategoryId}
           options={categoryOptions}
-          placeholder={projectId ? 'Selecione uma categoria' : 'Selecione um projeto primeiro'}
+          placeholder={projectId ? t('expenses.selectCategory') : t('expenses.selectProjectFirst')}
           disabled={!isEditable || !projectId}
         />
 
@@ -327,10 +331,10 @@ export function ExpenseForm({
         {selectedCategory && (
           <div className="flex flex-wrap gap-2 text-xs text-text-tertiary">
             {selectedCategory.maxAmount && Number(selectedCategory.maxAmount) > 0 && (
-              <span>Teto: R$ {Number(selectedCategory.maxAmount).toFixed(2)}</span>
+              <span>{t('expenses.ceilingLabel', { amount: Number(selectedCategory.maxAmount).toFixed(2) })}</span>
             )}
             {selectedCategory.isKmCategory && selectedCategory.kmRate && (
-              <span className="text-accent">R$ {Number(selectedCategory.kmRate).toFixed(2)} por km</span>
+              <span className="text-accent">{t('expenses.kmRateLabel', { rate: Number(selectedCategory.kmRate).toFixed(2) })}</span>
             )}
           </div>
         )}
@@ -339,7 +343,7 @@ export function ExpenseForm({
         {isKmCategory && (
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-              Quantidade de KM
+              {t('expenses.kmQuantity')}
             </label>
             <input
               type="number"
@@ -358,7 +362,7 @@ export function ExpenseForm({
         {/* Amount */}
         <div className="space-y-1.5">
           <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Valor (R$)
+            {t('expenses.amountLabel')}
           </label>
           <input
             type="number"
@@ -372,11 +376,11 @@ export function ExpenseForm({
             placeholder="0.00"
           />
           {isKmCategory && (
-            <p className="text-xs text-text-muted">Valor calculado automaticamente com base no KM</p>
+            <p className="text-xs text-text-muted">{t('expenses.autoCalculatedKm')}</p>
           )}
           {isOverBudget && (
             <p className="text-xs text-warning flex items-center gap-1">
-              <AlertTriangle size={10} /> Acima do teto da categoria
+              <AlertTriangle size={10} /> {t('expenses.aboveCategoryCeiling')}
             </p>
           )}
         </div>
@@ -384,7 +388,7 @@ export function ExpenseForm({
         {/* Description (optional) */}
         <div className="space-y-1.5">
           <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Descrição (opcional)
+            {t('expenses.descriptionOptional')}
           </label>
           <textarea
             value={description}
@@ -393,7 +397,7 @@ export function ExpenseForm({
             maxLength={500}
             disabled={!isEditable}
             className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none resize-none disabled:opacity-40"
-            placeholder="Descreva a despesa..."
+            placeholder={t('expenses.describeExpense')}
           />
           <div className="text-right text-caption text-text-muted">
             {description.length}/500
@@ -403,17 +407,17 @@ export function ExpenseForm({
         {/* Receipt upload */}
         <div className="space-y-1.5">
           <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Comprovante {needsReceipt && <span className="text-warning">(obrigatório)</span>}
+            {t('expenses.receiptLabel')} {needsReceipt && <span className="text-warning">{t('expenses.receiptRequired')}</span>}
           </label>
           {receiptFileId ? (
             <div className="flex items-center gap-2 rounded-lg bg-surface-2 border border-border px-3 py-2">
               <Paperclip size={14} className="text-accent shrink-0" />
               <a href={`${BASE_URL}/uploads/download/${receiptFileId}`} target="_blank" rel="noopener noreferrer" className="text-xs text-accent hover:underline truncate flex-1">
-                Ver comprovante
+                {t('expenses.viewReceipt')}
               </a>
               {isEditable && (
                 <button type="button" onClick={() => { setReceiptFileId(null); setReceiptUrl(null); }} className="text-xs text-danger hover:underline">
-                  Remover
+                  {t('expenses.removeReceipt')}
                 </button>
               )}
             </div>
@@ -428,9 +432,9 @@ export function ExpenseForm({
               />
               <Upload size={20} className="mb-1 text-text-muted" />
               <p className="text-xs text-text-tertiary">
-                {isUploading ? 'Enviando...' : 'Clique para anexar comprovante'}
+                {isUploading ? t('common.uploading') : t('expenses.clickToAttachReceipt')}
               </p>
-              <p className="mt-0.5 text-[10px] text-text-muted">Máximo 10MB</p>
+              <p className="mt-0.5 text-[10px] text-text-muted">{t('expenses.maxSize')}</p>
             </label>
           )}
         </div>
@@ -446,7 +450,7 @@ export function ExpenseForm({
             className="h-4 w-4 rounded border-border text-accent focus:ring-accent bg-surface-2"
           />
           <label htmlFor="requiresReimbursement" className="text-sm text-text-secondary">
-            Requer reembolso ao consultor
+            {t('expenses.requiresReimbursementLabel')}
           </label>
         </div>
 
@@ -458,11 +462,11 @@ export function ExpenseForm({
 
         <div className="flex items-center gap-2 pt-2">
           <Button variant="secondary" type="button" onClick={onCancel} disabled={isSaving} className="flex-1">
-            Cancelar
+            {t('common.cancel')}
           </Button>
           {isEditable && (
             <Button type="submit" disabled={isSaving || !projectId || !amount || (isKmCategory && !kmQuantity) || !!needsReceipt || (isGestorOrAdmin && !consultantUserId)} className="flex-1">
-              {isSaving ? 'Salvando...' : 'Salvar'}
+              {isSaving ? t('common.saving') : t('common.save')}
             </Button>
           )}
         </div>

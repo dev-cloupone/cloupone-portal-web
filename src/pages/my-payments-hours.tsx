@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback, Fragment } from 'react';
 import { ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
@@ -12,19 +13,18 @@ import { useToastStore } from '../stores/toast.store';
 import { useNavItems } from '../hooks/use-nav-items';
 import type { ConsultantPayment, ConsultantPaymentLine, ConsultantPaymentStatus } from '../types/financial.types';
 import type { PaginationMeta } from '../types/pagination.types';
-import { formatCurrency } from '../utils/formatters';
-
-const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+import { formatCurrency, getShortMonthName } from '../utils/formatters';
 
 const STATUS_MAP: Record<ConsultantPaymentStatus, { variant: 'default' | 'warning' | 'success' | 'danger'; label: string }> = {
-  draft: { variant: 'default', label: 'Rascunho' },
-  confirmed: { variant: 'warning', label: 'Confirmado' },
-  paid: { variant: 'success', label: 'Pago' },
-  cancelled: { variant: 'danger', label: 'Cancelado' },
+  draft: { variant: 'default', label: 'payments.statusDraft' },
+  confirmed: { variant: 'warning', label: 'payments.statusConfirmed' },
+  paid: { variant: 'success', label: 'payments.statusPaid' },
+  cancelled: { variant: 'danger', label: 'payments.statusCancelled' },
 };
 
 export default function MyPaymentsHoursPage() {
   const navItems = useNavItems();
+  const { t } = useTranslation();
   const addToast = useToastStore((s) => s.addToast);
   const [payments, setPayments] = useState<ConsultantPayment[]>([]);
   const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
@@ -80,9 +80,9 @@ export default function MyPaymentsHoursPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Meus Pagamentos de Horas">
+    <SidebarLayout navItems={navItems} title={t('payments.myHoursPayments')}>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Meus Pagamentos de Horas</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('payments.myHoursPayments')}</h2>
       </div>
 
       {error && (
@@ -99,7 +99,7 @@ export default function MyPaymentsHoursPage() {
         </div>
       ) : payments.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
-          <p className="text-text-secondary font-medium">Nenhum pagamento encontrado.</p>
+          <p className="text-text-secondary font-medium">{t('payments.noPaymentFound')}</p>
         </div>
       ) : (
         <>
@@ -108,10 +108,10 @@ export default function MyPaymentsHoursPage() {
               <TableHead>
                 <TableRow>
                   <TableHeader className="w-8" />
-                  <TableHeader>Mes/Ano</TableHeader>
-                  <TableHeader>Status</TableHeader>
-                  <TableHeader className="text-right">Total Horas</TableHeader>
-                  <TableHeader className="text-right">Total Valor</TableHeader>
+                  <TableHeader>{t('payments.monthYear')}</TableHeader>
+                  <TableHeader>{t('common.status')}</TableHeader>
+                  <TableHeader className="text-right">{t('payments.totalHours')}</TableHeader>
+                  <TableHeader className="text-right">{t('payments.totalValue')}</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -130,10 +130,10 @@ export default function MyPaymentsHoursPage() {
                           </button>
                         </TableCell>
                         <TableCell className="font-medium">
-                          {MONTH_NAMES[payment.month - 1]}/{payment.year}
+                          {getShortMonthName(payment.month - 1)}/{payment.year}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                          <Badge variant={statusInfo.variant}>{t(statusInfo.label)}</Badge>
                         </TableCell>
                         <TableCell className="text-right font-mono">
                           {Number(payment.totalHours).toFixed(2)}h
@@ -153,15 +153,15 @@ export default function MyPaymentsHoursPage() {
                                   ))}
                                 </div>
                               ) : detailLines.length === 0 ? (
-                                <p className="text-sm text-text-muted">Nenhuma linha encontrada.</p>
+                                <p className="text-sm text-text-muted">{t('payments.noLineFound')}</p>
                               ) : (
                                 <Table>
                                   <TableHead>
                                     <TableRow>
-                                      <TableHeader>Projeto</TableHeader>
-                                      <TableHeader className="text-right">Horas</TableHeader>
-                                      <TableHeader className="text-right">Rate</TableHeader>
-                                      <TableHeader className="text-right">Subtotal</TableHeader>
+                                      <TableHeader>{t('common.project')}</TableHeader>
+                                      <TableHeader className="text-right">{t('timesheet.hours')}</TableHeader>
+                                      <TableHeader className="text-right">{t('payments.rate')}</TableHeader>
+                                      <TableHeader className="text-right">{t('common.subtotal')}</TableHeader>
                                     </TableRow>
                                   </TableHead>
                                   <TableBody>

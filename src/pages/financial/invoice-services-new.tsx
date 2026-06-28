@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
@@ -11,15 +12,9 @@ import { formatApiError } from '../../services/api';
 import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import { formatCurrency } from '../../utils/formatters';
+import { useLocaleStore } from '../../stores/locale.store';
 
-const MONTH_OPTIONS = [
-  { value: '1', label: 'Janeiro' }, { value: '2', label: 'Fevereiro' },
-  { value: '3', label: 'Março' }, { value: '4', label: 'Abril' },
-  { value: '5', label: 'Maio' }, { value: '6', label: 'Junho' },
-  { value: '7', label: 'Julho' }, { value: '8', label: 'Agosto' },
-  { value: '9', label: 'Setembro' }, { value: '10', label: 'Outubro' },
-  { value: '11', label: 'Novembro' }, { value: '12', label: 'Dezembro' },
-];
+
 
 function buildYearOptions(): { value: string; label: string }[] {
   const current = new Date().getFullYear();
@@ -47,9 +42,20 @@ interface PendingProject {
 
 export default function InvoiceServicesNewPage() {
   const navItems = useNavItems();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
+  const locale = useLocaleStore((s) => s.locale);
   const [searchParams] = useSearchParams();
+
+  const MONTH_OPTIONS = [
+    { value: '1', label: t('months.january') }, { value: '2', label: t('months.february') },
+    { value: '3', label: t('months.march') }, { value: '4', label: t('months.april') },
+    { value: '5', label: t('months.may') }, { value: '6', label: t('months.june') },
+    { value: '7', label: t('months.july') }, { value: '8', label: t('months.august') },
+    { value: '9', label: t('months.september') }, { value: '10', label: t('months.october') },
+    { value: '11', label: t('months.november') }, { value: '12', label: t('months.december') },
+  ];
 
   const [projectOptions, setProjectOptions] = useState<{ value: string; label: string }[]>([]);
   const [projectId, setProjectId] = useState('');
@@ -127,7 +133,7 @@ export default function InvoiceServicesNewPage() {
         year: Number(year),
         month: Number(month),
       });
-      addToast('Fatura draft gerada com sucesso!', 'success');
+      addToast(t('invoicesPages.invoiceDraftGenerated'), 'success');
       navigate(`/financial/invoices/services/${result.id}`);
     } catch (err) {
       setError(formatApiError(err));
@@ -169,7 +175,7 @@ export default function InvoiceServicesNewPage() {
       if (results.length === 1) {
         navigate(`/financial/invoices/services/${results[0].id}`);
       } else {
-        addToast(`${results.length} faturas geradas com sucesso!`, 'success');
+        addToast(t('invoicesPages.invoicesGenerated', { count: results.length }), 'success');
         navigate('/financial/invoices/services');
       }
     } catch (err) {
@@ -180,7 +186,7 @@ export default function InvoiceServicesNewPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Gerar Fatura">
+    <SidebarLayout navItems={navItems} title={t('invoicesPages.generateInvoice')}>
       <div className="mb-6">
         <button
           type="button"
@@ -188,11 +194,11 @@ export default function InvoiceServicesNewPage() {
           className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
-          Voltar
+          {t('common.back')}
         </button>
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Gerar Fatura</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('invoicesPages.generateInvoice')}</h2>
         <p className="text-sm text-text-muted mt-1">
-          Selecione o tipo, período e dados para gerar o draft da fatura.
+          {t('invoicesPages.generateInvoiceSubtitle')}
         </p>
       </div>
 
@@ -204,7 +210,7 @@ export default function InvoiceServicesNewPage() {
 
       <form onSubmit={invoiceType === 'hours' ? handleSubmit : handleSubmitFixedPrice} className="space-y-6 max-w-lg">
         <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">Dados da Fatura</h3>
+          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">{t('invoicesPages.invoiceData')}</h3>
 
           {/* Seletor de tipo */}
           <div className="grid grid-cols-2 gap-2">
@@ -213,20 +219,20 @@ export default function InvoiceServicesNewPage() {
               variant={invoiceType === 'hours' ? 'primary' : 'secondary'}
               onClick={() => setInvoiceType('hours')}
             >
-              Por Hora
+              {t('invoicesPages.byHour')}
             </Button>
             <Button
               type="button"
               variant={invoiceType === 'fixed_price' ? 'primary' : 'secondary'}
               onClick={() => setInvoiceType('fixed_price')}
             >
-              Valor Fixo
+              {t('invoicesPages.fixedPrice')}
             </Button>
           </div>
 
           {/* Selects de Ano e Mes (compartilhados) */}
           <Select
-            label="Ano"
+            label={t('common.year')}
             options={buildYearOptions()}
             value={year}
             onChange={setYear}
@@ -234,8 +240,8 @@ export default function InvoiceServicesNewPage() {
           />
 
           <Select
-            label="Mês"
-            options={[{ value: '', label: 'Selecione o mês' }, ...MONTH_OPTIONS]}
+            label={t('common.month')}
+            options={[{ value: '', label: t('payments.selectMonth') }, ...MONTH_OPTIONS]}
             value={month}
             onChange={setMonth}
             required
@@ -244,8 +250,8 @@ export default function InvoiceServicesNewPage() {
           {/* Fluxo por hora */}
           {invoiceType === 'hours' && (
             <Select
-              label="Projeto"
-              options={[{ value: '', label: 'Selecione o projeto' }, ...projectOptions]}
+              label={t('common.project')}
+              options={[{ value: '', label: t('invoicesPages.selectProject') }, ...projectOptions]}
               value={projectId}
               onChange={setProjectId}
               required
@@ -257,13 +263,13 @@ export default function InvoiceServicesNewPage() {
         {invoiceType === 'fixed_price' && (
           <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
             <p className="text-sm text-text-secondary">
-              Parcelas com vencimento até {MONTH_OPTIONS[Number(month) - 1]?.label.toLowerCase()}/{year}:
+              {t('invoicesPages.installmentsDueUntil', { month: MONTH_OPTIONS[Number(month) - 1]?.label.toLowerCase(), year })}:
             </p>
 
             {loadingInstallments && <Skeleton className="h-32" />}
 
             {pendingData && pendingData.projects.length === 0 && !loadingInstallments && (
-              <p className="text-sm text-text-muted">Nenhuma parcela pendente para este período.</p>
+              <p className="text-sm text-text-muted">{t('invoicesPages.noInstallmentsPending')}</p>
             )}
 
             {pendingData && pendingData.projects.map(project => (
@@ -289,7 +295,7 @@ export default function InvoiceServicesNewPage() {
                       <span className="font-mono">{formatCurrency(inst.amount)}</span>
                       {inst.dueDate && (
                         <span className="text-text-muted ml-auto">
-                          Venc: {new Date(inst.dueDate).toLocaleDateString('pt-BR')}
+                          {t('invoicesPages.dueLabel')}: {new Date(inst.dueDate).toLocaleDateString(locale)}
                         </span>
                       )}
                     </label>
@@ -300,25 +306,25 @@ export default function InvoiceServicesNewPage() {
 
             {selectedCount > 0 && (
               <p className="text-sm font-medium">
-                Total: {formatCurrency(selectedTotal)} ({selectedCount} parcela{selectedCount > 1 ? 's' : ''})
+                {t('invoicesPages.totalSelected', { total: formatCurrency(selectedTotal), count: selectedCount })}
               </p>
             )}
 
-            <p className="text-xs text-text-muted">* Será gerada 1 fatura por projeto</p>
+            <p className="text-xs text-text-muted">{t('invoicesPages.oneInvoicePerProject')}</p>
           </div>
         )}
 
         <div className="flex gap-3">
           <Button variant="secondary" type="button" onClick={() => navigate('/financial/invoices/services')}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           {invoiceType === 'hours' ? (
             <Button type="submit" disabled={submitting || !projectId || !year || !month}>
-              {submitting ? 'Gerando...' : 'Gerar Draft'}
+              {submitting ? t('common.generating') : t('projects.generateDraft')}
             </Button>
           ) : (
             <Button type="submit" disabled={submitting || selectedCount === 0}>
-              {submitting ? 'Gerando...' : 'Gerar Draft(s)'}
+              {submitting ? t('common.generating') : t('invoicesPages.generateDrafts')}
             </Button>
           )}
         </div>

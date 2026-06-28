@@ -198,7 +198,7 @@ describe('ImportModal', () => {
     fireEvent.click(screen.getByText('Validar'))
 
     await waitFor(() => {
-      expect(screen.getByText('Importar 0 entradas')).toBeDisabled()
+      expect(screen.getByText('Importar 0 entrada')).toBeDisabled()
     })
   })
 })

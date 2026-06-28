@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback, Fragment } from 'react';
 import { ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
@@ -13,17 +14,18 @@ import { useNavItems } from '../hooks/use-nav-items';
 import type { ExpensePayment, ExpensePaymentItem, ExpensePaymentStatus } from '../types/financial.types';
 import type { PaginationMeta } from '../types/pagination.types';
 import { formatCurrency } from '../utils/formatters';
+import { useLocaleStore } from '../stores/locale.store';
 
 const STATUS_MAP: Record<ExpensePaymentStatus, { variant: 'default' | 'warning' | 'success' | 'danger'; label: string }> = {
-  draft: { variant: 'default', label: 'Rascunho' },
-  confirmed: { variant: 'warning', label: 'Confirmado' },
-  paid: { variant: 'success', label: 'Pago' },
-  cancelled: { variant: 'danger', label: 'Cancelado' },
+  draft: { variant: 'default', label: 'payments.statusDraft' },
+  confirmed: { variant: 'warning', label: 'payments.statusConfirmed' },
+  paid: { variant: 'success', label: 'payments.statusPaid' },
+  cancelled: { variant: 'danger', label: 'payments.statusCancelled' },
 };
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return d.toLocaleDateString(useLocaleStore.getState().locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function formatPeriod(start: string, end: string): string {
@@ -32,6 +34,7 @@ function formatPeriod(start: string, end: string): string {
 
 export default function MyPaymentsExpensesPage() {
   const navItems = useNavItems();
+  const { t } = useTranslation();
   const addToast = useToastStore((s) => s.addToast);
   const [payments, setPayments] = useState<ExpensePayment[]>([]);
   const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
@@ -87,9 +90,9 @@ export default function MyPaymentsExpensesPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Meus Pagamentos de Despesas">
+    <SidebarLayout navItems={navItems} title={t('payments.myExpensesPayments')}>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Meus Pagamentos de Despesas</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('payments.myExpensesPayments')}</h2>
       </div>
 
       {error && (
@@ -106,7 +109,7 @@ export default function MyPaymentsExpensesPage() {
         </div>
       ) : payments.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
-          <p className="text-text-secondary font-medium">Nenhum pagamento encontrado.</p>
+          <p className="text-text-secondary font-medium">{t('payments.noPaymentFound')}</p>
         </div>
       ) : (
         <>
@@ -115,9 +118,9 @@ export default function MyPaymentsExpensesPage() {
               <TableHead>
                 <TableRow>
                   <TableHeader className="w-8" />
-                  <TableHeader>Periodo</TableHeader>
-                  <TableHeader>Status</TableHeader>
-                  <TableHeader className="text-right">Total Valor</TableHeader>
+                  <TableHeader>{t('common.period')}</TableHeader>
+                  <TableHeader>{t('common.status')}</TableHeader>
+                  <TableHeader className="text-right">{t('payments.totalValue')}</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -139,7 +142,7 @@ export default function MyPaymentsExpensesPage() {
                           {formatPeriod(payment.periodStart, payment.periodEnd)}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                          <Badge variant={statusInfo.variant}>{t(statusInfo.label)}</Badge>
                         </TableCell>
                         <TableCell className="text-right font-mono">
                           {formatCurrency(payment.totalAmount)}
@@ -156,16 +159,16 @@ export default function MyPaymentsExpensesPage() {
                                   ))}
                                 </div>
                               ) : detailItems.length === 0 ? (
-                                <p className="text-sm text-text-muted">Nenhum item encontrado.</p>
+                                <p className="text-sm text-text-muted">{t('payments.noItemFound')}</p>
                               ) : (
                                 <Table>
                                   <TableHead>
                                     <TableRow>
-                                      <TableHeader>Projeto</TableHeader>
-                                      <TableHeader>Data</TableHeader>
-                                      <TableHeader>Descricao</TableHeader>
-                                      <TableHeader>Categoria</TableHeader>
-                                      <TableHeader className="text-right">Valor</TableHeader>
+                                      <TableHeader>{t('common.project')}</TableHeader>
+                                      <TableHeader>{t('common.date')}</TableHeader>
+                                      <TableHeader>{t('common.description')}</TableHeader>
+                                      <TableHeader>{t('expenses.category')}</TableHeader>
+                                      <TableHeader className="text-right">{t('common.value')}</TableHeader>
                                     </TableRow>
                                   </TableHead>
                                   <TableBody>

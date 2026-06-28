@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ExternalLink } from 'lucide-react';
 import { Modal } from '../ui/modal';
 import { Badge } from '../ui/badge';
@@ -7,13 +8,14 @@ import { getExpenseById } from '../../services/expense.service';
 import { formatApiError, BASE_URL } from '../../services/api';
 import type { Expense } from '../../types/expense.types';
 import { formatCurrency } from '../../utils/formatters';
+import { useLocaleStore } from '../../stores/locale.store';
 
-const STATUS_LABELS: Record<string, string> = {
-  created: 'Criado',
-  draft: 'Rascunho',
-  submitted: 'Submetido',
-  approved: 'Aprovado',
-  rejected: 'Rejeitado',
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  created: 'expenses.statusCreated',
+  draft: 'expenses.statusDraft',
+  submitted: 'expenses.statusSubmitted',
+  approved: 'expenses.statusApproved',
+  rejected: 'expenses.statusRejected',
 };
 
 const STATUS_VARIANTS: Record<string, 'default' | 'success' | 'danger' | 'warning'> = {
@@ -25,7 +27,7 @@ const STATUS_VARIANTS: Record<string, 'default' | 'success' | 'danger' | 'warnin
 };
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString(useLocaleStore.getState().locale);
 }
 
 interface ExpenseDetailModalProps {
@@ -35,6 +37,7 @@ interface ExpenseDetailModalProps {
 }
 
 export function ExpenseDetailModal({ expenseId, isOpen, onClose }: ExpenseDetailModalProps) {
+  const { t } = useTranslation();
   const [expense, setExpense] = useState<Expense | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -55,7 +58,7 @@ export function ExpenseDetailModal({ expenseId, isOpen, onClose }: ExpenseDetail
   }, [isOpen, expenseId]);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Detalhes da Despesa">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('expenses.detailsTitle')}>
       {loading && (
         <div className="space-y-3">
           <Skeleton className="h-4 w-3/4 rounded" />
@@ -73,41 +76,41 @@ export function ExpenseDetailModal({ expenseId, isOpen, onClose }: ExpenseDetail
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Badge variant={STATUS_VARIANTS[expense.status] ?? 'default'}>
-              {STATUS_LABELS[expense.status] ?? expense.status}
+              {STATUS_LABEL_KEYS[expense.status] ? t(STATUS_LABEL_KEYS[expense.status]) : expense.status}
             </Badge>
           </div>
 
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-            <dt className="text-text-muted">Data</dt>
+            <dt className="text-text-muted">{t('expenses.detailDate')}</dt>
             <dd className="text-text-primary">{formatDate(expense.date)}</dd>
 
             {expense.consultantName && (
               <>
-                <dt className="text-text-muted">Consultor</dt>
+                <dt className="text-text-muted">{t('expenses.detailConsultant')}</dt>
                 <dd className="text-text-primary">{expense.consultantName}</dd>
               </>
             )}
 
             {expense.categoryName && (
               <>
-                <dt className="text-text-muted">Categoria</dt>
+                <dt className="text-text-muted">{t('expenses.detailCategory')}</dt>
                 <dd className="text-text-primary">{expense.categoryName}</dd>
               </>
             )}
 
             {expense.description && (
               <>
-                <dt className="text-text-muted">Descrição</dt>
+                <dt className="text-text-muted">{t('expenses.detailDescription')}</dt>
                 <dd className="text-text-primary">{expense.description}</dd>
               </>
             )}
 
-            <dt className="text-text-muted">Valor lançado</dt>
+            <dt className="text-text-muted">{t('expenses.postedAmount')}</dt>
             <dd className="text-text-primary font-mono">{formatCurrency(expense.amount)}</dd>
 
             {expense.approvedAmount && expense.approvedAmount !== expense.amount && (
               <>
-                <dt className="text-text-muted">Valor Aprovado para Reembolso</dt>
+                <dt className="text-text-muted">{t('expenses.approvedForReimbursement')}</dt>
                 <dd className="text-text-primary font-mono">{formatCurrency(expense.approvedAmount)}</dd>
               </>
             )}
@@ -119,18 +122,18 @@ export function ExpenseDetailModal({ expenseId, isOpen, onClose }: ExpenseDetail
               </>
             )}
 
-            <dt className="text-text-muted">Reembolso</dt>
+            <dt className="text-text-muted">{t('expenses.reimbursement')}</dt>
             <dd className="text-text-primary">
               {expense.requiresReimbursement
                 ? expense.reimbursedAt
-                  ? 'Reembolsado'
-                  : 'Pendente'
-                : 'Não'}
+                  ? t('expenses.reimbursed')
+                  : t('expenses.pendingReimbursement')
+                : t('expenses.noReimbursement')}
             </dd>
 
             {expense.projectName && (
               <>
-                <dt className="text-text-muted">Projeto</dt>
+                <dt className="text-text-muted">{t('expenses.detailProject')}</dt>
                 <dd className="text-text-primary">{expense.projectName}</dd>
               </>
             )}
@@ -144,7 +147,7 @@ export function ExpenseDetailModal({ expenseId, isOpen, onClose }: ExpenseDetail
               className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent-hover transition-colors"
             >
               <ExternalLink size={14} />
-              Ver comprovante
+              {t('expenses.viewReceipt')}
             </a>
           )}
         </div>

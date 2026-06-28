@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle, AlertTriangle, AlertCircle, Download, Upload, Loader2 } from 'lucide-react';
 import { Modal } from '../ui/modal';
 import { Button } from '../ui/button';
@@ -44,6 +45,7 @@ export function ImportModal({
   const [includeDuplicates, setIncludeDuplicates] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [importResult, setImportResult] = useState<ImportConfirmResponse | null>(null);
+  const { t } = useTranslation();
   const addToast = useToastStore((s) => s.addToast);
 
   function handleClose() {
@@ -100,7 +102,7 @@ export function ImportModal({
 
       setImportResult(result);
       setStep('result');
-      addToast(`${result.imported} apontamentos importados com sucesso!`, 'success');
+      addToast(t('timesheet.importedSuccess', { count: result.imported }), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -113,14 +115,14 @@ export function ImportModal({
     : 0;
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Importar Apontamentos" className="!max-w-2xl">
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('timesheet.importTitle')} className="!max-w-2xl">
       {/* Step 1: Upload */}
       {step === 'upload' && (
         <div className="space-y-4">
           {isAdminOrGestor && (
             <Select
-              label="Consultor"
-              placeholder="Selecione o consultor"
+              label={t('timesheet.consultantColumn')}
+              placeholder={t('timesheet.selectConsultant')}
               options={consultants.map(c => ({ value: c.id, label: c.name }))}
               value={consultantId}
               onChange={setConsultantId}
@@ -129,7 +131,7 @@ export function ImportModal({
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1.5">
-              Arquivo
+              {t('timesheet.fileLabel')}
             </label>
             <div
               onClick={() => document.getElementById('import-file-input')?.click()}
@@ -145,7 +147,7 @@ export function ImportModal({
                   const f = e.target.files?.[0];
                   if (f) {
                     if (f.size > 5 * 1024 * 1024) {
-                      addToast('Arquivo muito grande. Máximo: 5MB', 'error');
+                      addToast(t('timesheet.fileTooLargeImport'), 'error');
                       return;
                     }
                     setFile(f);
@@ -160,9 +162,9 @@ export function ImportModal({
                 <>
                   <Upload size={24} className="mb-2 text-text-muted" />
                   <p className="text-xs text-text-tertiary">
-                    Arraste um arquivo ou <span className="text-accent">clique para selecionar</span>
+                    {t('timesheet.dragOrClick')} <span className="text-accent">{t('timesheet.clickToSelectFile')}</span>
                   </p>
-                  <p className="mt-1 text-[10px] text-text-muted">.xlsx ou .csv, máximo 5MB</p>
+                  <p className="mt-1 text-[10px] text-text-muted">{t('timesheet.fileFormats')}</p>
                 </>
               )}
             </div>
@@ -173,18 +175,18 @@ export function ImportModal({
             onClick={downloadImportTemplate}
             className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent-hover transition-colors"
           >
-            <Download size={14} /> Baixar template
+            <Download size={14} /> {t('timesheet.downloadTemplate')}
           </button>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="ghost" size="sm" onClick={handleClose}>Cancelar</Button>
+            <Button variant="ghost" size="sm" onClick={handleClose}>{t('common.cancel')}</Button>
             <Button
               size="sm"
               onClick={handleValidate}
               disabled={!file || isLoading || (isAdminOrGestor && !consultantId)}
             >
               {isLoading ? <Loader2 size={14} className="animate-spin mr-1" /> : null}
-              Validar
+              {t('timesheet.validate')}
             </Button>
           </div>
         </div>
@@ -196,13 +198,13 @@ export function ImportModal({
           {/* Summary */}
           <div className="flex gap-3 text-xs">
             <span className="inline-flex items-center gap-1 text-success">
-              <CheckCircle size={14} /> {validationResult.valid} válidas
+              <CheckCircle size={14} /> {validationResult.valid} {t('timesheet.validEntries')}
             </span>
             <span className="inline-flex items-center gap-1 text-warning">
-              <AlertTriangle size={14} /> {validationResult.warnings} avisos
+              <AlertTriangle size={14} /> {validationResult.warnings} {t('timesheet.warnings')}
             </span>
             <span className="inline-flex items-center gap-1 text-danger">
-              <AlertCircle size={14} /> {validationResult.errors} erros
+              <AlertCircle size={14} /> {validationResult.errors} {t('timesheet.validationErrors')}
             </span>
           </div>
 
@@ -212,13 +214,13 @@ export function ImportModal({
               <thead className="sticky top-0 bg-surface-2">
                 <tr>
                   <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">#</th>
-                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Data</th>
-                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Projeto</th>
-                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Fase</th>
-                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Subfase</th>
-                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Início</th>
-                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">Fim</th>
-                  <th className="px-2 py-1.5 text-center font-semibold text-text-tertiary">Status</th>
+                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">{t('timesheet.dateColumn')}</th>
+                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">{t('timesheet.projectColumn')}</th>
+                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">{t('timesheet.subphaseColumn')}</th>
+                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">{t('timesheet.subphaseColumn')}</th>
+                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">{t('timesheet.startColumn')}</th>
+                  <th className="px-2 py-1.5 text-left font-semibold text-text-tertiary">{t('timesheet.endColumn')}</th>
+                  <th className="px-2 py-1.5 text-center font-semibold text-text-tertiary">{t('timesheet.statusColumn')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -255,13 +257,13 @@ export function ImportModal({
                   const cfg = STATUS_CONFIG[row.status];
                   return (
                     <p key={row.row} className={cfg.color}>
-                      Linha {row.row}: {row.message}
+                      {t('timesheet.lineNumber', { line: row.row })}: {row.message}
                     </p>
                   );
                 })}
                 {hidden > 0 && (
                   <p className="text-text-secondary italic">
-                    ...e mais {hidden} {hidden === 1 ? 'problema' : 'problemas'}
+                    {t('timesheet.andMoreProblems', { count: hidden })}
                   </p>
                 )}
               </div>
@@ -277,14 +279,14 @@ export function ImportModal({
                 onChange={(e) => setIncludeDuplicates(e.target.checked)}
                 className="rounded border-border"
               />
-              Importar duplicatas mesmo assim
+              {t('timesheet.importDuplicates')}
             </label>
           )}
 
           {/* Actions */}
           <div className="flex justify-between items-center pt-2">
             <Button variant="ghost" size="sm" onClick={() => { setStep('upload'); setValidationResult(null); }}>
-              Voltar
+              {t('common.back')}
             </Button>
             <Button
               size="sm"
@@ -292,7 +294,7 @@ export function ImportModal({
               disabled={importableCount === 0 || isLoading}
             >
               {isLoading ? <Loader2 size={14} className="animate-spin mr-1" /> : null}
-              Importar {importableCount} {importableCount === 1 ? 'entrada' : 'entradas'}
+              {t('timesheet.importEntries', { count: importableCount })}
             </Button>
           </div>
         </div>
@@ -303,15 +305,15 @@ export function ImportModal({
         <div className="space-y-4 text-center py-4">
           <CheckCircle size={48} className="mx-auto text-success" />
           <p className="text-lg font-semibold text-text-primary">
-            {importResult.imported} {importResult.imported === 1 ? 'apontamento importado' : 'apontamentos importados'} com sucesso!
+            {t('timesheet.importedSuccess', { count: importResult.imported })}
           </p>
           {importResult.skipped > 0 && (
             <p className="text-sm text-text-secondary">
-              {importResult.skipped} {importResult.skipped === 1 ? 'linha ignorada' : 'linhas ignoradas'}
+              {t('timesheet.skippedLines', { count: importResult.skipped })}
             </p>
           )}
           <div className="pt-2">
-            <Button size="sm" onClick={handleClose}>Fechar</Button>
+            <Button size="sm" onClick={handleClose}>{t('common.close')}</Button>
           </div>
         </div>
       )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../ui/modal';
 import { Button } from '../ui/button';
@@ -16,6 +17,7 @@ interface Props {
 type Step = 'select-project' | 'select-phases' | 'confirm';
 
 export function ClonePhasesModal({ isOpen, projectId, onClone, onClose }: Props) {
+  const { t } = useTranslation();
   const [step, setStep] = useState<Step>('select-project');
   const [projects, setProjects] = useState<ClonableProject[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
@@ -140,18 +142,18 @@ export function ClonePhasesModal({ isOpen, projectId, onClone, onClose }: Props)
   const { phaseCount, subphaseCount } = getSelectionSummary();
 
   return (
-    <Modal isOpen={isOpen} title="Clonar Fases de Outro Projeto" onClose={onClose} className="max-w-2xl">
+    <Modal isOpen={isOpen} title={t('phases.cloneTitle')} onClose={onClose} className="max-w-2xl">
       {/* Step 1: Select source project */}
       {step === 'select-project' && (
         <div className="space-y-3">
-          <p className="text-sm text-text-secondary">Selecione o projeto de onde deseja clonar as fases:</p>
+          <p className="text-sm text-text-secondary">{t('phases.selectSourceProject')}</p>
 
           {loadingProjects && (
-            <p className="text-sm text-text-tertiary py-4 text-center">Carregando projetos...</p>
+            <p className="text-sm text-text-tertiary py-4 text-center">{t('phases.loadingProjects')}</p>
           )}
 
           {!loadingProjects && projects.length === 0 && !error && (
-            <p className="text-sm text-text-tertiary py-4 text-center">Nenhum projeto disponível para clone</p>
+            <p className="text-sm text-text-tertiary py-4 text-center">{t('phases.noProjectsAvailable')}</p>
           )}
 
           {error && <p className="text-xs text-danger">{error}</p>}
@@ -174,7 +176,7 @@ export function ClonePhasesModal({ isOpen, projectId, onClone, onClose }: Props)
 
           <div className="flex gap-2 pt-2">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-              Cancelar
+              {t('common.cancel')}
             </Button>
           </div>
         </div>
@@ -193,8 +195,8 @@ export function ClonePhasesModal({ isOpen, projectId, onClone, onClose }: Props)
               className="text-xs text-accent hover:text-accent/80 font-medium"
             >
               {selectedProject.phases.every(p => selectedPhases.get(p.id)?.size === p.subphases.length)
-                ? 'Desmarcar todas'
-                : 'Selecionar todas'}
+                ? t('phases.deselectAll')
+                : t('phases.selectAllPhases')}
             </button>
           </div>
 
@@ -244,7 +246,7 @@ export function ClonePhasesModal({ isOpen, projectId, onClone, onClose }: Props)
 
           <div className="flex gap-2 pt-2">
             <Button type="button" variant="secondary" onClick={() => setStep('select-project')} className="flex-1">
-              Voltar
+              {t('common.back')}
             </Button>
             <Button
               type="button"
@@ -263,10 +265,10 @@ export function ClonePhasesModal({ isOpen, projectId, onClone, onClose }: Props)
         <div className="space-y-4">
           <div className="rounded-lg bg-surface-2/50 border border-border p-4 space-y-2">
             <p className="text-sm text-text-secondary">
-              <span className="font-medium text-text-primary">Origem:</span> {selectedProject.name}
+              <span className="font-medium text-text-primary">{t('phases.source')}:</span> {selectedProject.name}
             </p>
             <p className="text-sm text-text-secondary">
-              <span className="font-medium text-text-primary">Será clonado:</span>{' '}
+              <span className="font-medium text-text-primary">{t('phases.willBeCloned')}:</span>{' '}
               {phaseCount} fase{phaseCount !== 1 ? 's' : ''} e {subphaseCount} subfase{subphaseCount !== 1 ? 's' : ''}
             </p>
             <div className="mt-3 space-y-1">
@@ -296,11 +298,11 @@ export function ClonePhasesModal({ isOpen, projectId, onClone, onClose }: Props)
 
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={() => setStep('select-phases')} disabled={loading} className="flex-1">
-              Voltar
+              {t('common.back')}
             </Button>
             <Button type="button" onClick={handleClone} disabled={loading} className="flex-1">
               <Copy size={16} className="mr-1.5" />
-              {loading ? 'Clonando...' : 'Clonar Fases'}
+              {loading ? t('phases.cloning') : t('phases.clonePhases')}
             </Button>
           </div>
         </div>

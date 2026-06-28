@@ -1,10 +1,12 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { Calendar, User as UserIcon } from 'lucide-react';
 import { TicketTypeBadge } from './ticket-type-badge';
 import { TicketPriorityBadge } from './ticket-priority-badge';
 import type { Ticket } from '../../types/ticket.types';
+import { useLocaleStore } from '../../stores/locale.store';
 
 interface TicketCardProps {
   ticket: Ticket;
@@ -25,6 +27,8 @@ function isNearDue(dueDate: string | null): boolean {
 }
 
 export function TicketCard({ ticket, isDragging }: TicketCardProps) {
+  const { t } = useTranslation();
+  const locale = useLocaleStore((s) => s.locale);
   const navigate = useNavigate();
   const {
     attributes,
@@ -74,7 +78,7 @@ export function TicketCard({ ticket, isDragging }: TicketCardProps) {
                   ? 'text-warning'
                   : 'text-text-muted'
               }`}
-              title={`Prazo: ${new Date(ticket.dueDate).toLocaleDateString('pt-BR')}`}
+              title={t('tickets.deadlineLabel', { date: new Date(ticket.dueDate).toLocaleDateString(locale) })}
             >
               <Calendar size={10} />
             </div>
@@ -94,7 +98,7 @@ export function TicketCard({ ticket, isDragging }: TicketCardProps) {
           ) : (
             <div
               className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-3 text-text-muted"
-              title="Sem atribuição"
+              title={t('tickets.noAssignment')}
             >
               <UserIcon size={12} />
             </div>

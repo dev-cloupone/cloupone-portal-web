@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/use-auth';
 import { getHomeRoute } from '../utils/get-home-route';
 import { getPublicSettings } from '../services/public-settings';
@@ -12,6 +13,7 @@ import { Input } from '../components/ui/input';
 import { AuthLayout } from '../components/ui/auth-layout';
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,19 +47,19 @@ export default function RegisterPage() {
     setSuccess('');
 
     if (password.length < 8) {
-      setError(MSG.PASSWORD_MIN_LENGTH);
+      setError(MSG.PASSWORD_MIN_LENGTH());
       return;
     }
 
     if (password !== confirmPassword) {
-      setError(MSG.PASSWORDS_DONT_MATCH);
+      setError(MSG.PASSWORDS_DONT_MATCH());
       return;
     }
 
     setIsSubmitting(true);
     try {
       await authService.register({ name, email, password });
-      setSuccess('Conta criada com sucesso! Redirecionando para o login...');
+      setSuccess(t('auth.accountCreated'));
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
       setError(formatApiError(err));
@@ -71,46 +73,46 @@ export default function RegisterPage() {
   }
 
   return (
-    <AuthLayout subtitle="Crie sua conta">
+    <AuthLayout subtitle={t('auth.createAccountTitle')}>
       <form onSubmit={handleSubmit} className="space-y-5">
         <Input
-          label="Nome"
+          label={t('auth.name')}
           type="text"
           autoComplete="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Seu nome completo"
+          placeholder={t('auth.fullName')}
           required
         />
 
         <Input
-          label="Email"
+          label={t('auth.email')}
           type="email"
           autoComplete="email"
           inputMode="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="seu@email.com"
+          placeholder={t('auth.emailPlaceholder')}
           required
         />
 
         <Input
-          label="Senha"
+          label={t('auth.password')}
           type="password"
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Minimo 8 caracteres"
+          placeholder={t('auth.minChars')}
           required
         />
 
         <Input
-          label="Confirmar Senha"
+          label={t('auth.confirmPassword')}
           type="password"
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Repita a senha"
+          placeholder={t('auth.repeatPassword')}
           required
         />
 
@@ -127,14 +129,14 @@ export default function RegisterPage() {
         )}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? 'Criando conta...' : 'Criar Conta'}
+          {isSubmitting ? t('auth.creatingAccount') : t('auth.createAccount')}
         </Button>
       </form>
 
       <p className="mt-5 text-center text-xs text-text-tertiary">
-        Ja tem uma conta?{' '}
+        {t('auth.hasAccount')}{' '}
         <Link to="/login" className="text-accent hover:text-accent-hover transition-colors">
-          Fazer login
+          {t('auth.signIn')}
         </Link>
       </p>
     </AuthLayout>

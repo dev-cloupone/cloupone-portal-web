@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from '../ui/badge';
 import { TICKET_STATUS_LABELS, type TicketStatus } from '../../types/ticket.types';
 
@@ -15,10 +16,11 @@ interface TicketStatusBadgeProps {
 }
 
 export function TicketStatusBadge({ status, className = '' }: TicketStatusBadgeProps) {
+  const { t } = useTranslation();
   const config = statusConfig[status];
   return (
     <Badge variant={config.variant} className={`${config.className || ''} ${className}`}>
-      {TICKET_STATUS_LABELS[status]}
+      {t(TICKET_STATUS_LABELS[status])}
     </Badge>
   );
 }

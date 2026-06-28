@@ -1,10 +1,12 @@
 import { ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../ui/table';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import type { MonthlyTimesheet } from '../../types/monthly-timesheet.types';
 import type { TimeEntry } from '../../types/time-entry.types';
+import { getShortMonthName } from '../../utils/formatters';
 
 interface MonthDetailProps {
   timesheet: MonthlyTimesheet;
@@ -15,15 +17,10 @@ interface MonthDetailProps {
   onReopen: () => void;
 }
 
-const MONTH_NAMES = [
-  '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-];
-
-const STATUS_CONFIG: Record<string, { label: string; variant: 'warning' | 'success' | 'default' }> = {
-  open: { label: 'Aberto', variant: 'warning' },
-  approved: { label: 'Aprovado', variant: 'success' },
-  reopened: { label: 'Reaberto', variant: 'default' },
+const STATUS_KEYS: Record<string, { key: string; variant: 'warning' | 'success' | 'default' }> = {
+  open: { key: 'approvals.statusOpen', variant: 'warning' },
+  approved: { key: 'approvals.statusApproved', variant: 'success' },
+  reopened: { key: 'approvals.statusReopened', variant: 'default' },
 };
 
 const dayNames: Record<number, string> = {
@@ -38,6 +35,7 @@ function formatEntryDate(dateStr: string): string {
 }
 
 export function MonthDetail({ timesheet, entries, isLoading, onBack, onApprove, onReopen }: MonthDetailProps) {
+  const { t } = useTranslation();
   const sortedEntries = [...entries].sort((a, b) => {
     const dateComp = a.date.localeCompare(b.date);
     if (dateComp !== 0) return dateComp;
@@ -45,7 +43,7 @@ export function MonthDetail({ timesheet, entries, isLoading, onBack, onApprove, 
   });
 
   const totalHours = sortedEntries.reduce((sum, e) => sum + Number(e.hours), 0);
-  const statusCfg = STATUS_CONFIG[timesheet.status] ?? STATUS_CONFIG.open;
+  const statusCfg = STATUS_KEYS[timesheet.status] ?? STATUS_KEYS.open;
   const canApprove = timesheet.status === 'open' || timesheet.status === 'reopened';
   const canReopen = timesheet.status === 'approved';
 
@@ -58,30 +56,30 @@ export function MonthDetail({ timesheet, entries, isLoading, onBack, onApprove, 
             onClick={onBack}
             className="flex items-center text-sm text-text-tertiary hover:text-text-secondary transition-colors"
           >
-            <ArrowLeft size={16} className="mr-1" /> Voltar
+            <ArrowLeft size={16} className="mr-1" /> {t('common.back')}
           </button>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-semibold text-text-primary">
-                {timesheet.consultantName ?? 'Consultor'}
+                {timesheet.consultantName ?? t('approvals.consultant')}
               </h3>
-              <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
-              {timesheet.escalatedAt && <Badge variant="warning">Escalonado</Badge>}
+              <Badge variant={statusCfg.variant}>{t(statusCfg.key)}</Badge>
+              {timesheet.escalatedAt && <Badge variant="warning">{t('approvals.escalated')}</Badge>}
             </div>
             <p className="text-sm text-text-secondary">
-              {MONTH_NAMES[timesheet.month]}/{timesheet.year}
+              {getShortMonthName(timesheet.month - 1)}/{timesheet.year}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {canApprove && (
             <Button size="sm" onClick={onApprove}>
-              Aprovar mês
+              {t('approvals.approveMonth')}
             </Button>
           )}
           {canReopen && (
             <Button size="sm" variant="ghost" onClick={onReopen}>
-              Reabrir
+              {t('approvals.reopen')}
             </Button>
           )}
         </div>
@@ -91,7 +89,7 @@ export function MonthDetail({ timesheet, entries, isLoading, onBack, onApprove, 
       {timesheet.status === 'reopened' && timesheet.reopenReason && (
         <div className="rounded-lg bg-warning-muted border border-warning/20 px-3 py-2">
           <p className="text-xs text-text-secondary">
-            <strong>Motivo da reabertura:</strong> {timesheet.reopenReason}
+            <strong>{t('approvals.reopenReason')}</strong> {timesheet.reopenReason}
           </p>
         </div>
       )}
@@ -103,18 +101,18 @@ export function MonthDetail({ timesheet, entries, isLoading, onBack, onApprove, 
         </div>
       ) : sortedEntries.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-12">
-          <p className="text-text-muted text-sm">Nenhum apontamento neste mes.</p>
+          <p className="text-text-muted text-sm">{t('approvals.noEntriesThisMonth')}</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <Table>
             <TableHead>
               <TableRow>
-                <TableHeader>Data</TableHeader>
-                <TableHeader>Horario</TableHeader>
-                <TableHeader>Projeto</TableHeader>
-                <TableHeader className="text-right">Horas</TableHeader>
-                <TableHeader>Descrição</TableHeader>
+                <TableHeader>{t('approvals.dateColumn')}</TableHeader>
+                <TableHeader>{t('approvals.timeColumn')}</TableHeader>
+                <TableHeader>{t('approvals.projectColumn')}</TableHeader>
+                <TableHeader className="text-right">{t('approvals.hoursColumn')}</TableHeader>
+                <TableHeader>{t('approvals.descriptionColumn')}</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -149,20 +147,20 @@ export function MonthDetail({ timesheet, entries, isLoading, onBack, onApprove, 
       {sortedEntries.length > 0 && (
         <div className="flex items-center justify-between pt-2 border-t border-border">
           <span className="text-sm text-text-secondary">
-            Total:{' '}
+            {t('approvals.totalFooter')}{' '}
             <span className="font-semibold text-text-primary">{totalHours.toFixed(1)}h</span>
             {' \u00b7 '}
-            {sortedEntries.length} apontamento{sortedEntries.length !== 1 ? 's' : ''}
+            {t('approvals.entryCount', { count: sortedEntries.length })}
           </span>
           <div className="flex items-center gap-2">
             {canApprove && (
               <Button size="sm" onClick={onApprove}>
-                Aprovar mês
+                {t('approvals.approveMonth')}
               </Button>
             )}
             {canReopen && (
               <Button size="sm" variant="ghost" onClick={onReopen}>
-                Reabrir
+                {t('approvals.reopen')}
               </Button>
             )}
           </div>

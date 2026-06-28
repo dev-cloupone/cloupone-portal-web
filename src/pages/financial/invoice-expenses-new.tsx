@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
@@ -11,6 +12,7 @@ import { api } from '../../services/api';
 import { formatApiError } from '../../services/api';
 import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
+import { useLocaleStore } from '../../stores/locale.store';
 
 interface ExpensePeriod {
   id: string;
@@ -20,11 +22,12 @@ interface ExpensePeriod {
 }
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString(useLocaleStore.getState().locale);
 }
 
 export default function InvoiceExpensesNewPage() {
   const navItems = useNavItems();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
 
@@ -65,7 +68,7 @@ export default function InvoiceExpensesNewPage() {
     setError('');
     try {
       const result = await expenseInvoiceService.generateDraft({ projectId, periodId: selectedPeriod });
-      addToast('Fatura draft gerada com sucesso!', 'success');
+      addToast(t('invoicesPages.invoiceDraftGenerated'), 'success');
       navigate(`/financial/invoices/expenses/${result.id}`);
     } catch (err) {
       setError(formatApiError(err));
@@ -75,7 +78,7 @@ export default function InvoiceExpensesNewPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Gerar Fatura de Despesas">
+    <SidebarLayout navItems={navItems} title={t('invoicesPages.generateExpenseInvoice')}>
       <div className="mb-6">
         <button
           type="button"
@@ -83,10 +86,10 @@ export default function InvoiceExpensesNewPage() {
           className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
-          Voltar
+          {t('common.back')}
         </button>
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Gerar Fatura de Despesas</h2>
-        <p className="text-sm text-text-muted mt-1">Selecione o projeto e o período para gerar o draft da fatura.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('invoicesPages.generateExpenseInvoice')}</h2>
+        <p className="text-sm text-text-muted mt-1">{t('invoicesPages.selectProjectAndPeriod')}</p>
       </div>
 
       {error && (
@@ -97,11 +100,11 @@ export default function InvoiceExpensesNewPage() {
 
       <div className="space-y-6 max-w-lg">
         <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">Dados da Fatura</h3>
+          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">{t('invoicesPages.invoiceData')}</h3>
 
           <Select
-            label="Projeto"
-            options={[{ value: '', label: 'Selecione o projeto' }, ...projectOptions]}
+            label={t('common.project')}
+            options={[{ value: '', label: t('invoicesPages.selectProject') }, ...projectOptions]}
             value={projectId}
             onChange={setProjectId}
             required
@@ -110,13 +113,13 @@ export default function InvoiceExpensesNewPage() {
 
         {projectId && (
           <div className="rounded-xl border border-border bg-surface-1 p-6">
-            <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4">Período</h3>
+            <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4">{t('invoicesPages.periodLabel')}</h3>
             {loadingPeriods ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 rounded-lg" />)}
               </div>
             ) : periods.length === 0 ? (
-              <p className="text-sm text-text-muted">Nenhum período encontrado para este projeto.</p>
+              <p className="text-sm text-text-muted">{t('invoicesPages.noPeriodFound')}</p>
             ) : (
               <div className="space-y-2">
                 {periods.map((period) => (
@@ -144,7 +147,7 @@ export default function InvoiceExpensesNewPage() {
                         ? 'bg-success/10 text-success'
                         : 'bg-surface-3 text-text-muted'
                     }`}>
-                      {period.status === 'open' ? 'Aberto' : 'Fechado'}
+                      {period.status === 'open' ? t('invoicesPages.periodOpen') : t('invoicesPages.periodClosed')}
                     </span>
                   </label>
                 ))}
@@ -155,10 +158,10 @@ export default function InvoiceExpensesNewPage() {
 
         <div className="flex gap-3">
           <Button variant="secondary" type="button" onClick={() => navigate('/financial/invoices/expenses')}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleGenerate} disabled={submitting || !projectId || !selectedPeriod}>
-            {submitting ? 'Gerando...' : 'Gerar Draft'}
+            {submitting ? t('common.generating') : t('projects.generateDraft')}
           </Button>
         </div>
       </div>

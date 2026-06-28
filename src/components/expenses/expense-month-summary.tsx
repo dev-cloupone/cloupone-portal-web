@@ -1,21 +1,25 @@
+import { useTranslation } from 'react-i18next';
 import { Calendar, BarChart3 } from 'lucide-react';
 import type { ExpenseMonthData, ExpenseWeekSummary } from '../../types/expense.types';
 import { formatCurrency } from '../../utils/formatters';
+import { useLocaleStore } from '../../stores/locale.store';
 
 interface ExpenseMonthSummaryProps {
   monthData: ExpenseMonthData;
   weekSummaries: ExpenseWeekSummary[];
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  created: { label: 'Criado', color: 'bg-accent' },
-  draft: { label: 'Rascunho', color: 'bg-text-muted' },
-  submitted: { label: 'Submetido', color: 'bg-warning' },
-  approved: { label: 'Aprovado', color: 'bg-success' },
-  rejected: { label: 'Rejeitado', color: 'bg-danger' },
+const STATUS_LABEL_KEYS: Record<string, { key: string; color: string }> = {
+  created: { key: 'expenses.statusCreated', color: 'bg-accent' },
+  draft: { key: 'expenses.statusDraft', color: 'bg-text-muted' },
+  submitted: { key: 'expenses.statusSubmitted', color: 'bg-warning' },
+  approved: { key: 'expenses.statusApproved', color: 'bg-success' },
+  rejected: { key: 'expenses.statusRejected', color: 'bg-danger' },
 };
 
 export function ExpenseMonthSummary({ monthData, weekSummaries }: ExpenseMonthSummaryProps) {
+  const { t } = useTranslation();
+  const locale = useLocaleStore((s) => s.locale);
   const expenses = monthData.expenses;
   const expenseCount = expenses.length;
 
@@ -32,7 +36,7 @@ export function ExpenseMonthSummary({ monthData, weekSummaries }: ExpenseMonthSu
   const categoryMap = new Map<string, { name: string; amount: number }>();
   for (const e of expenses) {
     const catKey = e.expenseCategoryId ?? '__none';
-    const catName = e.categoryName ?? 'Sem categoria';
+    const catName = e.categoryName ?? t('expenses.noCategory');
     const existing = categoryMap.get(catKey) ?? { name: catName, amount: 0 };
     existing.amount += Number(e.amount);
     categoryMap.set(catKey, existing);
@@ -49,15 +53,15 @@ export function ExpenseMonthSummary({ monthData, weekSummaries }: ExpenseMonthSu
     <div className="rounded-xl border border-border bg-surface-1 p-4 space-y-5 animate-fade-in">
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-3">
-        <StatCard label="Total do mês" value={formatCurrency(monthData.totalAmount)} />
-        <StatCard label="Despesas" value={String(expenseCount)} />
+        <StatCard label={t('expenses.monthTotal')} value={formatCurrency(monthData.totalAmount)} />
+        <StatCard label={t('expenses.expensesLabel')} value={String(expenseCount)} />
       </div>
 
       {/* Project breakdown */}
       {projectBreakdown.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            <BarChart3 size={12} /> Por Projeto
+            <BarChart3 size={12} /> {t('expenses.byProject')}
           </div>
           <div className="space-y-1.5">
             {projectBreakdown.map(p => {
@@ -82,7 +86,7 @@ export function ExpenseMonthSummary({ monthData, weekSummaries }: ExpenseMonthSu
       {categoryBreakdown.length > 0 && (
         <div className="space-y-2">
           <div className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Por Categoria
+            {t('expenses.byCategory')}
           </div>
           <div className="space-y-1">
             {categoryBreakdown.map(c => (
@@ -99,16 +103,16 @@ export function ExpenseMonthSummary({ monthData, weekSummaries }: ExpenseMonthSu
       {Object.keys(statusCounts).length > 0 && (
         <div className="space-y-2">
           <div className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Por Status
+            {t('expenses.byStatus')}
           </div>
           <div className="flex flex-wrap gap-3">
             {Object.entries(statusCounts).map(([status, count]) => {
-              const cfg = STATUS_LABELS[status];
+              const cfg = STATUS_LABEL_KEYS[status];
               if (!cfg) return null;
               return (
                 <span key={status} className="flex items-center gap-1.5 text-xs text-text-secondary">
                   <span className={`w-2 h-2 rounded-full ${cfg.color}`} />
-                  {cfg.label}: {count}
+                  {t(cfg.key)}: {count}
                 </span>
               );
             })}
@@ -120,17 +124,17 @@ export function ExpenseMonthSummary({ monthData, weekSummaries }: ExpenseMonthSu
       {weekSummaries.length > 0 && (
         <div className="space-y-2">
           <div className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Por Semana
+            {t('expenses.byWeek')}
           </div>
           <div className="space-y-1">
             {weekSummaries.map(w => {
-              const weekLabel = new Date(w.weekStart + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-              const statusCfg = STATUS_LABELS[w.status] ?? STATUS_LABELS.draft;
+              const weekLabel = new Date(w.weekStart + 'T12:00:00').toLocaleDateString(locale, { day: '2-digit', month: '2-digit' });
+              const statusCfg = STATUS_LABEL_KEYS[w.status] ?? STATUS_LABEL_KEYS.draft;
               return (
                 <div key={w.weekStart} className="flex items-center justify-between text-xs">
                   <span className="flex items-center gap-1.5 text-text-secondary">
                     <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.color}`} />
-                    Sem. {weekLabel}
+                    {t('expenses.weekAbbr')} {weekLabel}
                   </span>
                   <span className="text-text-tertiary">{formatCurrency(w.totalAmount)}</span>
                 </div>
@@ -143,7 +147,7 @@ export function ExpenseMonthSummary({ monthData, weekSummaries }: ExpenseMonthSu
       {/* Hint */}
       <div className="flex items-center gap-2 text-xs text-text-muted pt-2 border-t border-border">
         <Calendar size={14} />
-        <span>Selecione um dia no calendário para ver detalhes</span>
+        <span>{t('expenses.calendarHint')}</span>
       </div>
     </div>
   );

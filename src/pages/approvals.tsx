@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CheckCheck, User, Calendar, Eye, RotateCcw, AlertTriangle } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { MonthNavigator } from '../components/ui/month-navigator';
@@ -12,19 +13,16 @@ import { useMonthlyApprovals } from '../hooks/use-monthly-approvals';
 import { useNavItems } from '../hooks/use-nav-items';
 import * as consultantService from '../services/consultant.service';
 import type { MonthlyTimesheet } from '../types/monthly-timesheet.types';
+import { getShortMonthName } from '../utils/formatters';
 
-const MONTH_NAMES = [
-  '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-];
-
-const STATUS_LABELS: Record<string, { label: string; variant: 'warning' | 'success' | 'default' }> = {
-  open: { label: 'Aberto', variant: 'warning' },
-  approved: { label: 'Aprovado', variant: 'success' },
-  reopened: { label: 'Reaberto', variant: 'default' },
+const STATUS_KEYS: Record<string, { key: string; variant: 'warning' | 'success' | 'default' }> = {
+  open: { key: 'approvals.statusOpen', variant: 'warning' },
+  approved: { key: 'approvals.statusApproved', variant: 'success' },
+  reopened: { key: 'approvals.statusReopened', variant: 'default' },
 };
 
 export default function ApprovalsPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const {
     timesheets, isLoading, error, currentMonth, filters, pendingCount,
@@ -64,7 +62,7 @@ export default function ApprovalsPage() {
   // If viewing detail, show month-detail view
   if (detail) {
     return (
-      <SidebarLayout navItems={navItems} title="Aprovações">
+      <SidebarLayout navItems={navItems} title={t('approvals.title')}>
         <MonthDetail
           timesheet={detail.timesheet}
           entries={detail.entries}
@@ -78,14 +76,14 @@ export default function ApprovalsPage() {
           isOpen={!!reopenTarget}
           onClose={() => setReopenTarget(null)}
           onConfirm={handleConfirmReopen}
-          monthLabel={reopenTarget ? `${MONTH_NAMES[reopenTarget.month]}/${reopenTarget.year}` : ''}
+          monthLabel={reopenTarget ? `${getShortMonthName(reopenTarget.month - 1)}/${reopenTarget.year}` : ''}
         />
       </SidebarLayout>
     );
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Aprovações">
+    <SidebarLayout navItems={navItems} title={t('approvals.title')}>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-2">
           <MonthNavigator
@@ -95,19 +93,19 @@ export default function ApprovalsPage() {
             onToday={goToToday}
           />
           <p className="text-sm text-text-muted">
-            {pendingCount} mes{pendingCount !== 1 ? 'es' : ''} pendente{pendingCount !== 1 ? 's' : ''}
+            {t('approvals.pendingMonths', { count: pendingCount })}
           </p>
         </div>
         <div className="flex gap-3 items-end">
           <div className="w-48">
             <Select
-              label="Status"
+              label={t('approvals.filterStatus')}
               options={[
-                { value: 'not_approved', label: 'Não aprovados' },
-                { value: '', label: 'Todos' },
-                { value: 'open', label: 'Aberto' },
-                { value: 'approved', label: 'Aprovado' },
-                { value: 'reopened', label: 'Reaberto' },
+                { value: 'not_approved', label: t('approvals.notApproved') },
+                { value: '', label: t('approvals.filterAll') },
+                { value: 'open', label: t('approvals.statusOpen') },
+                { value: 'approved', label: t('approvals.statusApproved') },
+                { value: 'reopened', label: t('approvals.statusReopened') },
               ]}
               value={filters.status ?? ''}
               onChange={(v) => updateFilters({ status: v || undefined })}
@@ -115,9 +113,9 @@ export default function ApprovalsPage() {
           </div>
           <div className="w-56">
             <Select
-              label="Consultor"
+              label={t('approvals.filterConsultant')}
               options={[
-                { value: '', label: 'Todos os consultores' },
+                { value: '', label: t('approvals.allConsultants') },
                 ...consultantOptions,
               ]}
               value={filters.userId ?? ''}
@@ -142,15 +140,15 @@ export default function ApprovalsPage() {
       ) : timesheets.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
           <CheckCheck size={40} className="text-accent mb-3" />
-          <p className="text-text-secondary font-medium">Nenhum registro encontrado</p>
+          <p className="text-text-secondary font-medium">{t('approvals.noRecords')}</p>
           <p className="text-text-muted text-sm mt-1">
-            Ajuste os filtros ou aguarde novos apontamentos.
+            {t('approvals.adjustFiltersOrWait')}
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {timesheets.map((ts) => {
-            const statusCfg = STATUS_LABELS[ts.status] ?? STATUS_LABELS.open;
+            const statusCfg = STATUS_KEYS[ts.status] ?? STATUS_KEYS.open;
             const canApprove = ts.status === 'open' || ts.status === 'reopened';
             const canReopen = ts.status === 'approved';
 
@@ -165,17 +163,17 @@ export default function ApprovalsPage() {
                   <div className="flex items-center gap-2">
                     <User size={14} className="text-text-muted shrink-0" />
                     <span className="font-semibold text-sm text-text-primary truncate">
-                      {ts.consultantName ?? 'Consultor'}
+                      {ts.consultantName ?? t('approvals.consultant')}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     <Calendar size={12} className="text-text-muted shrink-0" />
                     <span className="text-xs text-text-secondary">
-                      {MONTH_NAMES[ts.month]}/{ts.year}
+                      {getShortMonthName(ts.month - 1)}/{ts.year}
                     </span>
                     {ts.escalatedAt && (
                       <Badge variant="warning">
-                        <AlertTriangle size={10} className="mr-0.5" /> Escalonado
+                        <AlertTriangle size={10} className="mr-0.5" /> {t('approvals.escalated')}
                       </Badge>
                     )}
                     {ts.status === 'reopened' && (
@@ -189,18 +187,18 @@ export default function ApprovalsPage() {
                   <span className="text-sm font-medium text-text-primary">
                     {Number(ts.totalHours ?? 0).toFixed(1)}h
                   </span>
-                  <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
+                  <Badge variant={statusCfg.variant}>{t(statusCfg.key)}</Badge>
                   <Button size="sm" variant="ghost" onClick={() => handleViewDetail(ts)}>
-                    <Eye size={14} className="mr-1" /> Detalhes
+                    <Eye size={14} className="mr-1" /> {t('approvals.details')}
                   </Button>
                   {canApprove && (
                     <Button size="sm" onClick={() => handleApprove(ts)}>
-                      Aprovar
+                      {t('approvals.approve')}
                     </Button>
                   )}
                   {canReopen && (
                     <Button size="sm" variant="ghost" onClick={() => handleOpenReopen(ts)}>
-                      Reabrir
+                      {t('approvals.reopen')}
                     </Button>
                   )}
                 </div>
@@ -215,7 +213,7 @@ export default function ApprovalsPage() {
         isOpen={!!reopenTarget}
         onClose={() => setReopenTarget(null)}
         onConfirm={handleConfirmReopen}
-        monthLabel={reopenTarget ? `${MONTH_NAMES[reopenTarget.month]}/${reopenTarget.year}` : ''}
+        monthLabel={reopenTarget ? `${getShortMonthName(reopenTarget.month - 1)}/${reopenTarget.year}` : ''}
       />
     </SidebarLayout>
   );

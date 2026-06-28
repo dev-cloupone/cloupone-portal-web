@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { TimeEntryListItem } from '../types/time-entry.types';
+import { useLocaleStore } from '../stores/locale.store';
 
 const BRAND_COLOR: [number, number, number] = [96, 165, 250];
 
@@ -184,7 +185,8 @@ export async function exportToPdf(options: ExportOptions) {
 
   const totalPages = doc.getNumberOfPages();
   const now = new Date();
-  const timestamp = `Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+  const locale = useLocaleStore.getState().locale;
+  const timestamp = `Gerado em ${now.toLocaleDateString(locale)} às ${now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`;
 
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);

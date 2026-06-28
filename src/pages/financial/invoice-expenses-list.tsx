@@ -16,6 +16,7 @@ import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { ExpenseInvoice } from '../../types/financial.types';
 import type { PaginationMeta } from '../../types/pagination.types';
+import { useTranslation } from 'react-i18next';
 import { INVOICE_STATUS_MAP } from '../../constants/invoice-status';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 
@@ -30,6 +31,7 @@ function parseMonth(m: string): { year: number; month: number } {
 }
 
 export default function InvoiceExpensesListPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
@@ -98,10 +100,10 @@ export default function InvoiceExpensesListPage() {
   useEffect(() => { setPage(1); }, [filterProject, filterStatus, currentMonth]);
 
   async function handleDelete(id: string) {
-    if (!confirm('Excluir esta fatura?')) return;
+    if (!confirm(t('invoices.confirmDelete'))) return;
     try {
       await invoiceService.deleteInvoice(id);
-      addToast('Fatura excluída.', 'success');
+      addToast(t('invoices.deleted'), 'success');
       await loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -109,13 +111,13 @@ export default function InvoiceExpensesListPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Fat. Despesas">
+    <SidebarLayout navItems={navItems} title={t('invoices.expenseInvoiceListTitle')}>
       <div className="space-y-6">
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Faturamento de Despesas</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('invoices.expenseInvoiceListHeading')}</h2>
           <Button onClick={() => navigate('/financial/invoices/expenses/new')}>
             <Receipt size={16} className="mr-1.5" />
-            Gerar Fatura
+            {t('invoicesPages.generateInvoice')}
           </Button>
         </header>
 
@@ -129,21 +131,21 @@ export default function InvoiceExpensesListPage() {
         <div className="flex flex-wrap gap-3 items-end">
           <div className="w-48">
             <Select
-              label="Projeto"
-              options={[{ value: '', label: 'Todos' }, ...projectOptions]}
+              label={t('common.project')}
+              options={[{ value: '', label: t('common.all') }, ...projectOptions]}
               value={filterProject}
               onChange={setFilterProject}
             />
           </div>
           <div className="w-40">
             <Select
-              label="Status"
+              label={t('common.status')}
               options={[
-                { value: '', label: 'Todos' },
-                { value: 'draft', label: 'Rascunho' },
-                { value: 'issued', label: 'Emitida' },
-                { value: 'paid', label: 'Paga' },
-                { value: 'cancelled', label: 'Cancelada' },
+                { value: '', label: t('common.all') },
+                { value: 'draft', label: t('invoices.statusDraft') },
+                { value: 'issued', label: t('invoices.statusIssued') },
+                { value: 'paid', label: t('invoices.statusPaid') },
+                { value: 'cancelled', label: t('invoices.statusCancelled') },
               ]}
               value={filterStatus}
               onChange={setFilterStatus}
@@ -164,8 +166,8 @@ export default function InvoiceExpensesListPage() {
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
             <Receipt size={40} className="text-accent mb-3" />
-            <p className="text-text-secondary font-medium">Nenhuma fatura encontrada</p>
-            <p className="text-text-muted text-sm mt-1">Ajuste os filtros ou gere uma nova fatura.</p>
+            <p className="text-text-secondary font-medium">{t('invoices.noInvoicesFound')}</p>
+            <p className="text-text-muted text-sm mt-1">{t('invoices.adjustOrGenerate')}</p>
           </div>
         ) : (
           <>
@@ -173,13 +175,13 @@ export default function InvoiceExpensesListPage() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableHeader>Nº</TableHeader>
-                    <TableHeader>Projeto</TableHeader>
-                    <TableHeader>Cliente</TableHeader>
-                    <TableHeader>Período</TableHeader>
-                    <TableHeader className="text-right">Total Valor</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                    <TableHeader className="w-24">Ações</TableHeader>
+                    <TableHeader>{t('invoices.numberColumn')}</TableHeader>
+                    <TableHeader>{t('common.project')}</TableHeader>
+                    <TableHeader>{t('invoices.clientLabel').replace(':', '')}</TableHeader>
+                    <TableHeader>{t('common.period')}</TableHeader>
+                    <TableHeader className="text-right">{t('payments.totalValue')}</TableHeader>
+                    <TableHeader>{t('common.status')}</TableHeader>
+                    <TableHeader className="w-24">{t('common.actions')}</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -197,14 +199,14 @@ export default function InvoiceExpensesListPage() {
                           {formatCurrency(invoice.totalAmount)}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={status.variant}>{status.label}</Badge>
+                          <Badge variant={status.variant}>{t(status.label)}</Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => navigate(`/financial/invoices/expenses/${invoice.id}`)}
                               className="rounded-md p-1.5 text-text-muted hover:text-accent hover:bg-accent/10 transition-colors"
-                              title="Ver detalhes"
+                              title={t('invoices.viewDetails')}
                             >
                               <Eye size={15} />
                             </button>
@@ -212,7 +214,7 @@ export default function InvoiceExpensesListPage() {
                               <button
                                 onClick={() => handleDelete(invoice.id)}
                                 className="rounded-md p-1.5 text-text-muted hover:text-danger hover:bg-danger/10 transition-colors"
-                                title="Excluir"
+                                title={t('common.delete')}
                               >
                                 <Trash2 size={15} />
                               </button>

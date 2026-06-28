@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Modal } from '../ui/modal';
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function SubphaseConsultantsModal({ isOpen, subphaseId, subphaseName, allocations, onClose, onChanged }: Props) {
+  const { t } = useTranslation();
   const [consultants, setConsultants] = useState<SubphaseConsultant[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -97,25 +99,25 @@ export function SubphaseConsultantsModal({ isOpen, subphaseId, subphaseName, all
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Consultores — ${subphaseName}`}>
+    <Modal isOpen={isOpen} onClose={onClose} title={t('phases.consultantsTitle', { name: subphaseName })}>
       <div className="space-y-4">
         {/* Add consultant */}
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Adicionar consultor</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('phases.addConsultant')}</p>
           <div className="flex gap-2">
             <div className="flex-1">
               <Select
                 options={availableAllocations.map(a => ({ value: a.userId, label: `${a.userName} (${a.userEmail})` }))}
                 value={addUserId}
                 onChange={setAddUserId}
-                placeholder={availableAllocations.length === 0 ? 'Todos já vinculados' : 'Selecione...'}
+                placeholder={availableAllocations.length === 0 ? t('phases.allLinked') : t('phases.selectConsultant')}
                 disabled={availableAllocations.length === 0}
               />
             </div>
             <div className="w-24">
-              <Input type="number" step="0.5" min="0" placeholder="Horas" value={addHours} onChange={e => setAddHours(e.target.value)} />
+              <Input type="number" step="0.5" min="0" placeholder={t('phases.hoursPlaceholder')} value={addHours} onChange={e => setAddHours(e.target.value)} />
             </div>
-            <Button onClick={handleAdd} disabled={!addUserId}>Adicionar</Button>
+            <Button onClick={handleAdd} disabled={!addUserId}>{t('phases.add')}</Button>
           </div>
         </div>
 
@@ -127,9 +129,9 @@ export function SubphaseConsultantsModal({ isOpen, subphaseId, subphaseName, all
 
         {/* Consultant list */}
         {loading ? (
-          <p className="text-sm text-text-tertiary text-center py-4">Carregando...</p>
+          <p className="text-sm text-text-tertiary text-center py-4">{t('common.loading')}</p>
         ) : consultants.length === 0 ? (
-          <p className="text-sm text-text-muted text-center py-4">Nenhum consultor vinculado</p>
+          <p className="text-sm text-text-muted text-center py-4">{t('phases.noConsultantLinked')}</p>
         ) : (
           <div className="space-y-2">
             {consultants.map(c => {
@@ -163,10 +165,10 @@ export function SubphaseConsultantsModal({ isOpen, subphaseId, subphaseName, all
                         className="text-xs text-accent hover:text-accent-hover transition-colors px-2 py-1 rounded hover:bg-surface-3"
                         onClick={() => setEditingHours(prev => ({ ...prev, [c.userId]: c.estimatedHours ? String(c.estimatedHours) : '' }))}
                       >
-                        {c.estimatedHours ? `${Number(c.estimatedHours).toFixed(1)}h` : 'Definir horas'}
+                        {c.estimatedHours ? `${Number(c.estimatedHours).toFixed(1)}h` : t('phases.setHours')}
                       </button>
                     )}
-                    <IconButton variant="danger" onClick={() => handleRemove(c.userId)} aria-label="Remover">
+                    <IconButton variant="danger" onClick={() => handleRemove(c.userId)} aria-label={t('common.remove')}>
                       <Trash2 size={14} />
                     </IconButton>
                   </div>

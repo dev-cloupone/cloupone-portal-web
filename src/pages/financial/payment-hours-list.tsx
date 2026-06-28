@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { DollarSign, Eye, Trash2, AlertTriangle, X } from 'lucide-react';
@@ -16,15 +17,13 @@ import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { ConsultantPayment } from '../../types/financial.types';
 import type { PaginationMeta } from '../../types/pagination.types';
-import { formatCurrency } from '../../utils/formatters';
-
-const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+import { formatCurrency, getShortMonthName } from '../../utils/formatters';
 
 const STATUS_MAP: Record<string, { variant: 'default' | 'success' | 'warning' | 'danger'; label: string }> = {
-  draft: { variant: 'default', label: 'Rascunho' },
-  confirmed: { variant: 'warning', label: 'Confirmado' },
-  paid: { variant: 'success', label: 'Pago' },
-  cancelled: { variant: 'danger', label: 'Cancelado' },
+  draft: { variant: 'default', label: 'payments.statusDraft' },
+  confirmed: { variant: 'warning', label: 'payments.statusConfirmed' },
+  paid: { variant: 'success', label: 'payments.statusPaid' },
+  cancelled: { variant: 'danger', label: 'payments.statusCancelled' },
 };
 
 function getLastMonth(): string {
@@ -40,6 +39,7 @@ function parseMonth(m: string): { year: number; month: number } {
 
 export default function PaymentHoursListPage() {
   const navItems = useNavItems();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
 
@@ -133,10 +133,10 @@ export default function PaymentHoursListPage() {
   }, [filterConsultant, filterStatus, currentMonth]);
 
   async function handleDelete(id: string) {
-    if (!confirm('Excluir este pagamento?')) return;
+    if (!confirm(t('payments.deletePayment'))) return;
     try {
       await paymentService.deletePayment(id);
-      addToast('Pagamento excluído.', 'success');
+      addToast(t('payments.paymentDeleted'), 'success');
       await loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -144,14 +144,14 @@ export default function PaymentHoursListPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Pgto. Horas">
+    <SidebarLayout navItems={navItems} title={t('payments.hoursTitle')}>
       <div className="space-y-6">
         {/* Header */}
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Pagamento de Horas</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('payments.hoursTitle')}</h2>
           <Button onClick={() => navigate('/financial/payments/hours/new')}>
             <DollarSign size={16} className="mr-1.5" />
-            Gerar Pagamento
+            {t('payments.generatePayment')}
           </Button>
         </header>
 
@@ -168,13 +168,13 @@ export default function PaymentHoursListPage() {
           <div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3">
             <AlertTriangle size={18} className="text-warning shrink-0" />
             <p className="text-sm text-text-secondary flex-1">
-              <strong>{pendingWarning.count}</strong> consultor(es) com timesheet pendente de aprovação:{' '}
+              {t('payments.pendingTimesheetWarning', { count: pendingWarning.count })}:{' '}
               {pendingWarning.consultants.join(', ')}
             </p>
             <button
               onClick={() => setWarningDismissed(true)}
               className="rounded-md p-1 text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors"
-              aria-label="Fechar aviso"
+              aria-label={t('payments.closeWarning')}
             >
               <X size={16} />
             </button>
@@ -185,21 +185,21 @@ export default function PaymentHoursListPage() {
         <div className="flex flex-wrap gap-3 items-end">
           <div className="w-48">
             <Select
-              label="Consultor"
-              options={[{ value: '', label: 'Todos' }, ...consultantOptions]}
+              label={t('common.consultant')}
+              options={[{ value: '', label: t('common.all') }, ...consultantOptions]}
               value={filterConsultant}
               onChange={setFilterConsultant}
             />
           </div>
           <div className="w-40">
             <Select
-              label="Status"
+              label={t('common.status')}
               options={[
-                { value: '', label: 'Todos' },
-                { value: 'draft', label: 'Rascunho' },
-                { value: 'confirmed', label: 'Confirmado' },
-                { value: 'paid', label: 'Pago' },
-                { value: 'cancelled', label: 'Cancelado' },
+                { value: '', label: t('common.all') },
+                { value: 'draft', label: t('payments.statusDraft') },
+                { value: 'confirmed', label: t('payments.statusConfirmed') },
+                { value: 'paid', label: t('payments.statusPaid') },
+                { value: 'cancelled', label: t('payments.statusCancelled') },
               ]}
               value={filterStatus}
               onChange={setFilterStatus}
@@ -222,8 +222,8 @@ export default function PaymentHoursListPage() {
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
             <DollarSign size={40} className="text-accent mb-3" />
-            <p className="text-text-secondary font-medium">Nenhum pagamento encontrado</p>
-            <p className="text-text-muted text-sm mt-1">Ajuste os filtros ou gere um novo pagamento.</p>
+            <p className="text-text-secondary font-medium">{t('payments.noPaymentFound')}</p>
+            <p className="text-text-muted text-sm mt-1">{t('payments.adjustOrGenerate')}</p>
           </div>
         ) : (
           <>
@@ -231,12 +231,12 @@ export default function PaymentHoursListPage() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableHeader>Consultor</TableHeader>
-                    <TableHeader>Mes/Ano</TableHeader>
-                    <TableHeader className="text-right">Total Horas</TableHeader>
-                    <TableHeader className="text-right">Total Valor</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                    <TableHeader className="w-24">Ações</TableHeader>
+                    <TableHeader>{t('common.consultant')}</TableHeader>
+                    <TableHeader>{t('payments.monthYear')}</TableHeader>
+                    <TableHeader className="text-right">{t('payments.totalHours')}</TableHeader>
+                    <TableHeader className="text-right">{t('payments.totalValue')}</TableHeader>
+                    <TableHeader>{t('common.status')}</TableHeader>
+                    <TableHeader className="w-24">{t('common.actions')}</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -248,7 +248,7 @@ export default function PaymentHoursListPage() {
                           <span className="font-medium text-sm">{payment.consultantName}</span>
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {MONTH_NAMES[payment.month - 1]}/{payment.year}
+                          {getShortMonthName(payment.month - 1)}/{payment.year}
                         </TableCell>
                         <TableCell className="text-right font-mono whitespace-nowrap">
                           {Number(payment.totalHours).toFixed(2)}
@@ -257,14 +257,14 @@ export default function PaymentHoursListPage() {
                           {formatCurrency(payment.totalAmount)}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={status.variant}>{status.label}</Badge>
+                          <Badge variant={status.variant}>{t(status.label)}</Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => navigate(`/financial/payments/hours/${payment.id}`)}
                               className="rounded-md p-1.5 text-text-muted hover:text-accent hover:bg-accent/10 transition-colors"
-                              title="Ver detalhes"
+                              title={t('payments.viewDetails')}
                             >
                               <Eye size={15} />
                             </button>
@@ -272,7 +272,7 @@ export default function PaymentHoursListPage() {
                               <button
                                 onClick={() => handleDelete(payment.id)}
                                 className="rounded-md p-1.5 text-text-muted hover:text-danger hover:bg-danger/10 transition-colors"
-                                title="Excluir"
+                                title={t('common.delete')}
                               >
                                 <Trash2 size={15} />
                               </button>

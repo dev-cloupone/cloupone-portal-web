@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../../components/ui/table';
@@ -10,17 +11,18 @@ import { formatApiError } from '../../../services/api';
 import * as bankAccountsService from '../../../services/bank-accounts.service';
 import type { BankAccount } from '../../../services/bank-accounts.service';
 
-const ACCOUNT_TYPES = [
-  { value: 'corrente', label: 'Corrente' },
-  { value: 'poupanca', label: 'Poupanca' },
-];
-
 export default function BankAccountsPage() {
+  const { t } = useTranslation();
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<BankAccount | null>(null);
+
+  const ACCOUNT_TYPES = [
+    { value: 'corrente', label: t('admin.accountTypeCurrent') },
+    { value: 'poupanca', label: t('admin.accountTypeSavings') },
+  ];
 
   async function loadAccounts() {
     try {
@@ -74,10 +76,10 @@ export default function BankAccountsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-text-primary">Contas Bancarias</h3>
+        <h3 className="text-sm font-semibold text-text-primary">{t('admin.bankAccounts')}</h3>
         <Button onClick={handleNew}>
           <Plus size={16} className="mr-2" />
-          Nova Conta
+          {t('admin.newAccount')}
         </Button>
       </div>
 
@@ -88,18 +90,18 @@ export default function BankAccountsPage() {
       )}
 
       {accounts.length === 0 ? (
-        <p className="py-8 text-center text-sm text-text-tertiary">Nenhuma conta bancaria cadastrada.</p>
+        <p className="py-8 text-center text-sm text-text-tertiary">{t('admin.noBankAccounts')}</p>
       ) : (
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>Apelido</TableHeader>
-              <TableHeader>Banco</TableHeader>
-              <TableHeader>Agencia</TableHeader>
-              <TableHeader>Conta</TableHeader>
-              <TableHeader>Tipo</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader className="text-right">Acoes</TableHeader>
+              <TableHeader>{t('admin.nickname')}</TableHeader>
+              <TableHeader>{t('admin.bank')}</TableHeader>
+              <TableHeader>{t('admin.agency')}</TableHeader>
+              <TableHeader>{t('admin.account')}</TableHeader>
+              <TableHeader>{t('admin.accountType')}</TableHeader>
+              <TableHeader>{t('common.status')}</TableHeader>
+              <TableHeader className="text-right">{t('common.actions')}</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -109,17 +111,17 @@ export default function BankAccountsPage() {
                 <TableCell>{account.bankName}</TableCell>
                 <TableCell>{account.agency}</TableCell>
                 <TableCell>{account.accountNumber}</TableCell>
-                <TableCell>{account.accountType === 'corrente' ? 'Corrente' : 'Poupanca'}</TableCell>
+                <TableCell>{account.accountType === 'corrente' ? t('admin.accountTypeCurrent') : t('admin.accountTypeSavings')}</TableCell>
                 <TableCell>
                   <Badge variant={account.isActive ? 'success' : 'default'}>
-                    {account.isActive ? 'Ativa' : 'Inativa'}
+                    {account.isActive ? t('common.active') : t('common.inactive')}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(account)}>Editar</Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(account)}>{t('common.edit')}</Button>
                     <Button variant={account.isActive ? 'danger' : 'secondary'} size="sm" onClick={() => handleToggle(account)}>
-                      {account.isActive ? 'Desativar' : 'Ativar'}
+                      {account.isActive ? t('common.deactivate') : t('common.activate')}
                     </Button>
                   </div>
                 </TableCell>
@@ -134,6 +136,7 @@ export default function BankAccountsPage() {
         account={editing}
         onSave={handleSave}
         onClose={() => setModalOpen(false)}
+        accountTypes={ACCOUNT_TYPES}
       />
     </div>
   );
@@ -146,9 +149,11 @@ interface BankAccountFormModalProps {
   account: BankAccount | null;
   onSave: (data: Parameters<typeof bankAccountsService.createBankAccount>[0]) => Promise<void>;
   onClose: () => void;
+  accountTypes: { value: string; label: string }[];
 }
 
-function BankAccountFormModal({ isOpen, account, onSave, onClose }: BankAccountFormModalProps) {
+function BankAccountFormModal({ isOpen, account, onSave, onClose, accountTypes }: BankAccountFormModalProps) {
+  const { t } = useTranslation();
   const [label, setLabel] = useState('');
   const [holderName, setHolderName] = useState('');
   const [bankName, setBankName] = useState('');
@@ -180,30 +185,30 @@ function BankAccountFormModal({ isOpen, account, onSave, onClose }: BankAccountF
       await onSave({ label, holderName, bankName, agency, accountNumber, accountType, pixKey: pixKey || null });
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar');
+      setError(err instanceof Error ? err.message : t('common.errorSaving'));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal isOpen={isOpen} title={account ? 'Editar Conta' : 'Nova Conta'} onClose={onClose}>
+    <Modal isOpen={isOpen} title={account ? t('admin.editAccount') : t('admin.newAccount')} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Apelido" value={label} onChange={(e) => setLabel(e.target.value)} required placeholder="Ex: NuBank Principal" />
-        <Input label="Titular" value={holderName} onChange={(e) => setHolderName(e.target.value)} required />
-        <Input label="Banco" value={bankName} onChange={(e) => setBankName(e.target.value)} required placeholder="Ex: 0260 - Nu Pagamentos S.A." />
+        <Input label={t('admin.nickname')} value={label} onChange={(e) => setLabel(e.target.value)} required placeholder={t('admin.nicknamePlaceholder')} />
+        <Input label={t('admin.holder')} value={holderName} onChange={(e) => setHolderName(e.target.value)} required />
+        <Input label={t('admin.bank')} value={bankName} onChange={(e) => setBankName(e.target.value)} required placeholder={t('admin.bankPlaceholder')} />
         <div className="grid grid-cols-2 gap-4">
-          <Input label="Agencia" value={agency} onChange={(e) => setAgency(e.target.value)} required />
-          <Input label="Conta" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required />
+          <Input label={t('admin.agency')} value={agency} onChange={(e) => setAgency(e.target.value)} required />
+          <Input label={t('admin.account')} value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required />
         </div>
-        <Select label="Tipo" options={ACCOUNT_TYPES} value={accountType} onChange={(v) => setAccountType(v as 'corrente' | 'poupanca')} />
-        <Input label="Chave PIX" value={pixKey} onChange={(e) => setPixKey(e.target.value)} placeholder="Opcional" />
+        <Select label={t('admin.accountType')} options={accountTypes} value={accountType} onChange={(v) => setAccountType(v as 'corrente' | 'poupanca')} />
+        <Input label={t('admin.pixKeyOptional')} value={pixKey} onChange={(e) => setPixKey(e.target.value)} placeholder={t('admin.optional')} />
 
         {error && <p className="text-xs text-danger">{error}</p>}
 
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
-          <Button type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
+          <Button type="button" variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" disabled={loading}>{loading ? t('common.saving') : t('common.save')}</Button>
         </div>
       </form>
     </Modal>

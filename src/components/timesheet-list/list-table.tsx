@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../ui/table';
 import type { TimeEntryListItem } from '../../types/time-entry.types';
 
@@ -27,6 +28,7 @@ function SkeletonRow({ cols }: { cols: number }) {
 }
 
 export function ListTable({ entries, totalHours, loading, filtering, showConsultantColumn }: ListTableProps) {
+  const { t } = useTranslation();
   const colCount = showConsultantColumn ? 9 : 8;
 
   if (loading) {
@@ -34,15 +36,15 @@ export function ListTable({ entries, totalHours, loading, filtering, showConsult
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeader>Data</TableHeader>
-            {showConsultantColumn && <TableHeader>Consultor</TableHeader>}
-            <TableHeader>Projeto</TableHeader>
-            <TableHeader>Subfase</TableHeader>
-            <TableHeader>Ticket</TableHeader>
-            <TableHeader>Início</TableHeader>
-            <TableHeader>Fim</TableHeader>
-            <TableHeader>Horas</TableHeader>
-            <TableHeader>Descrição</TableHeader>
+            <TableHeader>{t('timesheet.dateColumn')}</TableHeader>
+            {showConsultantColumn && <TableHeader>{t('timesheet.consultantColumn')}</TableHeader>}
+            <TableHeader>{t('timesheet.projectColumn')}</TableHeader>
+            <TableHeader>{t('timesheet.subphaseColumn')}</TableHeader>
+            <TableHeader>{t('timesheet.ticketColumn')}</TableHeader>
+            <TableHeader>{t('timesheet.startColumn')}</TableHeader>
+            <TableHeader>{t('timesheet.endColumn')}</TableHeader>
+            <TableHeader>{t('timesheet.hoursColumn')}</TableHeader>
+            <TableHeader>{t('timesheet.descriptionColumn')}</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -57,7 +59,7 @@ export function ListTable({ entries, totalHours, loading, filtering, showConsult
   if (entries.length === 0) {
     return (
       <div className={`flex flex-col items-center justify-center py-16 text-text-muted transition-opacity duration-150 ${filtering ? 'opacity-50 pointer-events-none' : ''}`}>
-        <p className="text-sm">Nenhum apontamento encontrado para este período.</p>
+        <p className="text-sm">{t('timesheet.noEntriesFound')}</p>
       </div>
     );
   }
@@ -66,15 +68,15 @@ export function ListTable({ entries, totalHours, loading, filtering, showConsult
     <Table className={`transition-opacity duration-150 ${filtering ? 'opacity-50 pointer-events-none' : ''}`}>
       <TableHead>
         <TableRow>
-          <TableHeader>Data</TableHeader>
-          {showConsultantColumn && <TableHeader>Consultor</TableHeader>}
-          <TableHeader>Projeto</TableHeader>
-          <TableHeader>Subfase</TableHeader>
-          <TableHeader>Ticket</TableHeader>
-          <TableHeader>Início</TableHeader>
-          <TableHeader>Fim</TableHeader>
-          <TableHeader className="text-right">Horas</TableHeader>
-          <TableHeader>Descrição</TableHeader>
+          <TableHeader>{t('timesheet.dateColumn')}</TableHeader>
+          {showConsultantColumn && <TableHeader>{t('timesheet.consultantColumn')}</TableHeader>}
+          <TableHeader>{t('timesheet.projectColumn')}</TableHeader>
+          <TableHeader>{t('timesheet.subphaseColumn')}</TableHeader>
+          <TableHeader>{t('timesheet.ticketColumn')}</TableHeader>
+          <TableHeader>{t('timesheet.startColumn')}</TableHeader>
+          <TableHeader>{t('timesheet.endColumn')}</TableHeader>
+          <TableHeader className="text-right">{t('timesheet.hoursColumn')}</TableHeader>
+          <TableHeader>{t('timesheet.descriptionColumn')}</TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -94,7 +96,7 @@ export function ListTable({ entries, totalHours, loading, filtering, showConsult
         {/* Total row */}
         <tr className="bg-surface-2 font-semibold">
           <td colSpan={showConsultantColumn ? 7 : 6} className="px-4 py-3.5 text-sm text-text-secondary text-right">
-            Total:
+            {t('timesheet.totalLabel')}
           </td>
           <td className="px-4 py-3.5 text-sm text-text-secondary text-right font-bold">
             {totalHours}h

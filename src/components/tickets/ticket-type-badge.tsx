@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, HelpCircle, Sparkles, ShieldAlert } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { TICKET_TYPE_LABELS, type TicketType } from '../../types/ticket.types';
@@ -15,11 +16,12 @@ interface TicketTypeBadgeProps {
 }
 
 export function TicketTypeBadge({ type, className = '' }: TicketTypeBadgeProps) {
+  const { t } = useTranslation();
   const config = typeConfig[type];
   return (
     <Badge variant={config.variant} className={`${config.className || ''} ${className}`}>
       <span className="mr-1 inline-flex">{config.icon}</span>
-      {TICKET_TYPE_LABELS[type]}
+      {t(TICKET_TYPE_LABELS[type])}
     </Badge>
   );
 }

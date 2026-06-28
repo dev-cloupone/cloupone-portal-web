@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { Save } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -9,8 +10,11 @@ import { api, formatApiError } from '../services/api';
 import * as loginHistoryService from '../services/login-history';
 import { MSG } from '../constants/messages';
 import type { LoginHistoryEntry } from '../types/login-history.types';
+import { useLocaleStore } from '../stores/locale.store';
 
 export default function ProfilePage() {
+  const { t } = useTranslation();
+  const locale = useLocaleStore((s) => s.locale);
   const { user, setUser } = useAuth();
   const navItems = useNavItems();
   const [name, setName] = useState(user?.name ?? '');
@@ -41,7 +45,7 @@ export default function ProfilePage() {
         body: JSON.stringify({ name, email }),
       });
       if (result.user) setUser(result.user);
-      setSuccess('Perfil atualizado com sucesso!');
+      setSuccess(t('auth.profileUpdated'));
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(formatApiError(err));
@@ -56,12 +60,12 @@ export default function ProfilePage() {
     setSuccess('');
 
     if (newPassword.length < 8) {
-      setError(MSG.PASSWORD_MIN_LENGTH);
+      setError(MSG.PASSWORD_MIN_LENGTH());
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError(MSG.PASSWORDS_DONT_MATCH);
+      setError(MSG.PASSWORDS_DONT_MATCH());
       return;
     }
 
@@ -74,7 +78,7 @@ export default function ProfilePage() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setSuccess('Senha alterada com sucesso!');
+      setSuccess(t('auth.passwordChanged'));
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(formatApiError(err));
@@ -88,23 +92,23 @@ export default function ProfilePage() {
   return (
     <SidebarLayout navItems={navItems} title={sidebarTitle}>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Meu Perfil</h2>
-        <p className="text-sm text-text-tertiary mt-1">Gerencie suas informacoes pessoais</p>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('auth.myProfile')}</h2>
+        <p className="text-sm text-text-tertiary mt-1">{t('auth.managePersonalInfo')}</p>
       </div>
 
       <div className="max-w-xl space-y-8">
         {/* Profile Info */}
         <form onSubmit={handleProfileUpdate} className="space-y-6">
           <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
-            <h3 className="text-sm font-semibold text-text-primary">Informações Pessoais</h3>
+            <h3 className="text-sm font-semibold text-text-primary">{t('auth.personalInfo')}</h3>
             <Input
-              label="Nome"
+              label={t('auth.name')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
             />
             <Input
-              label="Email"
+              label={t('auth.email')}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -114,16 +118,16 @@ export default function ProfilePage() {
 
           <Button type="submit" disabled={saving}>
             <Save size={16} className="mr-2" />
-            {saving ? 'Salvando...' : 'Salvar Perfil'}
+            {saving ? t('common.saving') : t('auth.saveProfile')}
           </Button>
         </form>
 
         {/* Change Password */}
         <form onSubmit={handlePasswordChange} className="space-y-6">
           <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
-            <h3 className="text-sm font-semibold text-text-primary">Alterar Senha</h3>
+            <h3 className="text-sm font-semibold text-text-primary">{t('auth.changePassword')}</h3>
             <Input
-              label="Senha Atual"
+              label={t('auth.currentPassword')}
               type="password"
               autoComplete="current-password"
               value={currentPassword}
@@ -131,41 +135,41 @@ export default function ProfilePage() {
               required
             />
             <Input
-              label="Nova Senha"
+              label={t('auth.newPassword')}
               type="password"
               autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Minimo 8 caracteres"
+              placeholder={t('auth.minChars')}
               required
             />
             <Input
-              label="Confirmar Nova Senha"
+              label={t('auth.confirmNewPassword')}
               type="password"
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Repita a nova senha"
+              placeholder={t('auth.repeatNewPassword')}
               required
             />
           </div>
 
           <Button type="submit" disabled={saving}>
             <Save size={16} className="mr-2" />
-            {saving ? 'Salvando...' : 'Alterar Senha'}
+            {saving ? t('common.saving') : t('auth.changePassword')}
           </Button>
         </form>
 
         {/* Login History */}
         {loginHistory.length > 0 && (
           <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
-            <h3 className="text-sm font-semibold text-text-primary">Logins Recentes</h3>
+            <h3 className="text-sm font-semibold text-text-primary">{t('auth.recentLogins')}</h3>
             <div className="divide-y divide-border">
               {loginHistory.map((entry) => (
                 <div key={entry.id} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
                   <div>
                     <p className="text-xs text-text-primary">
-                      {entry.success ? 'Login bem-sucedido' : 'Tentativa falhada'}
+                      {entry.success ? t('auth.loginSuccessful') : t('auth.loginFailed')}
                     </p>
                     <p className="text-[10px] text-text-muted">
                       IP: {entry.ipAddress || 'N/A'}
@@ -174,7 +178,7 @@ export default function ProfilePage() {
                   <div className="text-right">
                     <span className={`inline-block h-2 w-2 rounded-full mr-2 ${entry.success ? 'bg-success' : 'bg-danger'}`} />
                     <span className="text-[10px] text-text-muted">
-                      {new Date(entry.createdAt).toLocaleString('pt-BR')}
+                      {new Date(entry.createdAt).toLocaleString(locale)}
                     </span>
                   </div>
                 </div>

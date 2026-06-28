@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { MonthHeader } from '../components/timesheet/month-header';
 import { MonthCalendar } from '../components/timesheet/month-calendar';
@@ -13,18 +14,15 @@ import { useAuth } from '../hooks/use-auth';
 import * as consultantService from '../services/consultant.service';
 import type { TimeEntry } from '../types/time-entry.types';
 import { Skeleton } from '../components/ui/skeleton';
+import { getShortMonthName } from '../utils/formatters';
 
 type PanelState =
   | { view: 'month-summary' }
   | { view: 'day-entries' }
   | { view: 'entry-form'; entry: TimeEntry | null };
 
-const MONTH_NAMES = [
-  '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-];
-
 export default function TimesheetPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const { user } = useAuth();
   const {
@@ -109,10 +107,10 @@ export default function TimesheetPage() {
     : [];
 
   // Approve modal data
-  const approveMonthLabel = approveTarget ? `${MONTH_NAMES[approveTarget.month]}/${approveTarget.year}` : '';
+  const approveMonthLabel = approveTarget ? `${getShortMonthName(approveTarget.month - 1)}/${approveTarget.year}` : '';
 
   return (
-    <SidebarLayout navItems={navItems} title="Apontamento">
+    <SidebarLayout navItems={navItems} title={t('timesheet.sidebarTitle')}>
       <div className="space-y-4">
         {/* Pending months banner */}
         <PendingMonthsBanner

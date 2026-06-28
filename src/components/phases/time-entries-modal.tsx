@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Modal } from '../ui/modal';
 import { Select } from '../ui/select';
@@ -47,6 +48,7 @@ function groupByDate(entries: PhaseTimeEntryItem[]): { date: string; items: Phas
 }
 
 export function TimeEntriesModal({ isOpen, onClose, title, phaseId, subphaseId, consultants = [], subphases = [] }: Props) {
+  const { t } = useTranslation();
   const [data, setData] = useState<PhaseTimeEntriesResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -110,21 +112,21 @@ export function TimeEntriesModal({ isOpen, onClose, title, phaseId, subphaseId, 
   const isPhaseLevel = !!phaseId;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Apontamentos — ${title}`} className="!max-w-2xl">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('timesheet.entriesTitle', { title })} className="!max-w-2xl">
       <div className="space-y-4">
         {/* Summary */}
         {data && (
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-lg bg-surface-2 px-3 py-2 text-center">
-              <p className="text-xs text-text-tertiary">Estimado</p>
+              <p className="text-xs text-text-tertiary">{t('timesheet.estimated')}</p>
               <p className="text-sm font-semibold text-text-primary">{data.summary.estimatedHours.toFixed(1)}h</p>
             </div>
             <div className="rounded-lg bg-surface-2 px-3 py-2 text-center">
-              <p className="text-xs text-text-tertiary">Realizado</p>
+              <p className="text-xs text-text-tertiary">{t('timesheet.actual')}</p>
               <p className="text-sm font-semibold text-text-primary">{data.summary.actualHours.toFixed(1)}h</p>
             </div>
             <div className="rounded-lg bg-surface-2 px-3 py-2 text-center">
-              <p className="text-xs text-text-tertiary">Progresso</p>
+              <p className="text-xs text-text-tertiary">{t('timesheet.progress')}</p>
               <p className="text-sm font-semibold text-text-primary">{data.summary.percentComplete}%</p>
             </div>
           </div>
@@ -141,7 +143,7 @@ export function TimeEntriesModal({ isOpen, onClose, title, phaseId, subphaseId, 
               options={consultants.map(c => ({ value: c.userId, label: c.userName }))}
               value={filterUserId}
               onChange={(v) => { setFilterUserId(v); handleFilterChange(); }}
-              placeholder="Todos os consultores"
+              placeholder={t('timesheet.allConsultantsFilter')}
             />
           )}
           {isPhaseLevel && subphases.length > 0 && (
@@ -149,20 +151,20 @@ export function TimeEntriesModal({ isOpen, onClose, title, phaseId, subphaseId, 
               options={subphases.map(s => ({ value: s.id, label: s.name }))}
               value={filterSubphaseId}
               onChange={(v) => { setFilterSubphaseId(v); handleFilterChange(); }}
-              placeholder="Todas as subfases"
+              placeholder={t('timesheet.allSubphasesFilter')}
             />
           )}
           <Input
             type="date"
             value={filterFrom}
             onChange={(e) => { setFilterFrom(e.target.value); handleFilterChange(); }}
-            placeholder="De"
+            placeholder={t('timesheet.fromFilter')}
           />
           <Input
             type="date"
             value={filterTo}
             onChange={(e) => { setFilterTo(e.target.value); handleFilterChange(); }}
-            placeholder="Até"
+            placeholder={t('timesheet.toFilter')}
           />
         </div>
 
@@ -174,9 +176,9 @@ export function TimeEntriesModal({ isOpen, onClose, title, phaseId, subphaseId, 
 
         {/* Entries */}
         {loading ? (
-          <p className="text-sm text-text-tertiary text-center py-6">Carregando...</p>
+          <p className="text-sm text-text-tertiary text-center py-6">{t('common.loading')}</p>
         ) : !data || data.data.length === 0 ? (
-          <p className="text-sm text-text-muted text-center py-6">Nenhum apontamento encontrado</p>
+          <p className="text-sm text-text-muted text-center py-6">{t('timesheet.noEntriesFound')}</p>
         ) : (
           <div className="space-y-3">
             {groups.map((group) => (
@@ -219,10 +221,10 @@ export function TimeEntriesModal({ isOpen, onClose, title, phaseId, subphaseId, 
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
             >
-              <ChevronLeft size={14} className="mr-1" /> Anterior
+              <ChevronLeft size={14} className="mr-1" /> {t('common.previous')}
             </Button>
             <span className="text-xs text-text-tertiary">
-              Página {data.meta.page} de {data.meta.totalPages}
+              {t('common.pageOf', { page: data.meta.page, totalPages: data.meta.totalPages })}
             </span>
             <Button
               size="sm"
@@ -230,7 +232,7 @@ export function TimeEntriesModal({ isOpen, onClose, title, phaseId, subphaseId, 
               disabled={page >= data.meta.totalPages}
               onClick={() => setPage(p => p + 1)}
             >
-              Próximo <ChevronRight size={14} className="ml-1" />
+              {t('common.next')} <ChevronRight size={14} className="ml-1" />
             </Button>
           </div>
         )}

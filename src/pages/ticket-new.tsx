@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Paperclip, Trash2, FileText, Image, Film, FileArchive } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
@@ -13,21 +14,6 @@ import { useNavItems } from '../hooks/use-nav-items';
 import { useToastStore } from '../stores/toast.store';
 import type { TicketType, CreateTicketData } from '../types/ticket.types';
 
-const typeOptions = [
-  { value: '', label: 'Selecione o tipo' },
-  { value: 'system_error', label: 'Erro de sistema' },
-  { value: 'question', label: 'Dúvida' },
-  { value: 'improvement', label: 'Solicitação de melhoria' },
-  { value: 'security', label: 'Segurança/Acesso' },
-];
-
-const priorityOptions = [
-  { value: '', label: 'Média (padrão)' },
-  { value: 'low', label: 'Baixa' },
-  { value: 'medium', label: 'Média' },
-  { value: 'high', label: 'Alta' },
-  { value: 'critical', label: 'Crítica' },
-];
 
 interface FormState {
   projectId: string;
@@ -61,9 +47,26 @@ function getFileIcon(mimeType: string) {
 }
 
 export default function TicketNewPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
+
+  const typeOptions = [
+    { value: '', label: t('tickets.selectType') },
+    { value: 'system_error', label: t('tickets.typeBug') },
+    { value: 'question', label: t('tickets.typeQuestion') },
+    { value: 'improvement', label: t('tickets.typeFeature') },
+    { value: 'security', label: t('tickets.typeSecurity') },
+  ];
+
+  const priorityOptions = [
+    { value: '', label: t('tickets.defaultPriority') },
+    { value: 'low', label: t('tickets.priorityLow') },
+    { value: 'medium', label: t('tickets.priorityMedium') },
+    { value: 'high', label: t('tickets.priorityHigh') },
+    { value: 'critical', label: t('tickets.priorityCritical') },
+  ];
   const [form, setForm] = useState<FormState>(emptyForm);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [error, setError] = useState('');
@@ -103,11 +106,11 @@ export default function TicketNewPage() {
         try {
           await ticketService.addAttachment(ticket.id, file);
         } catch (err) {
-          addToast(`Falha ao anexar ${file.name}: ${formatApiError(err)}`, 'error');
+          addToast(t('common.failedToAttach', { name: file.name, error: formatApiError(err) }), 'error');
         }
       }
 
-      addToast('Ticket criado com sucesso!', 'success');
+      addToast(t('tickets.ticketCreated'), 'success');
       navigate(`/tickets/${ticket.id}`);
     } catch (err) {
       setError(formatApiError(err));
@@ -133,12 +136,12 @@ export default function TicketNewPage() {
   }
 
   const projectOptions = [
-    { value: '', label: 'Selecione o projeto' },
+    { value: '', label: t('tickets.selectProject') },
     ...projects.map((p) => ({ value: p.id, label: p.name })),
   ];
 
   return (
-    <SidebarLayout navItems={navItems} title="Atendimento">
+    <SidebarLayout navItems={navItems} title={t('tickets.support')}>
       <div className="mb-6">
         <button
           type="button"
@@ -146,9 +149,9 @@ export default function TicketNewPage() {
           className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
-          Voltar
+          {t('common.back')}
         </button>
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Novo Ticket</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('tickets.newTicket')}</h2>
       </div>
 
       {error && (
@@ -159,10 +162,10 @@ export default function TicketNewPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
         <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">Informações Básicas</h3>
+          <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">{t('tickets.basicInfo')}</h3>
 
           <Select
-            label="Projeto"
+            label={t('tickets.project')}
             options={projectOptions}
             value={form.projectId}
             onChange={(v) => update('projectId', v)}
@@ -170,7 +173,7 @@ export default function TicketNewPage() {
           />
 
           <Select
-            label="Tipo"
+            label={t('tickets.type')}
             options={typeOptions}
             value={form.type}
             onChange={(v) => update('type', v)}
@@ -178,27 +181,27 @@ export default function TicketNewPage() {
           />
 
           <Input
-            label="Título"
+            label={t('tickets.titleLabel')}
             value={form.title}
             onChange={(e) => update('title', e.target.value)}
-            placeholder="Descreva brevemente o ticket..."
+            placeholder={t('tickets.describeBriefly')}
             required
           />
 
           <Select
-            label="Prioridade"
+            label={t('tickets.priority')}
             options={priorityOptions}
             value={form.priority}
             onChange={(v) => update('priority', v)}
           />
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">Descrição</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('common.description')}</label>
             <textarea
               value={form.description}
               onChange={(e) => update('description', e.target.value)}
               rows={4}
-              placeholder="Descreva em detalhes o ticket (suporta Markdown)..."
+              placeholder={t('tickets.describeInDetail')}
               className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none placeholder:text-text-muted"
             />
           </div>
@@ -206,20 +209,20 @@ export default function TicketNewPage() {
 
         <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
           <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">
-            E-mails em Cópia
+            {t('tickets.ccEmails')}
           </h3>
           <CcEmailsInput
             value={form.ccEmails}
             onChange={(emails) => setForm((prev) => ({ ...prev, ccEmails: emails }))}
           />
           <p className="text-xs text-text-muted">
-            Esses e-mails receberão todas as notificações do ticket.
+            {t('tickets.ccEmailsDescription')}
           </p>
         </div>
 
         <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">Anexos</h3>
+            <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">{t('common.attachments')}</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -227,7 +230,7 @@ export default function TicketNewPage() {
               onClick={() => fileInputRef.current?.click()}
             >
               <Paperclip size={14} className="mr-1.5" />
-              Adicionar anexo
+              {t('common.addAttachment')}
             </Button>
             <input
               ref={fileInputRef}
@@ -239,7 +242,7 @@ export default function TicketNewPage() {
           </div>
 
           {attachments.length === 0 ? (
-            <p className="text-xs text-text-muted">Nenhum anexo selecionado</p>
+            <p className="text-xs text-text-muted">{t('tickets.selectedAttachments')}</p>
           ) : (
             <div className="space-y-2">
               {attachments.map((file, index) => (
@@ -258,7 +261,7 @@ export default function TicketNewPage() {
                     type="button"
                     onClick={() => removeAttachment(index)}
                     className="p-1 text-text-muted hover:text-danger transition-colors shrink-0"
-                    title="Remover"
+                    title={t('common.delete')}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -274,10 +277,10 @@ export default function TicketNewPage() {
             type="button"
             onClick={() => navigate('/tickets')}
           >
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={submitting || !form.projectId || !form.type || !form.title}>
-            {submitting ? 'Criando...' : 'Criar Ticket'}
+            {submitting ? t('tickets.creating') : t('tickets.createTicket')}
           </Button>
         </div>
       </form>

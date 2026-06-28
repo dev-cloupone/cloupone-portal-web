@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { HelpCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface TooltipProps {
   content: string;
@@ -7,6 +8,7 @@ interface TooltipProps {
 }
 
 export function Tooltip({ content, size = 14 }: TooltipProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -29,7 +31,7 @@ export function Tooltip({ content, size = 14 }: TooltipProps) {
         type="button"
         onClick={() => setOpen(!open)}
         className="text-text-muted hover:text-text-tertiary transition-colors p-0.5 rounded-full hover:bg-surface-2"
-        aria-label="Mais informa\u00e7\u00f5es"
+        aria-label={t('common.moreInfo')}
       >
         <HelpCircle size={size} />
       </button>

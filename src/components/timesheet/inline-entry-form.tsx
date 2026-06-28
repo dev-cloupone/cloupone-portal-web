@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Select } from '../ui/select';
@@ -8,6 +9,7 @@ import type { Ticket } from '../../types/ticket.types';
 import { ticketService } from '../../services/ticket.service';
 import * as phaseService from '../../services/phase.service';
 import type { AvailableSubphase } from '../../types/phase.types';
+import { useLocaleStore } from '../../stores/locale.store';
 
 interface AllocatedProject {
   projectId: string;
@@ -59,6 +61,8 @@ export function InlineEntryForm({
   onSave,
   onCancel,
 }: InlineEntryFormProps) {
+  const { t } = useTranslation();
+  const locale = useLocaleStore((s) => s.locale);
   const [projectId, setProjectId] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -137,7 +141,7 @@ export function InlineEntryForm({
         subphaseId: subphaseId || null,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar registro.');
+      setError(err instanceof Error ? err.message : t('timesheet.errorSaving'));
     } finally {
       setIsSaving(false);
     }
@@ -153,13 +157,13 @@ export function InlineEntryForm({
     label: `${t.code} — ${t.title}`,
   }));
 
-  const dateDisplay = new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', {
+  const dateDisplay = new Date(date + 'T12:00:00').toLocaleDateString(locale, {
     weekday: 'short',
     day: '2-digit',
     month: 'long',
   });
 
-  const title = entry ? 'Editar Apontamento' : 'Novo Apontamento';
+  const title = entry ? t('timesheet.editEntry') : t('timesheet.newEntry');
 
   return (
     <div className="rounded-xl border border-border bg-surface-1 p-4 animate-slide-in-right">
@@ -170,7 +174,7 @@ export function InlineEntryForm({
           onClick={onCancel}
           className="flex items-center text-xs text-text-tertiary hover:text-text-secondary transition-colors"
         >
-          <ArrowLeft size={14} className="mr-1" /> Voltar
+          <ArrowLeft size={14} className="mr-1" /> {t('timesheet.goBack')}
         </button>
         <span className="text-sm font-semibold text-text-primary">{title}</span>
       </div>
@@ -182,13 +186,13 @@ export function InlineEntryForm({
         {/* Time range */}
         <div className="grid grid-cols-2 gap-3">
           <TimePicker
-            label="Início"
+            label={t('timesheet.start')}
             value={startTime}
             onChange={setStartTime}
             disabled={!isEditable}
           />
           <TimePicker
-            label="Fim"
+            label={t('timesheet.end')}
             value={endTime}
             onChange={setEndTime}
             disabled={!isEditable}
@@ -197,12 +201,12 @@ export function InlineEntryForm({
 
         {duration && (
           <div className="text-xs text-text-muted">
-            Duração: <span className="font-medium text-text-secondary">{duration}</span>
+            {t('timesheet.duration')} <span className="font-medium text-text-secondary">{duration}</span>
           </div>
         )}
 
         <Select
-          label="Projeto"
+          label={t('common.project')}
           value={projectId}
           onChange={(v) => {
             setProjectId(v);
@@ -210,7 +214,7 @@ export function InlineEntryForm({
             setSubphaseId('');
           }}
           options={projectOptions}
-          placeholder="Selecione um projeto"
+          placeholder={t('timesheet.selectProject')}
           disabled={!isEditable}
           required
         />
@@ -224,17 +228,17 @@ export function InlineEntryForm({
               }));
               const currentNotInList = subphaseId && !availableSubphases.find(sp => sp.id === subphaseId);
               if (currentNotInList) {
-                opts.unshift({ value: subphaseId, label: `Subfase anterior (não disponível)` });
+                opts.unshift({ value: subphaseId, label: t('timesheet.previousSubphaseUnavailable') });
               }
               return (
                 <Select
-                  label="Subfase"
+                  label={t('timesheet.subphase')}
                   value={subphaseId}
                   onChange={setSubphaseId}
                   options={opts}
                   placeholder={opts.length === 0
-                    ? 'Nenhuma subfase disponível'
-                    : 'Selecione uma subfase'}
+                    ? t('timesheet.noSubphasesAvailable')
+                    : t('timesheet.selectSubphase')}
                   disabled={opts.length === 0}
                   required={!entry}
                 />
@@ -243,13 +247,13 @@ export function InlineEntryForm({
             {subphaseId && !availableSubphases.find(sp => sp.id === subphaseId) && (
               <div className="rounded-lg bg-warning-muted border border-warning/20 px-3 py-2">
                 <p className="text-xs text-warning">
-                  Você não está mais vinculado a esta subfase. Selecione outra ou solicite ao gestor.
+                  {t('timesheet.subphaseUnlinkedWarning')}
                 </p>
               </div>
             )}
             {availableSubphases.length === 0 && !subphaseId && (
               <p className="text-xs text-warning">
-                Nenhuma subfase em andamento com você vinculado. Solicite ao gestor.
+                {t('timesheet.noSubphasesInProgress')}
               </p>
             )}
             {(() => {
@@ -263,8 +267,8 @@ export function InlineEntryForm({
                 <div className={`rounded-lg border px-3 py-2 ${pct >= 100 ? 'bg-danger-muted border-danger/20' : 'bg-warning-muted border-warning/20'}`}>
                   <p className={`text-xs ${pct >= 100 ? 'text-danger' : 'text-warning'}`}>
                     {pct >= 100
-                      ? `Horas estimadas excedidas: ${actual.toFixed(1)}h de ${estimated.toFixed(1)}h (${pct.toFixed(0)}%)`
-                      : `Próximo do limite: ${actual.toFixed(1)}h de ${estimated.toFixed(1)}h (${pct.toFixed(0)}%)`}
+                      ? t('timesheet.hoursExceeded', { actual: actual.toFixed(1), estimated: estimated.toFixed(1), pct: pct.toFixed(0) })
+                      : t('timesheet.nearLimit', { actual: actual.toFixed(1), estimated: estimated.toFixed(1), pct: pct.toFixed(0) })}
                   </p>
                 </div>
               );
@@ -274,18 +278,18 @@ export function InlineEntryForm({
 
         {ticketOptions.length > 0 && (
           <Select
-            label="Ticket relacionado"
+            label={t('timesheet.relatedTicket')}
             value={ticketId}
             onChange={setTicketId}
             options={ticketOptions}
-            placeholder="Nenhum (opcional)"
+            placeholder={t('timesheet.noneOptional')}
             disabled={!isEditable}
           />
         )}
 
         <div className="space-y-1.5">
           <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Descrição
+            {t('timesheet.descriptionLabel')}
           </label>
           <textarea
             value={description}
@@ -294,7 +298,7 @@ export function InlineEntryForm({
             maxLength={500}
             disabled={!isEditable}
             className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none resize-none disabled:opacity-40"
-            placeholder="Descreva a atividade realizada..."
+            placeholder={t('timesheet.descriptionPlaceholder')}
           />
           <div className="text-right text-caption text-text-muted">
             {description.length}/500
@@ -309,11 +313,11 @@ export function InlineEntryForm({
 
         <div className="flex items-center gap-2 pt-2">
           <Button variant="secondary" type="button" onClick={onCancel} disabled={isSaving} className="flex-1">
-            Cancelar
+            {t('common.cancel')}
           </Button>
           {isEditable && (
             <Button type="submit" disabled={isSaving || !projectId || !startTime || !endTime} className="flex-1">
-              {isSaving ? 'Salvando...' : 'Salvar'}
+              {isSaving ? t('common.saving') : t('common.save')}
             </Button>
           )}
         </div>

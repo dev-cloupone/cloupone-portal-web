@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pencil, XCircle, Download } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function ProjectExpenseCategoriesConfig({ projectId }: Props) {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<ProjectExpenseCategory[]>([]);
   const [templates, setTemplates] = useState<ExpenseCategoryTemplate[]>([]);
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -41,7 +43,7 @@ export function ProjectExpenseCategoriesConfig({ projectId }: Props) {
       setCategories(catResult.data);
       setTemplates(tplResult.data);
     } catch {
-      setError('Erro ao carregar categorias do projeto');
+      setError(t('expenses.loadCategoriesError'));
     }
   }, [projectId]);
 
@@ -98,7 +100,7 @@ export function ProjectExpenseCategoriesConfig({ projectId }: Props) {
   }
 
   async function handleDeactivate(category: ProjectExpenseCategory) {
-    if (!confirm(`Desativar "${category.name}" neste projeto?`)) return;
+    if (!confirm(t('expenses.deactivateCategory', { name: category.name }))) return;
     try {
       await projectCategoryService.deactivateProjectCategory(projectId, category.id);
       await loadData();
@@ -125,9 +127,9 @@ export function ProjectExpenseCategoriesConfig({ projectId }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-text-primary">Categorias de Despesa do Projeto</h3>
+        <h3 className="text-lg font-semibold text-text-primary">{t('expenses.projectCategoriesTitle')}</h3>
         <Button size="sm" onClick={openImport}>
-          <Download size={14} className="mr-1.5" /> Importar Categoria
+          <Download size={14} className="mr-1.5" /> {t('expenses.importCategory')}
         </Button>
       </div>
 
@@ -139,17 +141,17 @@ export function ProjectExpenseCategoriesConfig({ projectId }: Props) {
 
       {categories.length === 0 ? (
         <p className="text-sm text-text-tertiary py-4 text-center">
-          Nenhuma categoria configurada. Importe categorias dos templates globais.
+          {t('expenses.noCategoriesConfigured')}
         </p>
       ) : (
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>Nome</TableHeader>
-              <TableHeader>Teto</TableHeader>
-              <TableHeader>KM</TableHeader>
-              <TableHeader>Comprovante</TableHeader>
-              <TableHeader>Ações</TableHeader>
+              <TableHeader>{t('expenses.tableName')}</TableHeader>
+              <TableHeader>{t('expenses.tableCeiling')}</TableHeader>
+              <TableHeader>{t('expenses.tableKm')}</TableHeader>
+              <TableHeader>{t('expenses.tableReceiptRequired')}</TableHeader>
+              <TableHeader>{t('expenses.tableActions')}</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -164,15 +166,15 @@ export function ProjectExpenseCategoriesConfig({ projectId }: Props) {
                 </TableCell>
                 <TableCell>
                   <Badge variant={c.requiresReceipt ? 'default' : 'success'}>
-                    {c.requiresReceipt ? 'Sim' : 'Não'}
+                    {c.requiresReceipt ? t('expenses.yesLabel') : t('expenses.noLabel')}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    <button onClick={() => openEdit(c)} className="text-accent hover:text-accent-hover" title="Editar limites">
+                    <button onClick={() => openEdit(c)} className="text-accent hover:text-accent-hover" title={t('expenses.editLimits')}>
                       <Pencil size={16} />
                     </button>
-                    <button onClick={() => handleDeactivate(c)} className="text-danger hover:text-danger/80" title="Desativar">
+                    <button onClick={() => handleDeactivate(c)} className="text-danger hover:text-danger/80" title={t('expenses.deactivate')}>
                       <XCircle size={16} />
                     </button>
                   </div>
@@ -184,80 +186,80 @@ export function ProjectExpenseCategoriesConfig({ projectId }: Props) {
       )}
 
       {/* Import Modal */}
-      <Modal isOpen={isImportOpen} onClose={() => { setIsImportOpen(false); setError(''); }} title="Importar Categoria">
+      <Modal isOpen={isImportOpen} onClose={() => { setIsImportOpen(false); setError(''); }} title={t('expenses.importCategoryTitle')}>
         <form onSubmit={handleImport} className="space-y-4">
           <Select
-            label="Template"
+            label={t('expenses.templateSelectLabel')}
             options={templateOptions}
             value={selectedTemplateId}
             onChange={setSelectedTemplateId}
-            placeholder="Selecione um template..."
+            placeholder={t('expenses.selectTemplateOption')}
           />
           {selectedTemplate && (
             <div className="text-xs text-text-tertiary space-y-1 bg-surface-2 rounded-lg p-3">
               {selectedTemplate.description && <p>{selectedTemplate.description}</p>}
-              <p>Teto padrão: {formatCurrencyOrDash(selectedTemplate.defaultMaxAmount)}</p>
+              <p>{t('expenses.defaultCeilingLabel', { amount: formatCurrencyOrDash(selectedTemplate.defaultMaxAmount) })}</p>
               {selectedTemplate.isKmCategory && (
-                <p>Taxa KM padrão: {selectedTemplate.defaultKmRate ? `R$ ${Number(selectedTemplate.defaultKmRate).toFixed(2)}/km` : '—'}</p>
+                <p>{selectedTemplate.defaultKmRate ? t('expenses.defaultKmRateLabel', { rate: Number(selectedTemplate.defaultKmRate).toFixed(2) }) : '—'}</p>
               )}
-              <p>Exige comprovante: {selectedTemplate.requiresReceipt ? 'Sim' : 'Não'}</p>
+              <p>{t('expenses.receiptRequiredYesNo', { value: selectedTemplate.requiresReceipt ? t('expenses.yesLabel') : t('expenses.noLabel') })}</p>
             </div>
           )}
           <Input
-            label="Teto para este projeto (R$) — deixe vazio para usar padrão"
+            label={t('expenses.ceilingForProject')}
             type="number"
             step="0.01"
             min="0"
             value={importMaxAmount}
             onChange={(e) => setImportMaxAmount(e.target.value)}
-            placeholder={selectedTemplate?.defaultMaxAmount || 'Sem limite'}
+            placeholder={selectedTemplate?.defaultMaxAmount || t('expenses.noLimit')}
           />
           {selectedTemplate?.isKmCategory && (
             <Input
-              label="Taxa KM para este projeto (R$/km) — deixe vazio para usar padrão"
+              label={t('expenses.kmRateForProject')}
               type="number"
               step="0.01"
               min="0"
               value={importKmRate}
               onChange={(e) => setImportKmRate(e.target.value)}
-              placeholder={selectedTemplate?.defaultKmRate || 'Sem taxa'}
+              placeholder={selectedTemplate?.defaultKmRate || t('expenses.noRate')}
             />
           )}
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => { setIsImportOpen(false); setError(''); }}>Cancelar</Button>
-            <Button type="submit" disabled={!selectedTemplateId}>Importar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setIsImportOpen(false); setError(''); }}>{t('common.cancel')}</Button>
+            <Button type="submit" disabled={!selectedTemplateId}>{t('common.import')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit Modal */}
-      <Modal isOpen={!!editing} onClose={() => { setEditing(null); setError(''); }} title={`Editar — ${editing?.name}`}>
+      <Modal isOpen={!!editing} onClose={() => { setEditing(null); setError(''); }} title={t('expenses.editCategoryTitle', { name: editing?.name })}>
         <form onSubmit={handleUpdate} className="space-y-4">
           <Input
-            label="Teto (R$)"
+            label={t('expenses.ceilingInput')}
             type="number"
             step="0.01"
             min="0"
             value={editMaxAmount}
             onChange={(e) => setEditMaxAmount(e.target.value)}
-            placeholder="Sem limite"
+            placeholder={t('expenses.noLimit')}
           />
           {editing?.isKmCategory && (
             <Input
-              label="Taxa KM (R$/km)"
+              label={t('expenses.kmRateInput')}
               type="number"
               step="0.01"
               min="0"
               value={editKmRate}
               onChange={(e) => setEditKmRate(e.target.value)}
-              placeholder="Sem taxa"
+              placeholder={t('expenses.noRate')}
             />
           )}
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => { setEditing(null); setError(''); }}>Cancelar</Button>
-            <Button type="submit">Salvar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setEditing(null); setError(''); }}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.save')}</Button>
           </div>
         </form>
       </Modal>

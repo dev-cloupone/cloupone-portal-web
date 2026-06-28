@@ -153,19 +153,19 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   if (response.status === 401) {
     clearAccessToken();
     onAuthFailure?.();
-    throw Object.assign(new Error(MSG.AUTH_FAILED), { status: 401 });
+    throw Object.assign(new Error(MSG.AUTH_FAILED()), { status: 401 });
   }
 
   // Handle 403: access denied
   if (response.status === 403) {
-    const errorBody = await response.json().catch(() => ({ error: MSG.ACCESS_DENIED }));
-    throw Object.assign(new Error(errorBody.error || MSG.ACCESS_DENIED), { status: 403 });
+    const errorBody = await response.json().catch(() => ({ error: MSG.ACCESS_DENIED() }));
+    throw Object.assign(new Error(errorBody.error || MSG.ACCESS_DENIED()), { status: 403 });
   }
 
   // Handle 429: rate limiting
   if (response.status === 429) {
-    const errorBody = await response.json().catch(() => ({ error: MSG.REQUEST_ERROR }));
-    throw Object.assign(new Error(errorBody.error || MSG.REQUEST_ERROR), {
+    const errorBody = await response.json().catch(() => ({ error: MSG.REQUEST_ERROR() }));
+    throw Object.assign(new Error(errorBody.error || MSG.REQUEST_ERROR()), {
       status: 429,
       code: errorBody.code as string | undefined,
     });
@@ -173,8 +173,8 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
 
   // Handle other errors
   if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({ error: MSG.REQUEST_ERROR }));
-    throw Object.assign(new Error(errorBody.error || MSG.REQUEST_ERROR), {
+    const errorBody = await response.json().catch(() => ({ error: MSG.REQUEST_ERROR() }));
+    throw Object.assign(new Error(errorBody.error || MSG.REQUEST_ERROR()), {
       status: response.status,
       code: errorBody.code as string | undefined,
       fields: errorBody.fields as Array<{ field: string; message: string }> | undefined,
@@ -199,5 +199,5 @@ export function formatApiError(err: unknown): string {
   if (e.fields?.length) {
     return e.fields.map((f) => f.message).join('\n');
   }
-  return e.message || MSG.UNEXPECTED_ERROR;
+  return e.message || MSG.UNEXPECTED_ERROR();
 }

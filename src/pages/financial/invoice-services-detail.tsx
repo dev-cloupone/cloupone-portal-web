@@ -14,10 +14,9 @@ import { formatApiError, apiFetch } from '../../services/api';
 import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { Invoice, InvoiceLine } from '../../types/financial.types';
+import { useTranslation } from 'react-i18next';
 import { INVOICE_STATUS_MAP } from '../../constants/invoice-status';
-import { formatCurrency } from '../../utils/formatters';
-
-const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+import { formatCurrency, getShortMonthName } from '../../utils/formatters';
 
 interface EditableHoursLine {
   id: string;
@@ -36,6 +35,7 @@ interface EditableCustomLine {
 }
 
 export default function InvoiceServicesDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navItems = useNavItems();
   const navigate = useNavigate();
@@ -153,7 +153,7 @@ export default function InvoiceServicesDetailPage() {
         notes: notes || undefined,
       });
       await loadInvoice();
-      addToast('Fatura salva.', 'success');
+      addToast(t('invoices.saved'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -162,7 +162,7 @@ export default function InvoiceServicesDetailPage() {
   }
 
   async function handleIssue() {
-    if (!id || !confirm('Emitir esta fatura? Um número sequencial será atribuído.')) return;
+    if (!id || !confirm(t('invoices.confirmIssueWithNumber'))) return;
     setActionLoading(true);
     try {
       const allLines = [
@@ -177,7 +177,7 @@ export default function InvoiceServicesDetailPage() {
       });
       await invoiceService.issueInvoice(id);
       await loadInvoice();
-      addToast('Fatura salva e emitida.', 'success');
+      addToast(t('invoices.savedAndIssued'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -186,12 +186,12 @@ export default function InvoiceServicesDetailPage() {
   }
 
   async function handlePay() {
-    if (!id || !confirm('Marcar esta fatura como paga?')) return;
+    if (!id || !confirm(t('invoices.confirmPayService'))) return;
     setActionLoading(true);
     try {
       await invoiceService.payInvoice(id);
       await loadInvoice();
-      addToast('Fatura marcada como paga.', 'success');
+      addToast(t('invoices.markedAsPaid'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -200,12 +200,12 @@ export default function InvoiceServicesDetailPage() {
   }
 
   async function handleCancel() {
-    if (!id || !confirm('Cancelar esta fatura?')) return;
+    if (!id || !confirm(t('invoices.confirmCancel'))) return;
     setActionLoading(true);
     try {
       await invoiceService.cancelInvoice(id);
       await loadInvoice();
-      addToast('Fatura cancelada.', 'success');
+      addToast(t('invoices.cancelled'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -214,11 +214,11 @@ export default function InvoiceServicesDetailPage() {
   }
 
   async function handleDelete() {
-    if (!id || !confirm('Excluir esta fatura?')) return;
+    if (!id || !confirm(t('invoices.confirmDelete'))) return;
     setActionLoading(true);
     try {
       await invoiceService.deleteInvoice(id);
-      addToast('Fatura excluída.', 'success');
+      addToast(t('invoices.deleted'), 'success');
       navigate('/financial/invoices/services');
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -248,7 +248,7 @@ export default function InvoiceServicesDetailPage() {
     try {
       await invoiceService.revertToDraft(id);
       await loadInvoice();
-      addToast('Fatura revertida para rascunho.', 'success');
+      addToast(t('invoices.revertedToDraft'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
       throw err;
@@ -263,7 +263,7 @@ export default function InvoiceServicesDetailPage() {
     try {
       await invoiceService.revertToIssued(id);
       await loadInvoice();
-      addToast('Fatura revertida para emitida.', 'success');
+      addToast(t('invoices.revertedToIssued'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
       throw err;
@@ -286,7 +286,7 @@ export default function InvoiceServicesDetailPage() {
       setNewQuantity('');
       setNewUnitPrice('');
       await loadInvoice();
-      addToast('Item adicional adicionado.', 'success');
+      addToast(t('invoices.customLineAdded'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -295,11 +295,11 @@ export default function InvoiceServicesDetailPage() {
   }
 
   async function handleRemoveCustomLine(lineId: string) {
-    if (!id || !confirm('Remover este item?')) return;
+    if (!id || !confirm(t('invoices.confirmRemoveLine'))) return;
     try {
       await invoiceService.removeCustomLine(id, lineId);
       await loadInvoice();
-      addToast('Item removido.', 'success');
+      addToast(t('invoices.itemRemoved'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
@@ -307,7 +307,7 @@ export default function InvoiceServicesDetailPage() {
 
   if (loading) {
     return (
-      <SidebarLayout navItems={navItems} title="Fatura de Serviços">
+      <SidebarLayout navItems={navItems} title={t('invoices.serviceInvoiceTitle')}>
         <div className="space-y-4">
           <Skeleton className="h-8 w-64 rounded-lg" />
           <Skeleton className="h-40 rounded-xl" />
@@ -319,15 +319,15 @@ export default function InvoiceServicesDetailPage() {
 
   if (error || !invoice) {
     return (
-      <SidebarLayout navItems={navItems} title="Fatura de Serviços">
+      <SidebarLayout navItems={navItems} title={t('invoices.serviceInvoiceTitle')}>
         <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-danger mb-4">{error || 'Fatura não encontrada.'}</p>
+          <p className="text-danger mb-4">{error || t('invoices.notFound')}</p>
           <button
             type="button"
             onClick={() => navigate('/financial/invoices/services')}
             className="text-sm text-accent hover:text-accent-hover"
           >
-            Voltar para lista
+            {t('common.backToList')}
           </button>
         </div>
       </SidebarLayout>
@@ -341,7 +341,7 @@ export default function InvoiceServicesDetailPage() {
   const status = INVOICE_STATUS_MAP[invoice.status] ?? INVOICE_STATUS_MAP.draft;
 
   return (
-    <SidebarLayout navItems={navItems} title="Fatura de Serviços">
+    <SidebarLayout navItems={navItems} title={t('invoices.serviceInvoiceTitle')}>
       <div className="mb-6">
         <button
           type="button"
@@ -349,20 +349,20 @@ export default function InvoiceServicesDetailPage() {
           className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
-          Voltar
+          {t('common.back')}
         </button>
 
         <div className="flex items-start gap-3 flex-wrap">
           <h2 className="text-2xl font-bold tracking-tight text-text-primary">
-            {invoice.invoiceNumber ? `Fatura Nº ${invoice.invoiceNumber}` : 'Rascunho'}
+            {invoice.invoiceNumber ? t('invoices.invoiceNumber', { number: invoice.invoiceNumber }) : t('invoices.draft')}
             <span className="mx-2 text-text-muted">—</span>
             <span className="text-lg">{invoice.projectName}</span>
             <span className="mx-2 text-text-muted">—</span>
-            <span className="font-mono text-lg">{MONTH_NAMES[invoice.month - 1]}/{invoice.year}</span>
+            <span className="font-mono text-lg">{getShortMonthName(invoice.month - 1)}/{invoice.year}</span>
           </h2>
-          <Badge variant={status.variant}>{status.label}</Badge>
+          <Badge variant={status.variant}>{t(status.label)}</Badge>
         </div>
-        <p className="text-sm text-text-muted mt-1">Cliente: {invoice.clientName}</p>
+        <p className="text-sm text-text-muted mt-1">{t('invoices.clientLabel')} {invoice.clientName}</p>
       </div>
 
       {/* Hours lines table */}
@@ -370,12 +370,12 @@ export default function InvoiceServicesDetailPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>Consultor</TableHeader>
-              <TableHeader className="text-right">Horas Calculadas</TableHeader>
-              <TableHeader className="text-right">Horas Aplicadas</TableHeader>
-              <TableHeader className="text-right">Rate Original</TableHeader>
-              <TableHeader className="text-right">Rate Aplicado</TableHeader>
-              <TableHeader className="text-right">Subtotal</TableHeader>
+              <TableHeader>{t('invoices.consultantColumn')}</TableHeader>
+              <TableHeader className="text-right">{t('invoices.calculatedHours')}</TableHeader>
+              <TableHeader className="text-right">{t('invoices.appliedHours')}</TableHeader>
+              <TableHeader className="text-right">{t('invoices.originalRate')}</TableHeader>
+              <TableHeader className="text-right">{t('invoices.appliedRate')}</TableHeader>
+              <TableHeader className="text-right">{t('common.subtotal')}</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -428,13 +428,13 @@ export default function InvoiceServicesDetailPage() {
       {/* Installment lines (fixed_price) */}
       {installmentLines.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-text-tertiary mb-3">Parcelas</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-text-tertiary mb-3">{t('invoices.installmentsSection')}</h3>
           <div className="overflow-x-auto rounded-xl border border-border bg-surface-1">
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableHeader>Descrição</TableHeader>
-                  <TableHeader className="text-right">Valor</TableHeader>
+                  <TableHeader>{t('common.description')}</TableHeader>
+                  <TableHeader className="text-right">{t('common.value')}</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -467,11 +467,11 @@ export default function InvoiceServicesDetailPage() {
       {(customLines.length > 0 || isDraft) && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-text-tertiary">Itens Adicionais</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-text-tertiary">{t('invoices.customItems')}</h3>
             {isDraft && (
               <Button variant="secondary" size="sm" onClick={() => setAddLineModalOpen(true)}>
                 <Plus size={14} className="mr-1" />
-                Adicionar item
+                {t('invoices.addItem')}
               </Button>
             )}
           </div>
@@ -480,11 +480,11 @@ export default function InvoiceServicesDetailPage() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableHeader>Descrição</TableHeader>
-                    <TableHeader className="text-right">Quantidade</TableHeader>
-                    <TableHeader className="text-right">Preço Unitário</TableHeader>
-                    <TableHeader className="text-right">Subtotal</TableHeader>
-                    {isDraft && <TableHeader className="w-16">Ações</TableHeader>}
+                    <TableHeader>{t('common.description')}</TableHeader>
+                    <TableHeader className="text-right">{t('invoices.quantity')}</TableHeader>
+                    <TableHeader className="text-right">{t('invoices.unitPrice')}</TableHeader>
+                    <TableHeader className="text-right">{t('common.subtotal')}</TableHeader>
+                    {isDraft && <TableHeader className="w-16">{t('common.actions')}</TableHeader>}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -536,7 +536,7 @@ export default function InvoiceServicesDetailPage() {
                           <button
                             onClick={() => handleRemoveCustomLine(line.id)}
                             className="rounded-md p-1.5 text-text-muted hover:text-danger hover:bg-danger/10 transition-colors"
-                            title="Remover"
+                            title={t('invoices.removeLabel')}
                           >
                             <Trash2 size={15} />
                           </button>
@@ -555,29 +555,29 @@ export default function InvoiceServicesDetailPage() {
       <div className="mb-6 flex justify-end gap-6">
         {!isFixedPrice && (
           <div className="rounded-xl border border-border bg-surface-1 px-5 py-3">
-            <span className="text-sm text-text-muted mr-3">Total Horas:</span>
+            <span className="text-sm text-text-muted mr-3">{t('invoices.totalHoursLabel')}</span>
             <span className="text-lg font-bold font-mono text-text-primary">{calcTotalHours().toFixed(2)}</span>
           </div>
         )}
         <div className="rounded-xl border border-border bg-surface-1 px-5 py-3">
-          <span className="text-sm text-text-muted mr-3">Total Valor:</span>
+          <span className="text-sm text-text-muted mr-3">{t('invoices.totalValueLabel')}</span>
           <span className="text-lg font-bold font-mono text-text-primary">{formatCurrency(calcTotalAmount())}</span>
         </div>
       </div>
 
       {/* Notes */}
       <div className="rounded-xl border border-border bg-surface-1 p-6 mb-6">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">Observações</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">{t('common.notes')}</h3>
         {isDraft ? (
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            placeholder="Observações sobre a fatura..."
+            placeholder={t('invoices.notesPlaceholder')}
             className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none placeholder:text-text-muted"
           />
         ) : (
-          <p className="text-sm text-text-secondary whitespace-pre-wrap">{notes || 'Nenhuma observação.'}</p>
+          <p className="text-sm text-text-secondary whitespace-pre-wrap">{notes || t('common.noNotes')}</p>
         )}
       </div>
 
@@ -586,44 +586,44 @@ export default function InvoiceServicesDetailPage() {
         {isDraft && (
           <>
             <Button onClick={handleSave} disabled={actionLoading}>
-              {actionLoading ? 'Salvando...' : 'Salvar'}
+              {actionLoading ? t('common.saving') : t('common.save')}
             </Button>
             <Button variant="secondary" onClick={handleIssue} disabled={actionLoading}>
-              Emitir
+              {t('invoices.issue')}
             </Button>
             <Button variant="danger" onClick={handleDelete} disabled={actionLoading}>
-              Excluir
+              {t('common.delete')}
             </Button>
           </>
         )}
         {isIssued && (
           <>
             <Button onClick={handlePay} disabled={actionLoading}>
-              Marcar Paga
+              {t('invoices.markPaid')}
             </Button>
             <Button variant="secondary" onClick={() => setRevertModal('to-draft')} disabled={actionLoading}>
-              Reverter para Rascunho
+              {t('invoices.revertToDraft')}
             </Button>
             <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button variant="secondary" onClick={() => setShowPdfModal(true)}>
               <Download size={15} className="mr-1.5" />
-              Download PDF
+              {t('invoices.downloadPdf')}
             </Button>
           </>
         )}
         {isPaid && (
           <>
             <Button variant="secondary" onClick={() => setRevertModal('to-issued')} disabled={actionLoading}>
-              Reverter para Emitida
+              {t('invoices.revertToIssued')}
             </Button>
             <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button variant="secondary" onClick={() => setShowPdfModal(true)}>
               <Download size={15} className="mr-1.5" />
-              Download PDF
+              {t('invoices.downloadPdf')}
             </Button>
           </>
         )}
@@ -636,21 +636,21 @@ export default function InvoiceServicesDetailPage() {
       </div>
 
       {/* Add custom line modal */}
-      <Modal isOpen={addLineModalOpen} onClose={() => setAddLineModalOpen(false)} title="Adicionar Item Adicional">
+      <Modal isOpen={addLineModalOpen} onClose={() => setAddLineModalOpen(false)} title={t('invoices.addCustomItem')}>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1">Descrição</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1">{t('common.description')}</label>
             <input
               type="text"
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
               className="w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
-              placeholder="Descrição do item"
+              placeholder={t('invoices.itemDescriptionPlaceholder')}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1">Quantidade</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1">{t('invoices.quantity')}</label>
               <input
                 type="number"
                 step="0.01"
@@ -661,7 +661,7 @@ export default function InvoiceServicesDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1">Preço Unitário</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1">{t('invoices.unitPrice')}</label>
               <input
                 type="number"
                 step="0.01"
@@ -673,9 +673,9 @@ export default function InvoiceServicesDetailPage() {
             </div>
           </div>
           <div className="flex justify-end gap-3">
-            <Button variant="secondary" onClick={() => setAddLineModalOpen(false)}>Cancelar</Button>
+            <Button variant="secondary" onClick={() => setAddLineModalOpen(false)}>{t('common.cancel')}</Button>
             <Button onClick={handleAddCustomLine} disabled={actionLoading || !newDescription || !newQuantity || !newUnitPrice}>
-              {actionLoading ? 'Adicionando...' : 'Adicionar'}
+              {actionLoading ? t('invoices.adding') : t('invoices.addItem')}
             </Button>
           </div>
         </div>
@@ -689,18 +689,18 @@ export default function InvoiceServicesDetailPage() {
         invoiceNumber={invoice.invoiceNumber}
       />
 
-      <Modal isOpen={showPdfModal} onClose={() => setShowPdfModal(false)} title="Gerar PDF da Fatura">
+      <Modal isOpen={showPdfModal} onClose={() => setShowPdfModal(false)} title={t('invoices.generatePdfTitle')}>
         {bankAccounts.length === 0 ? (
-          <p className="text-sm text-text-muted">Cadastre contas bancárias em Configurações.</p>
+          <p className="text-sm text-text-muted">{t('reports.registerBankAccounts')}</p>
         ) : (
           <>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">Conta para pagamento</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('invoices.paymentAccount')}</label>
             <select
               value={selectedBankAccountId}
               onChange={(e) => setSelectedBankAccountId(e.target.value)}
               className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
             >
-              <option value="">Selecione uma conta...</option>
+              <option value="">{t('invoices.selectAccount')}</option>
               {bankAccounts.map((ba) => (
                 <option key={ba.id} value={ba.id}>{ba.label}</option>
               ))}
@@ -708,9 +708,9 @@ export default function InvoiceServicesDetailPage() {
           </>
         )}
         <div className="flex justify-end gap-3 mt-6">
-          <Button variant="secondary" onClick={() => setShowPdfModal(false)}>Cancelar</Button>
+          <Button variant="secondary" onClick={() => setShowPdfModal(false)}>{t('common.cancel')}</Button>
           <Button onClick={handleDownloadPdf} disabled={!selectedBankAccountId || pdfLoading}>
-            {pdfLoading ? 'Gerando...' : 'Gerar PDF'}
+            {pdfLoading ? t('common.generating') : t('reports.generatePdf')}
           </Button>
         </div>
       </Modal>

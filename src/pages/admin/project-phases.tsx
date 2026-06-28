@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Plus, Pencil, Trash2, Users, ChevronDown, ChevronRight, Play, CheckCircle, UserPlus, Clock, Undo2, RotateCcw, Copy } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
@@ -23,6 +24,7 @@ import type { ProjectAllocation } from '../../types/project.types';
 export default function ProjectPhasesPage() {
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const addToast = useToastStore((s) => s.addToast);
 
@@ -77,46 +79,46 @@ export default function ProjectPhasesPage() {
   }
 
   async function handleDeletePhase(phaseId: string) {
-    if (!confirm('Excluir esta fase?')) return;
+    if (!confirm(t('projects.deletePhase'))) return;
     try { await deletePhase(phaseId); } catch (err) { addToast(formatApiError(err), 'error'); }
   }
 
   async function handleDeleteSubphase(subphaseId: string) {
-    if (!confirm('Excluir esta subfase?')) return;
+    if (!confirm(t('projects.deleteSubphase'))) return;
     try { await deleteSubphase(subphaseId); } catch (err) { addToast(formatApiError(err), 'error'); }
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Fases do Projeto">
+    <SidebarLayout navItems={navItems} title={t('projects.phasesTitle')}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <IconButton onClick={() => navigate(`/admin/projects/${projectId}`)} aria-label="Voltar">
+        <IconButton onClick={() => navigate(`/admin/projects/${projectId}`)} aria-label={t('common.back')}>
           <ArrowLeft size={18} />
         </IconButton>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-text-primary">{projectName || 'Carregando...'}</h1>
-          <p className="text-sm text-text-tertiary">Gestão de fases e subfases</p>
+          <h1 className="text-xl font-bold text-text-primary">{projectName || t('common.loading')}</h1>
+          <p className="text-sm text-text-tertiary">{t('projects.phasesManagement')}</p>
         </div>
         <Button onClick={() => setPhaseModal({ open: true })}>
-          <Plus size={16} className="mr-1.5" /> Nova Fase
+          <Plus size={16} className="mr-1.5" /> {t('projects.newPhase')}
         </Button>
       </div>
 
       {/* Loading */}
       {loading && phases.length === 0 && (
-        <p className="text-sm text-text-tertiary py-8 text-center">Carregando...</p>
+        <p className="text-sm text-text-tertiary py-8 text-center">{t('common.loading')}</p>
       )}
 
       {/* Empty */}
       {!loading && phases.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-text-tertiary mb-4">Nenhuma fase cadastrada</p>
+          <p className="text-text-tertiary mb-4">{t('projects.noPhases')}</p>
           <div className="flex items-center justify-center gap-3">
             <Button onClick={() => setPhaseModal({ open: true })}>
-              <Plus size={16} className="mr-1.5" /> Criar primeira fase
+              <Plus size={16} className="mr-1.5" /> {t('projects.createFirstPhase')}
             </Button>
             <Button variant="secondary" onClick={() => setCloneModal(true)}>
-              <Copy size={16} className="mr-1.5" /> Clonar de outro projeto
+              <Copy size={16} className="mr-1.5" /> {t('projects.cloneFromProject')}
             </Button>
           </div>
         </div>
@@ -139,7 +141,7 @@ export default function ProjectPhasesPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-text-primary truncate">{phase.name}</h3>
-                    <span className="text-xs text-text-tertiary">{phase.subphaseCount} subfases</span>
+                    <span className="text-xs text-text-tertiary">{phase.subphaseCount} {t('projects.subphases')}</span>
                   </div>
                   {phase.estimatedHours > 0 && (
                     <div className="mt-1 max-w-xs">
@@ -148,7 +150,7 @@ export default function ProjectPhasesPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                  <IconButton onClick={() => setSubphaseModal({ open: true, phaseId: phase.id })} aria-label="Nova subfase">
+                  <IconButton onClick={() => setSubphaseModal({ open: true, phaseId: phase.id })} aria-label={t('projects.newSubphase')}>
                     <Plus size={16} />
                   </IconButton>
                   <IconButton onClick={() => setTimeEntriesModal({
@@ -157,16 +159,16 @@ export default function ProjectPhasesPage() {
                     phaseId: phase.id,
                     consultants: [...new Map((phase.subphases ?? []).flatMap(sp => sp.consultants ?? []).map(c => [c.userId, { userId: c.userId, userName: c.userName }])).values()],
                     subphases: (phase.subphases ?? []).map(sp => ({ id: sp.id, name: sp.name })),
-                  })} aria-label="Ver apontamentos">
+                  })} aria-label={t('projects.viewTimeEntries')}>
                     <Clock size={16} />
                   </IconButton>
-                  <IconButton onClick={() => setLoadModal({ open: true, phase })} aria-label="Carregar consultores">
+                  <IconButton onClick={() => setLoadModal({ open: true, phase })} aria-label={t('projects.loadConsultants')}>
                     <Users size={16} />
                   </IconButton>
-                  <IconButton onClick={() => setPhaseModal({ open: true, phase })} aria-label="Editar fase">
+                  <IconButton onClick={() => setPhaseModal({ open: true, phase })} aria-label={t('projects.editPhase')}>
                     <Pencil size={16} />
                   </IconButton>
-                  <IconButton onClick={() => handleDeletePhase(phase.id)} aria-label="Excluir fase">
+                  <IconButton onClick={() => handleDeletePhase(phase.id)} aria-label={t('common.delete')}>
                     <Trash2 size={16} />
                   </IconButton>
                 </div>
@@ -176,7 +178,7 @@ export default function ProjectPhasesPage() {
               {isExpanded && (
                 <div className="border-t border-border">
                   {(phase.subphases?.length ?? 0) === 0 ? (
-                    <p className="px-4 py-3 text-sm text-text-tertiary">Nenhuma subfase</p>
+                    <p className="px-4 py-3 text-sm text-text-tertiary">{t('projects.noSubphases')}</p>
                   ) : (
                     <div className="divide-y divide-border/50">
                       {(phase.subphases ?? []).map((sp) => (
@@ -189,7 +191,7 @@ export default function ProjectPhasesPage() {
                               </div>
                               {sp.startDate && (
                                 <p className="text-xs text-text-tertiary">
-                                  {sp.startDate} → {sp.endDate || '?'} ({sp.businessDays} dias úteis)
+                                  {sp.startDate} → {sp.endDate || '?'} ({sp.businessDays} {t('projects.businessDays')})
                                 </p>
                               )}
                               {Number(sp.estimatedHours || 0) > 0 && (
@@ -211,26 +213,26 @@ export default function ProjectPhasesPage() {
                             </div>
                             <div className="flex items-center gap-1">
                               {sp.status === 'planned' && (
-                                <IconButton onClick={() => handleStatusChange(sp, 'in_progress')} aria-label="Iniciar" title="Iniciar">
+                                <IconButton onClick={() => handleStatusChange(sp, 'in_progress')} aria-label={t('projects.startSubphase')} title={t('projects.startSubphase')}>
                                   <Play size={14} />
                                 </IconButton>
                               )}
                               {sp.status === 'in_progress' && (
                                 <>
-                                  <IconButton onClick={() => handleStatusChange(sp, 'planned')} aria-label="Voltar para Planejada" title="Voltar para Planejada">
+                                  <IconButton onClick={() => handleStatusChange(sp, 'planned')} aria-label={t('projects.backToPlanned')} title={t('projects.backToPlanned')}>
                                     <Undo2 size={14} />
                                   </IconButton>
-                                  <IconButton onClick={() => handleStatusChange(sp, 'completed')} aria-label="Concluir" title="Concluir">
+                                  <IconButton onClick={() => handleStatusChange(sp, 'completed')} aria-label={t('projects.completeSubphase')} title={t('projects.completeSubphase')}>
                                     <CheckCircle size={14} />
                                   </IconButton>
                                 </>
                               )}
                               {sp.status === 'completed' && (
                                 <>
-                                  <IconButton onClick={() => handleStatusChange(sp, 'in_progress')} aria-label="Voltar para Em Andamento" title="Voltar para Em Andamento">
+                                  <IconButton onClick={() => handleStatusChange(sp, 'in_progress')} aria-label={t('projects.backToInProgress')} title={t('projects.backToInProgress')}>
                                     <Undo2 size={14} />
                                   </IconButton>
-                                  <IconButton onClick={() => handleStatusChange(sp, 'planned')} aria-label="Voltar para Planejada" title="Voltar para Planejada">
+                                  <IconButton onClick={() => handleStatusChange(sp, 'planned')} aria-label={t('projects.backToPlanned')} title={t('projects.backToPlanned')}>
                                     <RotateCcw size={14} />
                                   </IconButton>
                                 </>
@@ -241,16 +243,16 @@ export default function ProjectPhasesPage() {
                                 subphaseId: sp.id,
                                 consultants: (sp.consultants ?? []).map(c => ({ userId: c.userId, userName: c.userName })),
                                 subphases: [],
-                              })} aria-label="Ver apontamentos">
+                              })} aria-label={t('projects.viewTimeEntries')}>
                                 <Clock size={14} />
                               </IconButton>
-                              <IconButton onClick={() => setConsultantsModal({ open: true, subphaseId: sp.id, subphaseName: sp.name })} aria-label="Consultores">
+                              <IconButton onClick={() => setConsultantsModal({ open: true, subphaseId: sp.id, subphaseName: sp.name })} aria-label={t('projects.consultants')}>
                                 <UserPlus size={14} />
                               </IconButton>
-                              <IconButton onClick={() => setSubphaseModal({ open: true, phaseId: phase.id, subphase: sp })} aria-label="Editar">
+                              <IconButton onClick={() => setSubphaseModal({ open: true, phaseId: phase.id, subphase: sp })} aria-label={t('common.edit')}>
                                 <Pencil size={14} />
                               </IconButton>
-                              <IconButton onClick={() => handleDeleteSubphase(sp.id)} aria-label="Excluir">
+                              <IconButton onClick={() => handleDeleteSubphase(sp.id)} aria-label={t('common.delete')}>
                                 <Trash2 size={14} />
                               </IconButton>
                             </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import type { TimeEntry } from '../../types/time-entry.types';
@@ -23,6 +24,7 @@ function formatDuration(hours: number | string): string {
 }
 
 export function EntryCard({ entry, isEditable = true, onEdit, onDelete }: EntryCardProps) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-border bg-surface-2 p-3 space-y-2 transition-colors hover:border-border-subtle">
       {/* Header: time range + duration */}
@@ -61,10 +63,10 @@ export function EntryCard({ entry, isEditable = true, onEdit, onDelete }: EntryC
       {isEditable && (
         <div className="flex items-center gap-2 pt-1">
           <Button variant="ghost" size="sm" onClick={() => onEdit(entry)}>
-            <Pencil size={12} className="mr-1" /> Editar
+            <Pencil size={12} className="mr-1" /> {t('common.edit')}
           </Button>
           <Button variant="ghost" size="sm" onClick={() => onDelete(entry.id)} className="text-danger hover:text-danger-hover">
-            <Trash2 size={12} className="mr-1" /> Excluir
+            <Trash2 size={12} className="mr-1" /> {t('common.delete')}
           </Button>
         </div>
       )}

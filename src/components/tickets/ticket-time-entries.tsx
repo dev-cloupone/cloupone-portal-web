@@ -1,4 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import { Clock } from 'lucide-react';
+import { useLocaleStore } from '../../stores/locale.store';
 
 interface TimeEntryRow {
   id: string;
@@ -14,22 +16,23 @@ interface TicketTimeEntriesProps {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('pt-BR');
+  return new Date(iso).toLocaleDateString(useLocaleStore.getState().locale);
 }
 
 export function TicketTimeEntries({ entries, estimatedHours }: TicketTimeEntriesProps) {
+  const { t } = useTranslation();
   const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
   const percentage = estimatedHours ? Math.min((totalHours / estimatedHours) * 100, 100) : 0;
 
   return (
     <div className="space-y-3">
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Horas Registradas</h4>
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('tickets.registeredHours')}</h4>
 
       {estimatedHours != null && (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
             <span className="text-text-muted">
-              {totalHours.toFixed(1)}h / {estimatedHours}h estimadas
+              {t('tickets.hoursOfEstimated', { actual: totalHours.toFixed(1), estimated: estimatedHours })}
             </span>
             <span className="text-text-muted">{percentage.toFixed(0)}%</span>
           </div>
@@ -46,14 +49,14 @@ export function TicketTimeEntries({ entries, estimatedHours }: TicketTimeEntries
 
       {!estimatedHours && entries.length > 0 && (
         <p className="text-xs text-text-muted">
-          Total: {totalHours.toFixed(1)}h
+          {t('tickets.totalHours', { hours: totalHours.toFixed(1) })}
         </p>
       )}
 
       {entries.length === 0 ? (
         <div className="flex items-center gap-2 text-xs text-text-muted py-2">
           <Clock size={14} />
-          Nenhuma hora registrada
+          {t('tickets.noHoursRegistered')}
         </div>
       ) : (
         <div className="space-y-1.5">

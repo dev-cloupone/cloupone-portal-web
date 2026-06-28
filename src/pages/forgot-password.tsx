@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { AuthLayout } from '../components/ui/auth-layout';
@@ -8,6 +9,7 @@ import { formatApiError } from '../services/api';
 import { MSG } from '../constants/messages';
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,7 +26,7 @@ export default function ForgotPasswordPage() {
       setIsSuccess(true);
     } catch (err) {
       if (err instanceof Error && err.message.includes('fetch')) {
-        setError(MSG.CONNECTION_ERROR);
+        setError(MSG.CONNECTION_ERROR());
       } else {
         setError(formatApiError(err));
       }
@@ -34,33 +36,33 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <AuthLayout subtitle="Recupere sua senha">
+    <AuthLayout subtitle={t('auth.recoverPassword')}>
       {isSuccess ? (
         <div className="text-center space-y-4">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 border border-accent/20">
             <div className="h-3 w-3 rounded-full bg-accent shadow-[0_0_12px_rgba(59,130,246,0.5)]" />
           </div>
-          <h2 className="text-lg font-bold tracking-tight text-text-primary">Email Enviado</h2>
+          <h2 className="text-lg font-bold tracking-tight text-text-primary">{t('auth.emailSent')}</h2>
           <p className="text-sm text-text-secondary">
-            {MSG.RESET_EMAIL_SENT}
+            {MSG.RESET_EMAIL_SENT()}
           </p>
           <Button variant="secondary" className="w-full mt-2" onClick={() => navigate('/login')}>
-            Voltar para Login
+            {t('auth.backToLogin')}
           </Button>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
           <p className="text-sm text-text-tertiary">
-            Informe seu email e enviaremos instruções para redefinir sua senha.
+            {t('auth.recoverInstructions')}
           </p>
 
           <Input
-            label="Email"
+            label={t('auth.email')}
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="seu@email.com"
+            placeholder={t('auth.emailPlaceholder')}
             required
           />
 
@@ -71,15 +73,15 @@ export default function ForgotPasswordPage() {
           )}
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Enviando...' : 'Enviar link de recuperação'}
+            {isSubmitting ? t('common.sending') : t('auth.sendRecoveryLink')}
           </Button>
         </form>
       )}
 
       <p className="mt-5 text-center text-sm text-text-muted">
-        Lembrou sua senha?{' '}
+        {t('auth.rememberedPassword')}{' '}
         <Link to="/login" className="text-accent hover:text-accent-hover font-medium">
-          Fazer login
+          {t('auth.signIn')}
         </Link>
       </p>
     </AuthLayout>

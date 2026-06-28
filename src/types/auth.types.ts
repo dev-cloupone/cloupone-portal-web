@@ -6,6 +6,7 @@ export interface User {
   mustChangePassword?: boolean;
   avatarFileId?: string | null;
   clientId?: string | null;
+  locale?: 'pt-BR' | 'en-US';
 }
 
 export interface LoginResponse {

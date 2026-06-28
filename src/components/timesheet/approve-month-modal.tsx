@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../ui/modal';
 import { Button } from '../ui/button';
 
@@ -19,6 +20,7 @@ export function ApproveMonthModal({
   totalHours,
   entryCount,
 }: ApproveMonthModalProps) {
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleConfirm() {
@@ -34,34 +36,31 @@ export function ApproveMonthModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Aprovar Mês">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('timesheet.approveMonthTitle')}>
       <div className="space-y-4">
-        <p className="text-sm text-text-secondary">
-          Tem certeza que deseja aprovar seus apontamentos de{' '}
-          <strong>{monthLabel}</strong>?
-        </p>
+        <p className="text-sm text-text-secondary" dangerouslySetInnerHTML={{ __html: t('timesheet.approveConfirm', { month: monthLabel }) }} />
 
         <div className="rounded-lg bg-surface-2 border border-border p-3 space-y-1">
           <div className="flex justify-between text-sm">
-            <span className="text-text-tertiary">Total de horas</span>
+            <span className="text-text-tertiary">{t('timesheet.totalHoursLabel')}</span>
             <span className="font-semibold text-text-primary">{totalHours.toFixed(1)}h</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-text-tertiary">Apontamentos</span>
+            <span className="text-text-tertiary">{t('timesheet.entriesLabel')}</span>
             <span className="text-text-secondary">{entryCount}</span>
           </div>
         </div>
 
         <p className="text-xs text-text-muted">
-          Após a aprovação, os registros não poderão ser editados até que um gestor reabra o mês.
+          {t('timesheet.approveDisclaimer')}
         </p>
 
         <div className="modal-actions">
           <Button variant="secondary" type="button" onClick={onClose} disabled={isSubmitting}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleConfirm} disabled={isSubmitting}>
-            {isSubmitting ? 'Aprovando...' : 'Aprovar'}
+            {isSubmitting ? t('timesheet.approving') : t('timesheet.approve')}
           </Button>
         </div>
       </div>

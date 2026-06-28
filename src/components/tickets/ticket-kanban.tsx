@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   DndContext,
   DragOverlay,
@@ -45,6 +46,7 @@ interface TicketKanbanProps {
 }
 
 export function TicketKanban({ filters, onTicketUpdated }: TicketKanbanProps) {
+  const { t } = useTranslation();
   const addToast = useToastStore((s) => s.addToast);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,7 +129,7 @@ export function TicketKanban({ filters, onTicketUpdated }: TicketKanbanProps) {
     const allowed = STATUS_TRANSITIONS[ticket.status] || [];
     if (!allowed.includes(targetStatus)) {
       addToast(
-        `Transição inválida: ${TICKET_STATUS_LABELS[ticket.status as TicketStatus]} → ${TICKET_STATUS_LABELS[targetStatus as TicketStatus]}`,
+        t('tickets.invalidTransition', { from: t(TICKET_STATUS_LABELS[ticket.status as TicketStatus]), to: t(TICKET_STATUS_LABELS[targetStatus as TicketStatus]) }),
         'error'
       );
       return;
@@ -197,14 +199,15 @@ interface KanbanColumnProps {
 }
 
 function KanbanColumn({ status, tickets }: KanbanColumnProps) {
-  const ticketIds = useMemo(() => tickets.map((t) => t.id), [tickets]);
+  const { t } = useTranslation();
+  const ticketIds = useMemo(() => tickets.map((tk) => tk.id), [tickets]);
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
     <div className="w-72 shrink-0">
       <div className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2 mb-3 border border-border">
         <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
-          {TICKET_STATUS_LABELS[status]}
+          {t(TICKET_STATUS_LABELS[status])}
         </span>
         <span className="text-[11px] font-medium text-text-muted bg-surface-3 rounded-full px-2 py-0.5">
           {tickets.length}
@@ -225,7 +228,7 @@ function KanbanColumn({ status, tickets }: KanbanColumnProps) {
           ))}
           {tickets.length === 0 && (
             <div className="flex items-center justify-center py-8 text-xs text-text-muted">
-              Vazio
+              {t('common.empty')}
             </div>
           )}
         </div>

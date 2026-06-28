@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
+import i18n from '../../i18n';
 import { MSG } from '../../constants/messages';
 
 interface Props {
@@ -30,10 +31,10 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="flex min-h-screen items-center justify-center bg-surface-1 p-4">
           <div className="max-w-md text-center">
             <h1 className="mb-2 text-2xl font-bold text-foreground">
-              {MSG.GENERIC_ERROR}
+              {MSG.GENERIC_ERROR()}
             </h1>
             <p className="mb-6 text-muted">
-              {MSG.GENERIC_ERROR_RELOAD}
+              {MSG.GENERIC_ERROR_RELOAD()}
             </p>
             <button
               onClick={() => {
@@ -42,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
               }}
               className="rounded-lg bg-primary px-6 py-2 text-sm font-medium text-white hover:bg-primary/90"
             >
-              Recarregar
+              {i18n.t('common.reload')}
             </button>
           </div>
         </div>

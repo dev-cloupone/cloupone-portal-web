@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { Plus, List, LayoutGrid } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
@@ -20,6 +21,7 @@ import { useNavItems } from '../hooks/use-nav-items';
 import { useAuth } from '../hooks/use-auth';
 import type { Ticket } from '../types/ticket.types';
 import type { ConsultantOption } from '../types/time-entry.types';
+import { useLocaleStore } from '../stores/locale.store';
 
 type ViewMode = 'list' | 'kanban';
 
@@ -34,7 +36,7 @@ function getInitialViewMode(): ViewMode {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('pt-BR');
+  return new Date(iso).toLocaleDateString(useLocaleStore.getState().locale);
 }
 
 const NOT_FINISHED_STATUSES = 'open,in_analysis,awaiting_customer,awaiting_third_party';
@@ -55,6 +57,7 @@ function resolveStatusParam(status: string): string | undefined {
 }
 
 export default function TicketsPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -137,10 +140,10 @@ export default function TicketsPage() {
   const effectiveViewMode: ViewMode = isInternalUser ? viewMode : 'list';
 
   return (
-    <SidebarLayout navItems={navItems} title="Atendimento">
+    <SidebarLayout navItems={navItems} title={t('tickets.support')}>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Atendimento</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('tickets.support')}</h2>
           <p className="text-sm text-text-muted mt-1">
             {meta ? `${meta.total} ticket${meta.total !== 1 ? 's' : ''}` : ''}
           </p>
@@ -152,7 +155,7 @@ export default function TicketsPage() {
                 type="button"
                 onClick={() => handleViewModeChange('list')}
                 className={`rounded-md px-2.5 py-1.5 text-sm transition-colors ${viewMode === 'list' ? 'bg-surface-3 text-text-primary font-medium' : 'text-text-muted hover:text-text-secondary'}`}
-                title="Visualizar como lista"
+                title={t('common.viewList')}
               >
                 <List size={16} />
               </button>
@@ -160,14 +163,14 @@ export default function TicketsPage() {
                 type="button"
                 onClick={() => handleViewModeChange('kanban')}
                 className={`rounded-md px-2.5 py-1.5 text-sm transition-colors ${viewMode === 'kanban' ? 'bg-surface-3 text-text-primary font-medium' : 'text-text-muted hover:text-text-secondary'}`}
-                title="Visualizar como kanban"
+                title={t('common.viewKanban')}
               >
                 <LayoutGrid size={16} />
               </button>
             </div>
           )}
           <Button onClick={() => navigate('/tickets/new')}>
-            <Plus size={16} className="mr-2" /> Novo Ticket
+            <Plus size={16} className="mr-2" /> {t('tickets.newTicket')}
           </Button>
         </div>
       </div>
@@ -193,22 +196,22 @@ export default function TicketsPage() {
           ) : tickets.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
               <List size={40} className="text-text-muted mb-3" />
-              <p className="text-text-secondary font-medium">Nenhum ticket encontrado</p>
-              <p className="text-sm text-text-muted mt-1">Crie um novo ticket para começar</p>
+              <p className="text-text-secondary font-medium">{t('tickets.noTicketsFound')}</p>
+              <p className="text-sm text-text-muted mt-1">{t('tickets.createToStart')}</p>
             </div>
           ) : (
             <>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableHeader>Código</TableHeader>
-                    <TableHeader>Título</TableHeader>
-                    <TableHeader>Tipo</TableHeader>
-                    <TableHeader>Prioridade</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                    <TableHeader>Atribuído</TableHeader>
-                    <TableHeader>Projeto</TableHeader>
-                    <TableHeader>Atualizado</TableHeader>
+                    <TableHeader>{t('tickets.code')}</TableHeader>
+                    <TableHeader>{t('tickets.titleLabel')}</TableHeader>
+                    <TableHeader>{t('tickets.type')}</TableHeader>
+                    <TableHeader>{t('tickets.priority')}</TableHeader>
+                    <TableHeader>{t('tickets.status')}</TableHeader>
+                    <TableHeader>{t('tickets.assigned')}</TableHeader>
+                    <TableHeader>{t('tickets.project')}</TableHeader>
+                    <TableHeader>{t('tickets.updated')}</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -224,7 +227,7 @@ export default function TicketsPage() {
                           <span className="font-medium text-text-primary truncate max-w-xs">{ticket.title}</span>
                           {isInternalUser && !ticket.isVisibleToClient && (
                             <span className="shrink-0 inline-flex items-center rounded-md bg-surface-3 px-1.5 py-0.5 text-[10px] font-medium text-text-muted border border-border">
-                              Interno
+                              {t('common.internal')}
                             </span>
                           )}
                         </div>
