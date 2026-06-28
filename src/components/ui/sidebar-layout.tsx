@@ -1,11 +1,13 @@
 import { type ReactNode, useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router';
 import { LogOut, Menu, ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { IconButton } from './icon-button';
 import { useAuth } from '../../hooks/use-auth';
 import { useMobile } from '../../hooks/use-mobile';
 import { useSidebarStore } from '../../stores/sidebar.store';
 import { ThemeToggle } from './theme-toggle';
+import { LanguageToggle } from './language-toggle';
 import { type NavEntry, type NavItem, type NavGroup, isNavGroup } from '../../hooks/use-nav-items';
 
 interface SidebarLayoutProps {
@@ -92,6 +94,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
   const location = useLocation();
   const { user, logout } = useAuth();
   const isMobile = useMobile();
+  const { t } = useTranslation();
   const { isOpen, isCollapsed, open, close, toggleCollapse } = useSidebarStore();
 
   const groupNames = useMemo(
@@ -143,7 +146,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
             {showToggle && (
               <button
                 onClick={toggleCollapse}
-                title="Colapsar menu"
+                title={t('common.collapseMenu')}
                 className="flex items-center justify-center rounded-lg p-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               >
                 <PanelLeftClose size={16} />
@@ -158,7 +161,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
         <div className="flex justify-center py-2">
           <button
             onClick={toggleCollapse}
-            title="Expandir menu"
+            title={t('common.expandMenu')}
             className="flex items-center justify-center rounded-lg p-2 text-text-muted hover:bg-surface-3 hover:text-text-secondary transition-colors"
           >
             <PanelLeftOpen size={16} />
@@ -194,10 +197,11 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
       <div className="border-t border-border p-3">
         {collapsed ? (
           <div className="flex flex-col items-center gap-2">
+            <LanguageToggle />
             <ThemeToggle />
             <button
               onClick={() => void logout()}
-              title="Sair"
+              title={t('common.logout')}
               className="flex items-center justify-center rounded-lg p-2 text-text-muted hover:bg-surface-3 hover:text-text-secondary transition-colors"
             >
               <LogOut size={15} />
@@ -209,6 +213,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
               <div className="truncate text-xs font-medium text-text-tertiary">
                 {user?.name}
               </div>
+              <LanguageToggle />
               <ThemeToggle />
             </div>
             <button
@@ -216,7 +221,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
               className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-text-muted hover:bg-surface-3 hover:text-text-secondary transition-colors"
             >
               <LogOut size={15} />
-              Sair
+              {t('common.logout')}
             </button>
           </>
         )}
@@ -245,7 +250,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
         <main className={`flex-1 ${fullHeight ? 'flex flex-col overflow-hidden' : 'overflow-auto'}`}>
           {isMobile && (
             <div className="flex h-14 items-center border-b border-border px-4">
-              <IconButton onClick={open} aria-label="Abrir menu">
+              <IconButton onClick={open} aria-label={t('common.openMenu')}>
                 <Menu size={20} />
               </IconButton>
               <h1 className="ml-3 text-sm font-bold text-text-primary">{title}</h1>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
@@ -32,6 +33,7 @@ interface TimeEntryRow {
 }
 
 export default function TicketDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navItems = useNavItems();
   const navigate = useNavigate();
@@ -120,7 +122,7 @@ export default function TicketDetailPage() {
       const updated = await ticketService.update(id, { status });
       setTicket(updated);
       await loadHistory();
-      addToast('Status atualizado', 'success');
+      addToast(t('tickets.statusUpdated'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
@@ -132,7 +134,7 @@ export default function TicketDetailPage() {
       const updated = await ticketService.update(id, { priority });
       setTicket(updated);
       await loadHistory();
-      addToast('Prioridade atualizada', 'success');
+      addToast(t('tickets.priorityUpdated'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
@@ -144,7 +146,7 @@ export default function TicketDetailPage() {
       const updated = await ticketService.update(id, { assignedTo });
       setTicket(updated);
       await loadHistory();
-      addToast('Atribuição atualizada', 'success');
+      addToast(t('tickets.assignmentUpdated'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
@@ -155,7 +157,7 @@ export default function TicketDetailPage() {
     try {
       await ticketService.addComment(id, { content, isInternal });
       await loadComments();
-      addToast('Comentário adicionado', 'success');
+      addToast(t('tickets.commentAdded'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
@@ -167,7 +169,7 @@ export default function TicketDetailPage() {
     try {
       await ticketService.addAttachment(id, file);
       await loadAttachments();
-      addToast('Anexo adicionado', 'success');
+      addToast(t('tickets.attachmentAdded'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -181,7 +183,7 @@ export default function TicketDetailPage() {
       const updated = await ticketService.update(id, { description });
       setTicket(updated);
       await loadHistory();
-      addToast('Descrição atualizada', 'success');
+      addToast(t('tickets.descriptionUpdated'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
       throw err;
@@ -199,7 +201,7 @@ export default function TicketDetailPage() {
         const updated = await ticketService.update(id, { ccEmails });
         setTicket(updated);
         await loadHistory();
-        addToast('E-mails em copia atualizados', 'success');
+        addToast(t('tickets.ccEmailsUpdated'), 'success');
       } catch (err) {
         addToast(formatApiError(err), 'error');
         // Revert on error
@@ -213,7 +215,7 @@ export default function TicketDetailPage() {
     try {
       await ticketService.removeAttachment(id, attachmentId);
       await loadAttachments();
-      addToast('Anexo removido', 'success');
+      addToast(t('tickets.attachmentRemoved'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
@@ -224,7 +226,7 @@ export default function TicketDetailPage() {
 
   if (loading) {
     return (
-      <SidebarLayout navItems={navItems} title="Atendimento">
+      <SidebarLayout navItems={navItems} title={t('tickets.support')}>
         <div className="space-y-4">
           <Skeleton className="h-8 w-64 rounded-lg" />
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -243,15 +245,15 @@ export default function TicketDetailPage() {
 
   if (error || !ticket) {
     return (
-      <SidebarLayout navItems={navItems} title="Atendimento">
+      <SidebarLayout navItems={navItems} title={t('tickets.support')}>
         <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-danger mb-4">{error || 'Ticket não encontrado'}</p>
+          <p className="text-danger mb-4">{error || t('tickets.notFound')}</p>
           <button
             type="button"
             onClick={() => navigate('/tickets')}
             className="text-sm text-accent hover:text-accent-hover"
           >
-            Voltar para lista
+            {t('tickets.backToList')}
           </button>
         </div>
       </SidebarLayout>
@@ -261,7 +263,7 @@ export default function TicketDetailPage() {
   const metadata = ticket.metadata as Record<string, string> | null;
 
   return (
-    <SidebarLayout navItems={navItems} title="Atendimento">
+    <SidebarLayout navItems={navItems} title={t('tickets.support')}>
       {/* Header */}
       <div className="mb-6">
         <button
@@ -270,7 +272,7 @@ export default function TicketDetailPage() {
           className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
-          Voltar
+          {t('common.back')}
         </button>
         <div className="flex items-start gap-3 flex-wrap">
           <h2 className="text-2xl font-bold tracking-tight text-text-primary">
@@ -285,7 +287,7 @@ export default function TicketDetailPage() {
           />
           {isInternalUser && !ticket.isVisibleToClient && (
             <span className="inline-flex items-center rounded-md bg-surface-3 px-2 py-0.5 text-xs font-medium text-text-muted border border-border">
-              Interno
+              {t('common.internal')}
             </span>
           )}
         </div>
@@ -306,75 +308,75 @@ export default function TicketDetailPage() {
           {metadata && Object.keys(metadata).length > 0 && (
             <div className="rounded-xl border border-border bg-surface-1 p-6">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">
-                {ticket.type === 'system_error' && 'Detalhes do Erro'}
-                {ticket.type === 'question' && 'Detalhes da Dúvida'}
-                {ticket.type === 'improvement' && 'Detalhes da Solicitação'}
-                {ticket.type === 'security' && 'Detalhes de Segurança/Acesso'}
+                {ticket.type === 'system_error' && t('tickets.errorDetails')}
+                {ticket.type === 'question' && t('tickets.questionDetails')}
+                {ticket.type === 'improvement' && t('tickets.requestDetails')}
+                {ticket.type === 'security' && t('tickets.securityDetails')}
               </h3>
               <div className="space-y-4">
                 {metadata.stepsToReproduce && (
                   <div>
-                    <p className="text-xs font-medium text-text-muted mb-1">Passos para Reproduzir</p>
+                    <p className="text-xs font-medium text-text-muted mb-1">{t('tickets.stepsToReproduce')}</p>
                     <p className="text-sm text-text-secondary whitespace-pre-wrap">{metadata.stepsToReproduce}</p>
                   </div>
                 )}
                 {metadata.expectedBehavior && (
                   <div>
-                    <p className="text-xs font-medium text-text-muted mb-1">Comportamento Esperado</p>
+                    <p className="text-xs font-medium text-text-muted mb-1">{t('tickets.expectedBehavior')}</p>
                     <p className="text-sm text-text-secondary whitespace-pre-wrap">{metadata.expectedBehavior}</p>
                   </div>
                 )}
                 {metadata.actualBehavior && (
                   <div>
-                    <p className="text-xs font-medium text-text-muted mb-1">Comportamento Atual</p>
+                    <p className="text-xs font-medium text-text-muted mb-1">{t('tickets.currentBehavior')}</p>
                     <p className="text-sm text-text-secondary whitespace-pre-wrap">{metadata.actualBehavior}</p>
                   </div>
                 )}
                 {metadata.environment && (
                   <div>
-                    <p className="text-xs font-medium text-text-muted mb-1">Ambiente</p>
+                    <p className="text-xs font-medium text-text-muted mb-1">{t('tickets.environment')}</p>
                     <p className="text-sm text-text-secondary">{metadata.environment}</p>
                   </div>
                 )}
                 {metadata.currentSituation && (
                   <div>
-                    <p className="text-xs font-medium text-text-muted mb-1">Situacao Atual</p>
+                    <p className="text-xs font-medium text-text-muted mb-1">{t('tickets.currentSituation')}</p>
                     <p className="text-sm text-text-secondary whitespace-pre-wrap">{metadata.currentSituation}</p>
                   </div>
                 )}
                 {metadata.desiredSituation && (
                   <div>
-                    <p className="text-xs font-medium text-text-muted mb-1">Situacao Desejada</p>
+                    <p className="text-xs font-medium text-text-muted mb-1">{t('tickets.desiredSituation')}</p>
                     <p className="text-sm text-text-secondary whitespace-pre-wrap">{metadata.desiredSituation}</p>
                   </div>
                 )}
                 {metadata.expectedBenefit && (
                   <div>
-                    <p className="text-xs font-medium text-text-muted mb-1">Beneficio Esperado</p>
+                    <p className="text-xs font-medium text-text-muted mb-1">{t('tickets.expectedBenefit')}</p>
                     <p className="text-sm text-text-secondary whitespace-pre-wrap">{metadata.expectedBenefit}</p>
                   </div>
                 )}
                 {metadata.objective && (
                   <div>
-                    <p className="text-xs font-medium text-text-muted mb-1">Objetivo</p>
+                    <p className="text-xs font-medium text-text-muted mb-1">{t('tickets.objective')}</p>
                     <p className="text-sm text-text-secondary whitespace-pre-wrap">{metadata.objective}</p>
                   </div>
                 )}
                 {metadata.estimatedScope && (
                   <div>
-                    <p className="text-xs font-medium text-text-muted mb-1">Escopo Estimado</p>
+                    <p className="text-xs font-medium text-text-muted mb-1">{t('tickets.estimatedScope')}</p>
                     <p className="text-sm text-text-secondary">{metadata.estimatedScope}</p>
                   </div>
                 )}
                 {metadata.justification && (
                   <div>
-                    <p className="text-xs font-medium text-text-muted mb-1">Justificativa</p>
+                    <p className="text-xs font-medium text-text-muted mb-1">{t('tickets.justification')}</p>
                     <p className="text-sm text-text-secondary whitespace-pre-wrap">{metadata.justification}</p>
                   </div>
                 )}
                 {metadata.stakeholders && (
                   <div>
-                    <p className="text-xs font-medium text-text-muted mb-1">Stakeholders</p>
+                    <p className="text-xs font-medium text-text-muted mb-1">{t('tickets.stakeholders')}</p>
                     <p className="text-sm text-text-secondary">{metadata.stakeholders}</p>
                   </div>
                 )}
@@ -384,7 +386,7 @@ export default function TicketDetailPage() {
 
           {/* Timeline */}
           <div className="rounded-xl border border-border bg-surface-1 p-6">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-4">Atividade</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-4">{t('tickets.activity')}</h3>
             <TicketTimeline comments={comments} history={history} />
           </div>
 
@@ -396,7 +398,7 @@ export default function TicketDetailPage() {
             />
           ) : (
             <div className="rounded-xl border border-dashed border-border p-4 text-center text-sm text-text-muted">
-              Ticket finalizado &mdash; comentarios desativados.
+              {t('tickets.closedCommentsDisabled')}
             </div>
           )}
         </div>

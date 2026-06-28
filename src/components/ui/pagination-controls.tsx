@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { IconButton } from './icon-button';
 import type { PaginationMeta } from '../../types/pagination.types';
 
@@ -8,18 +9,19 @@ interface PaginationControlsProps {
 }
 
 export function PaginationControls({ meta, onPageChange }: PaginationControlsProps) {
+  const { t } = useTranslation();
   if (meta.totalPages <= 1) return null;
 
   return (
     <div className="flex items-center justify-between border-t border-border px-1 pt-4">
       <span className="text-xs text-text-tertiary">
-        {meta.total} {meta.total === 1 ? 'item' : 'itens'}
+        {meta.total} {meta.total === 1 ? t('common.item') : t('common.items')}
       </span>
       <div className="flex items-center gap-2">
         <IconButton
           onClick={() => onPageChange(meta.page - 1)}
           disabled={meta.page <= 1}
-          aria-label="P\u00e1gina anterior"
+          aria-label={t('common.previousPage')}
         >
           <ChevronLeft size={16} />
         </IconButton>
@@ -29,7 +31,7 @@ export function PaginationControls({ meta, onPageChange }: PaginationControlsPro
         <IconButton
           onClick={() => onPageChange(meta.page + 1)}
           disabled={meta.page >= meta.totalPages}
-          aria-label="Pr\u00f3xima p\u00e1gina"
+          aria-label={t('common.nextPage')}
         >
           <ChevronRight size={16} />
         </IconButton>

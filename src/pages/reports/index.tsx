@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { FileText, Settings } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Card, CardHeader, CardTitle } from '../../components/ui/card';
@@ -12,6 +13,7 @@ import { PermissionsModal } from './components/permissions-modal';
 import type { Report } from '../../types/report.types';
 
 export default function ReportsPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -42,9 +44,9 @@ export default function ReportsPage() {
       ) : reports.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <FileText size={48} className="mb-4 text-text-muted" />
-          <p className="text-lg font-semibold text-text-primary">Nenhum relatório disponível</p>
+          <p className="text-lg font-semibold text-text-primary">{t('reports.noReportsAvailable')}</p>
           <p className="mt-1 text-sm text-text-tertiary">
-            {isAdmin ? 'Nenhum relatório ativo no momento.' : 'Você ainda não tem acesso a nenhum relatório.'}
+            {isAdmin ? t('reports.noActiveReports') : t('reports.noAccessToReports')}
           </p>
         </div>
       ) : (
@@ -60,7 +62,7 @@ export default function ReportsPage() {
               <p className="mb-4 text-sm text-text-secondary">{report.description}</p>
               <div className="flex items-center gap-2">
                 <Button size="sm" onClick={() => navigate(`/reports/${report.slug}`)}>
-                  Abrir
+                  {t('common.open')}
                 </Button>
                 {isAdmin && (
                   <Button
@@ -69,7 +71,7 @@ export default function ReportsPage() {
                     onClick={() => setPermModal({ reportId: report.id, reportName: report.name })}
                   >
                     <Settings size={14} className="mr-1.5" />
-                    Gerenciar Acesso
+                    {t('common.manageAccess')}
                   </Button>
                 )}
               </div>

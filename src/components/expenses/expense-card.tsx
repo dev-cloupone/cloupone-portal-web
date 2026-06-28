@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2, AlertTriangle, Paperclip, RotateCcw, Undo2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import type { Expense } from '../../types/expense.types';
 import { formatCurrency } from '../../utils/formatters';
+import { useLocaleStore } from '../../stores/locale.store';
 
 interface ExpenseCardProps {
   expense: Expense;
@@ -20,15 +22,17 @@ const STATUS_DOT_COLORS: Record<string, string> = {
   rejected: 'bg-danger',
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  created: 'Criado',
-  draft: 'Rascunho',
-  submitted: 'Submetido',
-  approved: 'Aprovado',
-  rejected: 'Rejeitado',
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  created: 'expenses.statusCreated',
+  draft: 'expenses.statusDraft',
+  submitted: 'expenses.statusSubmitted',
+  approved: 'expenses.statusApproved',
+  rejected: 'expenses.statusRejected',
 };
 
 export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert }: ExpenseCardProps) {
+  const { t } = useTranslation();
+  const locale = useLocaleStore((s) => s.locale);
   const canEdit = ['created', 'rejected'].includes(expense.status);
   const canDelete = expense.status === 'created' || expense.status === 'draft';
   const canResubmit = expense.status === 'rejected';
@@ -40,10 +44,10 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert }:
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT_COLORS[expense.status]}`} />
-          <span className="text-xs text-text-tertiary">{STATUS_LABELS[expense.status]}</span>
+          <span className="text-xs text-text-tertiary">{t(STATUS_LABEL_KEYS[expense.status])}</span>
           {expense.revertedAt && expense.status === 'created' && (
-            <span title={`Revertida por ${expense.revertedByName ?? 'Gestor'} em ${new Date(expense.revertedAt).toLocaleDateString('pt-BR')}`}>
-              <Badge variant="warning" className="cursor-help">Revertida</Badge>
+            <span title={t('expenses.revertedByTooltip', { name: expense.revertedByName ?? 'Gestor', date: new Date(expense.revertedAt).toLocaleDateString(locale) })}>
+              <Badge variant="warning" className="cursor-help">{t('expenses.reverted')}</Badge>
             </span>
           )}
         </div>
@@ -60,7 +64,7 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert }:
             {[expense.clientName, expense.categoryName].filter(Boolean).join(' \u00b7 ')}
           </p>
         )}
-        <span className="text-xs text-text-muted">Criada por {expense.createdByName}</span>
+        <span className="text-xs text-text-muted">{t('expenses.createdBy', { name: expense.createdByName })}</span>
       </div>
 
       {/* KM info */}
@@ -79,7 +83,7 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert }:
       {expense.receiptFileId && (
         <div className="flex items-center gap-1 text-xs text-text-tertiary">
           <Paperclip size={10} />
-          <span>Comprovante anexado</span>
+          <span>{t('expenses.receiptAttached')}</span>
         </div>
       )}
 
@@ -87,7 +91,7 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert }:
       {expense.categoryMaxAmount != null && Number(expense.categoryMaxAmount) > 0 && Number(expense.amount) > Number(expense.categoryMaxAmount) && (
         <div className="flex items-center gap-1 text-xs text-warning">
           <AlertTriangle size={10} />
-          <span>Acima do teto ({formatCurrency(expense.categoryMaxAmount)})</span>
+          <span>{t('expenses.aboveCeiling', { amount: formatCurrency(expense.categoryMaxAmount) })}</span>
         </div>
       )}
 
@@ -96,7 +100,7 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert }:
         <div className="rounded-lg border border-danger/30 bg-danger/5 px-3 py-2">
           <div className="flex items-center gap-1.5 mb-1">
             <AlertTriangle size={12} className="text-danger" />
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-danger">Motivo da rejeição</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-danger">{t('expenses.rejectionReason')}</span>
           </div>
           <p className="text-xs text-text-primary">{expense.rejectionComment}</p>
         </div>
@@ -107,22 +111,22 @@ export function ExpenseCard({ expense, onEdit, onDelete, onResubmit, onRevert }:
         <div className="flex items-center gap-2 pt-1">
           {canEdit && (
             <Button variant="ghost" size="sm" onClick={() => onEdit(expense)}>
-              <Pencil size={12} className="mr-1" /> Editar
+              <Pencil size={12} className="mr-1" /> {t('common.edit')}
             </Button>
           )}
           {canResubmit && onResubmit && (
             <Button variant="ghost" size="sm" onClick={() => onResubmit(expense.id)}>
-              <RotateCcw size={12} className="mr-1" /> Resubmeter
+              <RotateCcw size={12} className="mr-1" /> {t('expenses.resubmit')}
             </Button>
           )}
           {canRevert && (
             <Button variant="ghost" size="sm" onClick={() => onRevert(expense)} className="text-warning hover:text-warning">
-              <Undo2 size={12} className="mr-1" /> Reverter
+              <Undo2 size={12} className="mr-1" /> {t('expenses.revert')}
             </Button>
           )}
           {canDelete && (
             <Button variant="ghost" size="sm" onClick={() => onDelete(expense.id)} className="text-danger hover:text-danger-hover">
-              <Trash2 size={12} className="mr-1" /> Excluir
+              <Trash2 size={12} className="mr-1" /> {t('common.delete')}
             </Button>
           )}
         </div>

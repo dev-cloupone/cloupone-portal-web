@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { IconButton } from './icon-button';
 
 interface ModalProps {
@@ -11,6 +12,7 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children, className = '' }: ModalProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -35,7 +37,7 @@ export function Modal({ isOpen, onClose, title, children, className = '' }: Moda
       <div className={`relative z-10 w-full max-w-lg max-h-[calc(100vh-2.5rem)] flex flex-col rounded-2xl border border-border bg-surface-1 shadow-2xl animate-scale-in safe-x ${className}`}>
         <div className="flex items-center justify-between px-5 sm:px-6 pt-5 sm:pt-6 pb-4">
           <h2 className="text-lg font-bold text-text-primary tracking-tight">{title}</h2>
-          <IconButton onClick={onClose} aria-label="Fechar">
+          <IconButton onClick={onClose} aria-label={t('common.close')}>
             <X size={18} />
           </IconButton>
         </div>

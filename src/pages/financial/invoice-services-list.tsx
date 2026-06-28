@@ -16,10 +16,9 @@ import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { Invoice } from '../../types/financial.types';
 import type { PaginationMeta } from '../../types/pagination.types';
+import { useTranslation } from 'react-i18next';
 import { INVOICE_STATUS_MAP } from '../../constants/invoice-status';
-import { formatCurrency } from '../../utils/formatters';
-
-const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+import { formatCurrency, getShortMonthName } from '../../utils/formatters';
 
 function getLastMonth(): string {
   const now = new Date();
@@ -33,6 +32,7 @@ function parseMonth(m: string): { year: number; month: number } {
 }
 
 export default function InvoiceServicesListPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
@@ -125,10 +125,10 @@ export default function InvoiceServicesListPage() {
   }, [filterProject, filterStatus, filterInvoiceType, currentMonth]);
 
   async function handleDelete(id: string) {
-    if (!confirm('Excluir esta fatura?')) return;
+    if (!confirm(t('invoices.confirmDelete'))) return;
     try {
       await invoiceService.deleteInvoice(id);
-      addToast('Fatura excluída.', 'success');
+      addToast(t('invoices.deleted'), 'success');
       await loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -136,13 +136,13 @@ export default function InvoiceServicesListPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Fat. Serviços">
+    <SidebarLayout navItems={navItems} title={t('invoices.serviceInvoiceListTitle')}>
       <div className="space-y-6">
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Faturamento de Serviços</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('invoices.serviceInvoiceListHeading')}</h2>
           <Button onClick={() => navigate('/financial/invoices/services/new')}>
             <FileText size={16} className="mr-1.5" />
-            Gerar Fatura
+            {t('invoicesPages.generateInvoice')}
           </Button>
         </header>
 
@@ -157,13 +157,13 @@ export default function InvoiceServicesListPage() {
           <div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3">
             <AlertTriangle size={18} className="text-warning shrink-0" />
             <p className="text-sm text-text-secondary flex-1">
-              <strong>{pendingWarning.count}</strong> consultor(es) com timesheet pendente de aprovação:{' '}
+              {t('payments.pendingTimesheetWarning', { count: pendingWarning.count })}:{' '}
               {pendingWarning.consultants.join(', ')}
             </p>
             <button
               onClick={() => setWarningDismissed(true)}
               className="rounded-md p-1 text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors"
-              aria-label="Fechar aviso"
+              aria-label={t('payments.closeWarning')}
             >
               <X size={16} />
             </button>
@@ -180,7 +180,7 @@ export default function InvoiceServicesListPage() {
             <div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3">
               <AlertTriangle size={18} className="text-warning shrink-0" />
               <p className="text-sm text-text-secondary flex-1">
-                <strong>{installmentWarning.count}</strong> parcela(s) com vencimento até {MONTH_NAMES[new Date().getMonth()]}/{new Date().getFullYear()} ainda não possuem fatura gerada.{' '}
+                <strong>{installmentWarning.count}</strong> parcela(s) com vencimento até {getShortMonthName(new Date().getMonth())}/{new Date().getFullYear()} ainda não possuem fatura gerada.{' '}
                 {projectText}
               </p>
               <Button
@@ -188,12 +188,12 @@ export default function InvoiceServicesListPage() {
                 variant="secondary"
                 onClick={() => navigate('/financial/invoices/services/new?type=fixed_price')}
               >
-                Gerar Faturas
+                {t('invoicesPages.generateInvoice')}
               </Button>
               <button
                 onClick={() => setInstallmentWarningDismissed(true)}
                 className="rounded-md p-1 text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors"
-                aria-label="Fechar aviso"
+                aria-label={t('payments.closeWarning')}
               >
                 <X size={16} />
               </button>
@@ -204,21 +204,21 @@ export default function InvoiceServicesListPage() {
         <div className="flex flex-wrap gap-3 items-end">
           <div className="w-48">
             <Select
-              label="Projeto"
-              options={[{ value: '', label: 'Todos' }, ...projectOptions]}
+              label={t('common.project')}
+              options={[{ value: '', label: t('common.all') }, ...projectOptions]}
               value={filterProject}
               onChange={setFilterProject}
             />
           </div>
           <div className="w-40">
             <Select
-              label="Status"
+              label={t('common.status')}
               options={[
-                { value: '', label: 'Todos' },
-                { value: 'draft', label: 'Rascunho' },
-                { value: 'issued', label: 'Emitida' },
-                { value: 'paid', label: 'Paga' },
-                { value: 'cancelled', label: 'Cancelada' },
+                { value: '', label: t('common.all') },
+                { value: 'draft', label: t('invoices.statusDraft') },
+                { value: 'issued', label: t('invoices.statusIssued') },
+                { value: 'paid', label: t('invoices.statusPaid') },
+                { value: 'cancelled', label: t('invoices.statusCancelled') },
               ]}
               value={filterStatus}
               onChange={setFilterStatus}
@@ -226,11 +226,11 @@ export default function InvoiceServicesListPage() {
           </div>
           <div className="w-40">
             <Select
-              label="Tipo"
+              label={t('common.type')}
               options={[
-                { value: '', label: 'Todos' },
-                { value: 'hourly', label: 'Por Hora' },
-                { value: 'fixed_price', label: 'Valor Fixo' },
+                { value: '', label: t('common.all') },
+                { value: 'hourly', label: t('invoices.hourly') },
+                { value: 'fixed_price', label: t('invoices.fixedPrice') },
               ]}
               value={filterInvoiceType}
               onChange={setFilterInvoiceType}
@@ -253,8 +253,8 @@ export default function InvoiceServicesListPage() {
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
             <FileText size={40} className="text-accent mb-3" />
-            <p className="text-text-secondary font-medium">Nenhuma fatura encontrada</p>
-            <p className="text-text-muted text-sm mt-1">Ajuste os filtros ou gere uma nova fatura.</p>
+            <p className="text-text-secondary font-medium">{t('invoices.noInvoicesFound')}</p>
+            <p className="text-text-muted text-sm mt-1">{t('invoices.adjustOrGenerate')}</p>
           </div>
         ) : (
           <>
@@ -262,15 +262,15 @@ export default function InvoiceServicesListPage() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableHeader>Nº</TableHeader>
-                    <TableHeader>Projeto</TableHeader>
-                    <TableHeader>Cliente</TableHeader>
-                    <TableHeader>Mês/Ano</TableHeader>
-                    <TableHeader className="text-right">Total Horas</TableHeader>
-                    <TableHeader className="text-right">Total Valor</TableHeader>
-                    <TableHeader>Tipo</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                    <TableHeader className="w-24">Ações</TableHeader>
+                    <TableHeader>{t('invoices.numberColumn')}</TableHeader>
+                    <TableHeader>{t('common.project')}</TableHeader>
+                    <TableHeader>{t('invoices.clientLabel').replace(':', '')}</TableHeader>
+                    <TableHeader>{t('payments.monthYear')}</TableHeader>
+                    <TableHeader className="text-right">{t('payments.totalHours')}</TableHeader>
+                    <TableHeader className="text-right">{t('payments.totalValue')}</TableHeader>
+                    <TableHeader>{t('common.type')}</TableHeader>
+                    <TableHeader>{t('common.status')}</TableHeader>
+                    <TableHeader className="w-24">{t('common.actions')}</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -286,7 +286,7 @@ export default function InvoiceServicesListPage() {
                         </TableCell>
                         <TableCell className="text-sm">{invoice.clientName}</TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {MONTH_NAMES[invoice.month - 1]}/{invoice.year}
+                          {getShortMonthName(invoice.month - 1)}/{invoice.year}
                         </TableCell>
                         <TableCell className="text-right font-mono whitespace-nowrap">
                           {invoice.invoiceType === 'fixed_price' ? '—' : Number(invoice.totalHours).toFixed(2)}
@@ -296,18 +296,18 @@ export default function InvoiceServicesListPage() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={invoice.invoiceType === 'fixed_price' ? 'accent' : 'default'}>
-                            {invoice.invoiceType === 'fixed_price' ? 'Valor Fixo' : 'Por Hora'}
+                            {invoice.invoiceType === 'fixed_price' ? t('invoices.fixedPrice') : t('invoices.hourly')}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={status.variant}>{status.label}</Badge>
+                          <Badge variant={status.variant}>{t(status.label)}</Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => navigate(`/financial/invoices/services/${invoice.id}`)}
                               className="rounded-md p-1.5 text-text-muted hover:text-accent hover:bg-accent/10 transition-colors"
-                              title="Ver detalhes"
+                              title={t('invoices.viewDetails')}
                             >
                               <Eye size={15} />
                             </button>
@@ -315,7 +315,7 @@ export default function InvoiceServicesListPage() {
                               <button
                                 onClick={() => handleDelete(invoice.id)}
                                 className="rounded-md p-1.5 text-text-muted hover:text-danger hover:bg-danger/10 transition-colors"
-                                title="Excluir"
+                                title={t('common.delete')}
                               >
                                 <Trash2 size={15} />
                               </button>

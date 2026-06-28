@@ -112,23 +112,23 @@ export interface ListTicketParams {
 }
 
 export const TICKET_TYPE_LABELS: Record<TicketType, string> = {
-  system_error: 'Erro de sistema',
-  question: 'Dúvida',
-  improvement: 'Solicitação de melhoria',
-  security: 'Segurança/Acesso',
+  system_error: 'tickets.typeBug',
+  question: 'tickets.typeQuestion',
+  improvement: 'tickets.typeFeature',
+  security: 'tickets.typeSecurity',
 };
 
 export const TICKET_PRIORITY_LABELS: Record<TicketPriority, string> = {
-  low: 'Baixa',
-  medium: 'Média',
-  high: 'Alta',
-  critical: 'Crítica',
+  low: 'tickets.priorityLow',
+  medium: 'tickets.priorityMedium',
+  high: 'tickets.priorityHigh',
+  critical: 'tickets.priorityCritical',
 };
 
 export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
-  open: 'Aberto',
-  in_analysis: 'Em Análise',
-  awaiting_customer: 'Aguardando Retorno do Cliente',
-  awaiting_third_party: 'Aguardando Terceiro',
-  finished: 'Finalizado',
+  open: 'tickets.statusOpen',
+  in_analysis: 'tickets.statusInAnalysis',
+  awaiting_customer: 'tickets.statusAwaitingCustomer',
+  awaiting_third_party: 'tickets.statusAwaitingThird',
+  finished: 'tickets.statusFinished',
 };

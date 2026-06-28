@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
@@ -14,15 +15,13 @@ import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import { FileUpload } from '../../components/ui/file-upload';
 import type { ConsultantPayment, ConsultantPaymentLine } from '../../types/financial.types';
-import { formatCurrency } from '../../utils/formatters';
-
-const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+import { formatCurrency, getShortMonthName } from '../../utils/formatters';
 
 const STATUS_MAP: Record<string, { variant: 'default' | 'success' | 'warning' | 'danger'; label: string }> = {
-  draft: { variant: 'default', label: 'Rascunho' },
-  confirmed: { variant: 'warning', label: 'Confirmado' },
-  paid: { variant: 'success', label: 'Pago' },
-  cancelled: { variant: 'danger', label: 'Cancelado' },
+  draft: { variant: 'default', label: 'payments.statusDraft' },
+  confirmed: { variant: 'warning', label: 'payments.statusConfirmed' },
+  paid: { variant: 'success', label: 'payments.statusPaid' },
+  cancelled: { variant: 'danger', label: 'payments.statusCancelled' },
 };
 
 interface EditableLine {
@@ -37,6 +36,7 @@ interface EditableLine {
 export default function PaymentHoursDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navItems = useNavItems();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
 
@@ -103,7 +103,7 @@ export default function PaymentHoursDetailPage() {
         notes: notes || undefined,
       });
       setPayment(updated);
-      addToast('Pagamento salvo.', 'success');
+      addToast(t('payments.paymentSaved'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -112,12 +112,12 @@ export default function PaymentHoursDetailPage() {
   }
 
   async function handleConfirm() {
-    if (!id || !confirm('Confirmar este pagamento?')) return;
+    if (!id || !confirm(t('payments.confirmPayment'))) return;
     setActionLoading(true);
     try {
       const updated = await paymentService.confirmPayment(id);
       setPayment(updated);
-      addToast('Pagamento confirmado.', 'success');
+      addToast(t('payments.paymentConfirmed'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -136,7 +136,7 @@ export default function PaymentHoursDetailPage() {
       setPayModalOpen(false);
       setReceiptFileId('');
       setReceiptFileName('');
-      addToast('Pagamento registrado.', 'success');
+      addToast(t('payments.paymentRegistered'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -145,12 +145,12 @@ export default function PaymentHoursDetailPage() {
   }
 
   async function handleRevert() {
-    if (!id || !confirm('Reverter para rascunho?')) return;
+    if (!id || !confirm(t('payments.revertToDraft'))) return;
     setActionLoading(true);
     try {
       const updated = await paymentService.revertPayment(id);
       setPayment(updated);
-      addToast('Pagamento revertido para rascunho.', 'success');
+      addToast(t('payments.paymentReverted'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -159,12 +159,12 @@ export default function PaymentHoursDetailPage() {
   }
 
   async function handleCancel() {
-    if (!id || !confirm('Cancelar este pagamento?')) return;
+    if (!id || !confirm(t('payments.cancelPayment'))) return;
     setActionLoading(true);
     try {
       const updated = await paymentService.cancelPayment(id);
       setPayment(updated);
-      addToast('Pagamento cancelado.', 'success');
+      addToast(t('payments.paymentCancelled'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -173,11 +173,11 @@ export default function PaymentHoursDetailPage() {
   }
 
   async function handleDelete() {
-    if (!id || !confirm('Excluir este pagamento?')) return;
+    if (!id || !confirm(t('payments.deletePayment'))) return;
     setActionLoading(true);
     try {
       await paymentService.deletePayment(id);
-      addToast('Pagamento excluído.', 'success');
+      addToast(t('payments.paymentDeleted'), 'success');
       navigate('/financial/payments/hours');
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -197,7 +197,7 @@ export default function PaymentHoursDetailPage() {
 
   if (loading) {
     return (
-      <SidebarLayout navItems={navItems} title="Pagamento de Horas">
+      <SidebarLayout navItems={navItems} title={t('payments.hoursTitle')}>
         <div className="space-y-4">
           <Skeleton className="h-8 w-64 rounded-lg" />
           <Skeleton className="h-40 rounded-xl" />
@@ -209,15 +209,15 @@ export default function PaymentHoursDetailPage() {
 
   if (error || !payment) {
     return (
-      <SidebarLayout navItems={navItems} title="Pagamento de Horas">
+      <SidebarLayout navItems={navItems} title={t('payments.hoursTitle')}>
         <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-danger mb-4">{error || 'Pagamento não encontrado.'}</p>
+          <p className="text-danger mb-4">{error || t('payments.paymentNotFound')}</p>
           <button
             type="button"
             onClick={() => navigate('/financial/payments/hours')}
             className="text-sm text-accent hover:text-accent-hover"
           >
-            Voltar para lista
+            {t('common.backToList')}
           </button>
         </div>
       </SidebarLayout>
@@ -230,7 +230,7 @@ export default function PaymentHoursDetailPage() {
   const status = STATUS_MAP[payment.status] ?? STATUS_MAP.draft;
 
   return (
-    <SidebarLayout navItems={navItems} title="Pagamento de Horas">
+    <SidebarLayout navItems={navItems} title={t('payments.hoursTitle')}>
       {/* Back button */}
       <div className="mb-6">
         <button
@@ -239,7 +239,7 @@ export default function PaymentHoursDetailPage() {
           className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
-          Voltar
+          {t('common.back')}
         </button>
 
         {/* Header */}
@@ -247,9 +247,9 @@ export default function PaymentHoursDetailPage() {
           <h2 className="text-2xl font-bold tracking-tight text-text-primary">
             {payment.consultantName}
             <span className="mx-2 text-text-muted">—</span>
-            <span className="font-mono">{MONTH_NAMES[payment.month - 1]}/{payment.year}</span>
+            <span className="font-mono">{getShortMonthName(payment.month - 1)}/{payment.year}</span>
           </h2>
-          <Badge variant={status.variant}>{status.label}</Badge>
+          <Badge variant={status.variant}>{t(status.label)}</Badge>
         </div>
       </div>
 
@@ -258,12 +258,12 @@ export default function PaymentHoursDetailPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>Projeto</TableHeader>
-              <TableHeader className="text-right">Horas Calculadas</TableHeader>
-              <TableHeader className="text-right">Horas Aplicadas</TableHeader>
-              <TableHeader className="text-right">Rate Original</TableHeader>
-              <TableHeader className="text-right">Rate Aplicado</TableHeader>
-              <TableHeader className="text-right">Subtotal</TableHeader>
+              <TableHeader>{t('common.project')}</TableHeader>
+              <TableHeader className="text-right">{t('payments.calculatedHours')}</TableHeader>
+              <TableHeader className="text-right">{t('payments.appliedHours')}</TableHeader>
+              <TableHeader className="text-right">{t('payments.originalRate')}</TableHeader>
+              <TableHeader className="text-right">{t('payments.appliedRate')}</TableHeader>
+              <TableHeader className="text-right">{t('common.subtotal')}</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -312,7 +312,7 @@ export default function PaymentHoursDetailPage() {
             {/* Totals row */}
             <TableRow>
               <TableCell colSpan={5} className="text-right">
-                <span className="font-semibold text-sm text-text-primary">Total</span>
+                <span className="font-semibold text-sm text-text-primary">{t('common.total')}</span>
               </TableCell>
               <TableCell className="text-right font-mono font-semibold whitespace-nowrap">
                 {formatCurrency(calcTotal())}
@@ -324,17 +324,17 @@ export default function PaymentHoursDetailPage() {
 
       {/* Notes */}
       <div className="rounded-xl border border-border bg-surface-1 p-6 mb-6">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">Observações</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">{t('common.notes')}</h3>
         {isDraft ? (
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            placeholder="Observações sobre o pagamento..."
+            placeholder={t('payments.notesPlaceholder')}
             className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none placeholder:text-text-muted"
           />
         ) : (
-          <p className="text-sm text-text-secondary whitespace-pre-wrap">{notes || 'Nenhuma observação.'}</p>
+          <p className="text-sm text-text-secondary whitespace-pre-wrap">{notes || t('common.noNotes')}</p>
         )}
       </div>
 
@@ -343,26 +343,26 @@ export default function PaymentHoursDetailPage() {
         {isDraft && (
           <>
             <Button onClick={handleSave} disabled={actionLoading}>
-              {actionLoading ? 'Salvando...' : 'Salvar'}
+              {actionLoading ? t('common.saving') : t('common.save')}
             </Button>
             <Button variant="secondary" onClick={handleConfirm} disabled={actionLoading}>
-              Confirmar
+              {t('common.confirm')}
             </Button>
             <Button variant="danger" onClick={handleDelete} disabled={actionLoading}>
-              Excluir
+              {t('common.delete')}
             </Button>
           </>
         )}
         {isConfirmed && (
           <>
             <Button onClick={() => setPayModalOpen(true)} disabled={actionLoading}>
-              Pagar
+              {t('payments.pay')}
             </Button>
             <Button variant="secondary" onClick={handleRevert} disabled={actionLoading}>
-              Reverter
+              {t('payments.revert')}
             </Button>
             <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
           </>
         )}
@@ -370,22 +370,22 @@ export default function PaymentHoursDetailPage() {
           <>
             {payment.receiptFileId && (
               <Button variant="secondary" onClick={handleDownloadReceipt}>
-                Download Comprovante
+                {t('common.downloadReceipt')}
               </Button>
             )}
             <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
           </>
         )}
       </div>
 
       {/* Pay modal */}
-      <Modal isOpen={payModalOpen} onClose={() => setPayModalOpen(false)} title="Registrar Pagamento">
+      <Modal isOpen={payModalOpen} onClose={() => setPayModalOpen(false)} title={t('common.registerPayment')}>
         <div className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-              Comprovante (opcional)
+              {t('common.receiptOptional')}
             </label>
             {receiptFileId ? (
               <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary">
@@ -395,7 +395,7 @@ export default function PaymentHoursDetailPage() {
                   onClick={() => { setReceiptFileId(''); setReceiptFileName(''); }}
                   className="text-text-muted hover:text-danger transition-colors text-xs"
                 >
-                  Remover
+                  {t('common.remove')}
                 </button>
               </div>
             ) : (
@@ -421,10 +421,10 @@ export default function PaymentHoursDetailPage() {
           </div>
           <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={() => setPayModalOpen(false)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button onClick={handlePay} disabled={actionLoading || uploading}>
-              {actionLoading ? 'Processando...' : 'Confirmar Pagamento'}
+              {actionLoading ? t('common.processing') : t('common.confirmPayment')}
             </Button>
           </div>
         </div>

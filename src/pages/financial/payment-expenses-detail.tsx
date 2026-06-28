@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft, Download } from 'lucide-react';
@@ -15,21 +16,23 @@ import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { ExpensePayment } from '../../types/financial.types';
 import { formatCurrency } from '../../utils/formatters';
+import { useLocaleStore } from '../../stores/locale.store';
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString(useLocaleStore.getState().locale);
 }
 
 const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'danger' }> = {
-  draft: { label: 'Rascunho', variant: 'default' },
-  confirmed: { label: 'Confirmado', variant: 'warning' },
-  paid: { label: 'Pago', variant: 'success' },
-  cancelled: { label: 'Cancelado', variant: 'danger' },
+  draft: { label: 'payments.statusDraft', variant: 'default' },
+  confirmed: { label: 'payments.statusConfirmed', variant: 'warning' },
+  paid: { label: 'payments.statusPaid', variant: 'success' },
+  cancelled: { label: 'payments.statusCancelled', variant: 'danger' },
 };
 
 export default function PaymentExpensesDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navItems = useNavItems();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
 
@@ -70,7 +73,7 @@ export default function PaymentExpensesDetailPage() {
     try {
       const updated = await paymentService.updatePayment(id, { notes });
       setPayment(updated);
-      addToast('Notas salvas.', 'success');
+      addToast(t('payments.notesSaved'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -79,12 +82,12 @@ export default function PaymentExpensesDetailPage() {
   }
 
   async function handleConfirm() {
-    if (!id || !confirm('Confirmar este pagamento?')) return;
+    if (!id || !confirm(t('payments.confirmPayment'))) return;
     setActionLoading(true);
     try {
       await paymentService.confirmPayment(id);
       await loadPayment();
-      addToast('Pagamento confirmado.', 'success');
+      addToast(t('payments.paymentConfirmed'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -103,7 +106,7 @@ export default function PaymentExpensesDetailPage() {
       setPayModalOpen(false);
       setReceiptFileId('');
       setReceiptFileName('');
-      addToast('Pagamento marcado como pago.', 'success');
+      addToast(t('payments.paymentPaid'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -112,12 +115,12 @@ export default function PaymentExpensesDetailPage() {
   }
 
   async function handleRevert() {
-    if (!id || !confirm('Reverter para rascunho?')) return;
+    if (!id || !confirm(t('payments.revertToDraft'))) return;
     setActionLoading(true);
     try {
       await paymentService.revertPayment(id);
       await loadPayment();
-      addToast('Pagamento revertido para rascunho.', 'success');
+      addToast(t('payments.paymentReverted'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -126,12 +129,12 @@ export default function PaymentExpensesDetailPage() {
   }
 
   async function handleCancel() {
-    if (!id || !confirm('Cancelar este pagamento? Esta ação não pode ser desfeita facilmente.')) return;
+    if (!id || !confirm(t('payments.cancelPaymentWarning'))) return;
     setActionLoading(true);
     try {
       await paymentService.cancelPayment(id);
       await loadPayment();
-      addToast('Pagamento cancelado.', 'success');
+      addToast(t('payments.paymentCancelled'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -140,11 +143,11 @@ export default function PaymentExpensesDetailPage() {
   }
 
   async function handleDelete() {
-    if (!id || !confirm('Excluir este pagamento?')) return;
+    if (!id || !confirm(t('payments.deletePayment'))) return;
     setActionLoading(true);
     try {
       await paymentService.deletePayment(id);
-      addToast('Pagamento excluído.', 'success');
+      addToast(t('payments.paymentDeleted'), 'success');
       navigate('/financial/payments/expenses');
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -165,7 +168,7 @@ export default function PaymentExpensesDetailPage() {
 
   if (loading) {
     return (
-      <SidebarLayout navItems={navItems} title="Pagamento de Despesas">
+      <SidebarLayout navItems={navItems} title={t('payments.expensesTitle')}>
         <div className="space-y-4">
           <Skeleton className="h-8 w-64 rounded-lg" />
           <Skeleton className="h-40 rounded-lg" />
@@ -177,9 +180,9 @@ export default function PaymentExpensesDetailPage() {
 
   if (error || !payment) {
     return (
-      <SidebarLayout navItems={navItems} title="Pagamento de Despesas">
+      <SidebarLayout navItems={navItems} title={t('payments.expensesTitle')}>
         <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">
-          <p className="text-xs text-danger">{error || 'Pagamento não encontrado.'}</p>
+          <p className="text-xs text-danger">{error || t('payments.paymentNotFound')}</p>
         </div>
       </SidebarLayout>
     );
@@ -190,13 +193,13 @@ export default function PaymentExpensesDetailPage() {
   const isConfirmed = payment.status === 'confirmed';
   const isPaid = payment.status === 'paid';
   return (
-    <SidebarLayout navItems={navItems} title="Pagamento de Despesas">
+    <SidebarLayout navItems={navItems} title={t('payments.expensesTitle')}>
       <button
         onClick={() => navigate('/financial/payments/expenses')}
         className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary transition-colors mb-4"
       >
         <ArrowLeft size={16} />
-        Voltar
+        {t('common.back')}
       </button>
 
       {/* Header */}
@@ -207,7 +210,7 @@ export default function PaymentExpensesDetailPage() {
             {formatDate(payment.periodStart)} — {formatDate(payment.periodEnd)}
           </p>
         </div>
-        <Badge variant={st.variant}>{st.label}</Badge>
+        <Badge variant={st.variant}>{t(st.label)}</Badge>
       </div>
 
       {/* Items table */}
@@ -215,11 +218,11 @@ export default function PaymentExpensesDetailPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>Projeto</TableHeader>
-              <TableHeader>Data</TableHeader>
-              <TableHeader>Descrição</TableHeader>
-              <TableHeader>Categoria</TableHeader>
-              <TableHeader className="text-right">Valor</TableHeader>
+              <TableHeader>{t('common.project')}</TableHeader>
+              <TableHeader>{t('common.date')}</TableHeader>
+              <TableHeader>{t('common.description')}</TableHeader>
+              <TableHeader>{t('expenses.category')}</TableHeader>
+              <TableHeader className="text-right">{t('common.value')}</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -241,14 +244,14 @@ export default function PaymentExpensesDetailPage() {
       {/* Total */}
       <div className="mb-6 flex justify-end">
         <div className="rounded-xl border border-border bg-surface-1 px-5 py-3">
-          <span className="text-sm text-text-muted mr-3">Total:</span>
+          <span className="text-sm text-text-muted mr-3">{t('common.total')}:</span>
           <span className="text-lg font-bold font-mono text-text-primary">{formatCurrency(payment.totalAmount)}</span>
         </div>
       </div>
 
       {/* Notes */}
       <div className="mb-6">
-        <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1">Notas</label>
+        <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1">{t('common.notes')}</label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
@@ -263,38 +266,38 @@ export default function PaymentExpensesDetailPage() {
         {isDraft && (
           <>
             <Button onClick={handleSaveNotes} disabled={actionLoading} variant="secondary">
-              Salvar Notas
+              {t('invoices.saveNotes')}
             </Button>
             <Button onClick={handleConfirm} disabled={actionLoading}>
-              Confirmar
+              {t('common.confirm')}
             </Button>
             <Button onClick={handleDelete} disabled={actionLoading} variant="danger">
-              Excluir
+              {t('common.delete')}
             </Button>
           </>
         )}
         {isConfirmed && (
           <>
             <Button onClick={() => setPayModalOpen(true)} disabled={actionLoading}>
-              Pagar
+              {t('payments.pay')}
             </Button>
             <Button onClick={handleRevert} disabled={actionLoading} variant="secondary">
-              Reverter
+              {t('payments.revert')}
             </Button>
             <Button onClick={handleCancel} disabled={actionLoading} variant="danger">
-              Cancelar
+              {t('common.cancel')}
             </Button>
           </>
         )}
         {isPaid && (
           <>
             <Button onClick={handleCancel} disabled={actionLoading} variant="danger">
-              Cancelar
+              {t('common.cancel')}
             </Button>
             {payment.receiptFileId && (
               <Button onClick={handleDownloadReceipt} variant="secondary">
                 <Download size={15} className="mr-1.5" />
-                Download Comprovante
+                {t('common.downloadReceipt')}
               </Button>
             )}
           </>
@@ -302,11 +305,11 @@ export default function PaymentExpensesDetailPage() {
       </div>
 
       {/* Pay modal */}
-      <Modal isOpen={payModalOpen} onClose={() => setPayModalOpen(false)} title="Registrar Pagamento">
+      <Modal isOpen={payModalOpen} onClose={() => setPayModalOpen(false)} title={t('common.registerPayment')}>
         <div className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-              Comprovante (opcional)
+              {t('common.receiptOptional')}
             </label>
             {receiptFileId ? (
               <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary">
@@ -316,7 +319,7 @@ export default function PaymentExpensesDetailPage() {
                   onClick={() => { setReceiptFileId(''); setReceiptFileName(''); }}
                   className="text-text-muted hover:text-danger transition-colors text-xs"
                 >
-                  Remover
+                  {t('common.remove')}
                 </button>
               </div>
             ) : (
@@ -342,10 +345,10 @@ export default function PaymentExpensesDetailPage() {
           </div>
           <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={() => setPayModalOpen(false)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button onClick={handlePay} disabled={actionLoading || uploading}>
-              {actionLoading ? 'Processando...' : 'Confirmar Pagamento'}
+              {actionLoading ? t('common.processing') : t('common.confirmPayment')}
             </Button>
           </div>
         </div>

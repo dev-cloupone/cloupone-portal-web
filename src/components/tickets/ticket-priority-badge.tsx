@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ArrowDown, Minus, ArrowUp, AlertTriangle } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { TICKET_PRIORITY_LABELS, type TicketPriority } from '../../types/ticket.types';
@@ -15,11 +16,12 @@ interface TicketPriorityBadgeProps {
 }
 
 export function TicketPriorityBadge({ priority, className = '' }: TicketPriorityBadgeProps) {
+  const { t } = useTranslation();
   const config = priorityConfig[priority];
   return (
     <Badge variant={config.variant} className={className}>
       <span className="mr-1 inline-flex">{config.icon}</span>
-      {TICKET_PRIORITY_LABELS[priority]}
+      {t(TICKET_PRIORITY_LABELS[priority])}
     </Badge>
   );
 }

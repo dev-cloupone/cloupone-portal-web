@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import { Modal } from '../ui/modal';
 import { Button } from '../ui/button';
@@ -24,6 +25,7 @@ export function ExpenseTemplatesManager({
   onUpdate,
   onDelete,
 }: ExpenseTemplatesManagerProps) {
+  const { t } = useTranslation();
   const [editingTemplate, setEditingTemplate] = useState<ExpenseTemplate | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -102,39 +104,39 @@ export function ExpenseTemplatesManager({
   }
 
   const showForm = isCreating;
-  const formTitle = editingTemplate ? 'Editar Template' : 'Novo Template';
+  const formTitle = editingTemplate ? t('expenses.editTemplate') : t('expenses.newTemplate');
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Templates de Despesa">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('expenses.templateTitle')}>
       {showForm ? (
         <div className="space-y-4">
           <p className="text-xs text-text-muted font-medium">{formTitle}</p>
 
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-              Nome
+              {t('expenses.templateNameLabel')}
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={100}
-              placeholder="Ex: Almoço cliente"
+              placeholder={t('expenses.templateNamePlaceholder')}
               className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
             />
           </div>
 
           <Select
-            label="Categoria"
+            label={t('expenses.category')}
             value={expenseCategoryId}
             onChange={setExpenseCategoryId}
             options={categoryOptions}
-            placeholder="Selecione uma categoria"
+            placeholder={t('expenses.selectCategory')}
           />
 
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-              Valor (R$)
+              {t('expenses.templateAmount')}
             </label>
             <input
               type="number"
@@ -149,7 +151,7 @@ export function ExpenseTemplatesManager({
 
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-              Descrição
+              {t('expenses.templateDescription')}
             </label>
             <textarea
               value={description}
@@ -157,7 +159,7 @@ export function ExpenseTemplatesManager({
               rows={2}
               maxLength={500}
               className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none resize-none"
-              placeholder="Descrição padrão..."
+              placeholder={t('expenses.templateDescriptionPlaceholder')}
             />
           </div>
 
@@ -170,16 +172,16 @@ export function ExpenseTemplatesManager({
               className="h-4 w-4 rounded border-border text-accent focus:ring-accent bg-surface-2"
             />
             <label htmlFor="tmplReimbursement" className="text-sm text-text-secondary">
-              Requer reembolso
+              {t('expenses.templateRequiresReimbursement')}
             </label>
           </div>
 
           <div className="flex gap-2 pt-2">
             <Button variant="secondary" type="button" onClick={resetForm} disabled={isSaving} className="flex-1">
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button type="button" onClick={handleSave} disabled={isSaving || !name.trim()} className="flex-1">
-              {isSaving ? 'Salvando...' : 'Salvar'}
+              {isSaving ? t('common.saving') : t('common.save')}
             </Button>
           </div>
         </div>
@@ -187,36 +189,36 @@ export function ExpenseTemplatesManager({
         <div className="space-y-3">
           {templates.length === 0 ? (
             <p className="text-sm text-text-muted text-center py-6">
-              Nenhum template criado ainda.
+              {t('expenses.noTemplates')}
             </p>
           ) : (
             <div className="space-y-2">
-              {templates.map((t) => (
+              {templates.map((tpl) => (
                 <div
-                  key={t.id}
+                  key={tpl.id}
                   className="flex items-center gap-3 rounded-lg border border-border bg-surface-2 px-3 py-2.5"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-text-primary truncate">{t.name}</p>
+                    <p className="text-sm font-medium text-text-primary truncate">{tpl.name}</p>
                     <div className="flex items-center gap-2 text-xs text-text-muted mt-0.5">
-                      {t.categoryName && <span>{t.categoryName}</span>}
-                      {t.amount && <span>R$ {Number(t.amount).toFixed(2)}</span>}
+                      {tpl.categoryName && <span>{tpl.categoryName}</span>}
+                      {tpl.amount && <span>R$ {Number(tpl.amount).toFixed(2)}</span>}
                     </div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => startEdit(t)}
+                    onClick={() => startEdit(tpl)}
                     className="p-1.5 text-text-muted hover:text-accent transition-colors shrink-0"
-                    title="Editar"
+                    title={t('common.edit')}
                   >
                     <Pencil size={14} />
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDelete(t.id)}
-                    disabled={deletingId === t.id}
+                    onClick={() => handleDelete(tpl.id)}
+                    disabled={deletingId === tpl.id}
                     className="p-1.5 text-text-muted hover:text-danger transition-colors shrink-0 disabled:opacity-40"
-                    title="Excluir"
+                    title={t('common.delete')}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -231,7 +233,7 @@ export function ExpenseTemplatesManager({
             onClick={startCreate}
             className="w-full flex items-center justify-center gap-1.5"
           >
-            <Plus size={14} /> Novo Template
+            <Plus size={14} /> {t('expenses.newTemplate')}
           </Button>
         </div>
       )}

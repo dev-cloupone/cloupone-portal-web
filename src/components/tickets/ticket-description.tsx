@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { Pencil } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -11,6 +12,7 @@ interface TicketDescriptionProps {
 }
 
 export function TicketDescription({ description, canEdit, onSave }: TicketDescriptionProps) {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(description ?? '');
   const [saving, setSaving] = useState(false);
@@ -21,7 +23,7 @@ export function TicketDescription({ description, canEdit, onSave }: TicketDescri
   };
 
   const handleCancel = () => {
-    if (draft !== (description ?? '') && !window.confirm('Descartar alteracoes na descricao?')) {
+    if (draft !== (description ?? '') && !window.confirm(t('common.discardChanges'))) {
       return;
     }
     setDraft(description ?? '');
@@ -45,7 +47,7 @@ export function TicketDescription({ description, canEdit, onSave }: TicketDescri
     return (
       <div className="rounded-xl border border-border bg-surface-1 p-6">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Descrição</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('common.description')}</h3>
           {canEdit && (
             <button
               type="button"
@@ -53,7 +55,7 @@ export function TicketDescription({ description, canEdit, onSave }: TicketDescri
               className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors"
             >
               <Pencil size={12} />
-              Editar
+              {t('tickets.editDescription')}
             </button>
           )}
         </div>
@@ -62,7 +64,7 @@ export function TicketDescription({ description, canEdit, onSave }: TicketDescri
             <ReactMarkdown>{description}</ReactMarkdown>
           </div>
         ) : (
-          <p className="text-sm text-text-muted italic">Sem descricao</p>
+          <p className="text-sm text-text-muted italic">{t('common.noDescription')}</p>
         )}
       </div>
     );
@@ -77,15 +79,15 @@ export function TicketDescription({ description, canEdit, onSave }: TicketDescri
           onChange={setDraft}
           rows={8}
           disabled={saving}
-          placeholder="Descreva o ticket..."
+          placeholder={t('tickets.describeTicket')}
         />
       </div>
       <div className="mt-3 flex items-center gap-2">
         <Button type="button" size="sm" onClick={handleSave} disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
+          {saving ? t('common.saving') : t('common.save')}
         </Button>
         <Button type="button" size="sm" variant="secondary" onClick={handleCancel} disabled={saving}>
-          Cancelar
+          {t('common.cancel')}
         </Button>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Modal } from '../ui/modal';
 import { Input } from '../ui/input';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function PhaseFormModal({ isOpen, phase, onSave, onClose }: Props) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,7 +29,7 @@ export function PhaseFormModal({ isOpen, phase, onSave, onClose }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) { setError('Nome é obrigatório'); return; }
+    if (!name.trim()) { setError(t('phases.nameRequired')); return; }
     setLoading(true);
     setError('');
     try {
@@ -41,17 +43,17 @@ export function PhaseFormModal({ isOpen, phase, onSave, onClose }: Props) {
   }
 
   return (
-    <Modal isOpen={isOpen} title={phase ? 'Editar Fase' : 'Nova Fase'} onClose={onClose}>
+    <Modal isOpen={isOpen} title={phase ? t('phases.editPhaseTitle') : t('phases.newPhaseTitle')} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Nome" value={name} onChange={(e) => setName(e.target.value)} required />
-        <Input label="Descrição" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Input label={t('common.name')} value={name} onChange={(e) => setName(e.target.value)} required />
+        <Input label={t('common.description')} value={description} onChange={(e) => setDescription(e.target.value)} />
         {error && <p className="text-xs text-danger">{error}</p>}
         <div className="flex gap-2">
           <Button type="button" variant="secondary" onClick={onClose} disabled={loading} className="flex-1">
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={loading} className="flex-1">
-            {loading ? 'Salvando...' : 'Salvar'}
+            {loading ? t('common.saving') : t('common.save')}
           </Button>
         </div>
       </form>

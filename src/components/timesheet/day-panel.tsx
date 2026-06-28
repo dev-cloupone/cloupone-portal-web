@@ -1,6 +1,8 @@
 import { Plus, Clock, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
 import { EntryCard } from './entry-card';
+import { useLocaleStore } from '../../stores/locale.store';
 import type { TimeEntry } from '../../types/time-entry.types';
 
 interface DayPanelProps {
@@ -15,7 +17,7 @@ interface DayPanelProps {
 
 function formatDayHeader(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');
-  const formatted = d.toLocaleDateString('pt-BR', {
+  const formatted = d.toLocaleDateString(useLocaleStore.getState().locale, {
     weekday: 'short',
     day: '2-digit',
     month: 'long',
@@ -39,6 +41,7 @@ export function DayPanel({
   onNewEntry,
   onClose,
 }: DayPanelProps) {
+  const { t } = useTranslation();
   const dayTotal = entries.reduce((sum, e) => sum + Number(e.hours), 0);
 
   return (
@@ -57,13 +60,13 @@ export function DayPanel({
             )}
             {isEditable && (
               <Button variant="secondary" size="sm" onClick={onNewEntry}>
-                <Plus size={14} className="mr-1" /> Novo Apontamento
+                <Plus size={14} className="mr-1" /> {t('timesheet.newEntry')}
               </Button>
             )}
             <button
               onClick={onClose}
               className="p-0.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-3 transition-colors"
-              aria-label="Fechar painel e voltar ao resumo mensal"
+              aria-label={t('timesheet.closePanelLabel')}
             >
               <X size={16} />
             </button>
@@ -88,11 +91,11 @@ export function DayPanel({
       ) : (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <Clock size={32} className="text-text-muted mb-3" />
-          <p className="text-sm text-text-tertiary mb-1">Nenhum apontamento</p>
+          <p className="text-sm text-text-tertiary mb-1">{t('timesheet.noEntries')}</p>
           {isEditable ? (
-            <p className="text-xs text-text-muted">Use o botão acima para registrar suas horas</p>
+            <p className="text-xs text-text-muted">{t('timesheet.useButtonAbove')}</p>
           ) : (
-            <p className="text-xs text-text-muted">Este mês já foi aprovado e não permite novos apontamentos.</p>
+            <p className="text-xs text-text-muted">{t('timesheet.monthApproved')}</p>
           )}
         </div>
       )}

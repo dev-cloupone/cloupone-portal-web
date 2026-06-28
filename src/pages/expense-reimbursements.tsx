@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Wallet, Check, Undo2, Paperclip } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { Badge } from '../components/ui/badge';
@@ -16,14 +17,17 @@ import { useToastStore } from '../stores/toast.store';
 import { useNavItems } from '../hooks/use-nav-items';
 import type { PendingExpense, ProjectExpensePeriod } from '../types/expense.types';
 import { formatCurrency } from '../utils/formatters';
+import { useLocaleStore } from '../stores/locale.store';
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return d.toLocaleDateString(useLocaleStore.getState().locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export default function ExpenseReimbursementsPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
+  const locale = useLocaleStore((s) => s.locale);
   const addToast = useToastStore((s) => s.addToast);
 
   const [data, setData] = useState<PendingExpense[]>([]);
@@ -111,7 +115,7 @@ export default function ExpenseReimbursementsPage() {
         const result = await periodService.listByProject(filterProject);
         setPeriodOptions(result.data.map(p => ({
           value: p.id,
-          label: `${new Date(p.weekStart + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} — ${new Date(p.weekEnd + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} (${p.status === 'open' ? 'Aberto' : 'Fechado'})`,
+          label: `${new Date(p.weekStart + 'T12:00:00').toLocaleDateString(locale, { day: '2-digit', month: '2-digit' })} — ${new Date(p.weekEnd + 'T12:00:00').toLocaleDateString(locale, { day: '2-digit', month: '2-digit' })} (${p.status === 'open' ? t('expenses.statusOpen') : t('expenses.statusClosed')})`,
           period: p,
         })));
       } catch { /* silent */ }
@@ -169,7 +173,7 @@ export default function ExpenseReimbursementsPage() {
     setActionLoading(true);
     try {
       await expenseService.markAsReimbursed(ids);
-      addToast(`${ids.length} despesa(s) marcada(s) como reembolsada(s).`, 'success');
+      addToast(t('expenses.markedAsReimbursed', { count: ids.length }), 'success');
       setSelected(new Set());
       await loadData();
     } catch (err) {
@@ -183,7 +187,7 @@ export default function ExpenseReimbursementsPage() {
     setActionLoading(true);
     try {
       await expenseService.unmarkReimbursement(id);
-      addToast('Marcacao de reembolso desfeita.', 'success');
+      addToast(t('expenses.reimbursementUndone'), 'success');
       await loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -199,22 +203,22 @@ export default function ExpenseReimbursementsPage() {
   }).length;
 
   return (
-    <SidebarLayout navItems={navItems} title="Reembolsos">
+    <SidebarLayout navItems={navItems} title={t('expenses.reimbursements')}>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Controle de Reembolsos</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('expenses.reimbursements')}</h2>
         <p className="text-sm text-text-muted mt-1">
-          Gerencie reembolsos de despesas aprovadas dos consultores.
+          {t('expenses.reimbursementsSubtitle')}
         </p>
       </div>
 
       {/* Totals */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:max-w-md">
         <div className="rounded-xl border border-border bg-surface-1 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Pendente</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('expenses.pending')}</p>
           <p className="text-xl font-bold text-warning mt-1">{formatCurrency(totalPending)}</p>
         </div>
         <div className="rounded-xl border border-border bg-surface-1 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Pago</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('expenses.paid')}</p>
           <p className="text-xl font-bold text-accent mt-1">{formatCurrency(totalPaid)}</p>
         </div>
       </div>
@@ -223,16 +227,16 @@ export default function ExpenseReimbursementsPage() {
       <div className="mb-4 flex flex-wrap gap-3 items-end">
         <div className="w-48">
           <Select
-            label="Consultor"
-            options={[{ value: '', label: 'Todos' }, ...consultantOptions]}
+            label={t('common.consultant')}
+            options={[{ value: '', label: t('common.all') }, ...consultantOptions]}
             value={filterConsultant}
             onChange={setFilterConsultant}
           />
         </div>
         <div className="w-48">
           <Select
-            label="Projeto"
-            options={[{ value: '', label: 'Todos' }, ...projectOptions]}
+            label={t('common.project')}
+            options={[{ value: '', label: t('common.all') }, ...projectOptions]}
             value={filterProject}
             onChange={setFilterProject}
           />
@@ -240,8 +244,8 @@ export default function ExpenseReimbursementsPage() {
         {filterProject && periodOptions.length > 0 && (
           <div className="w-56">
             <Select
-              label="Período"
-              options={[{ value: '', label: 'Todos' }, ...periodOptions]}
+              label={t('common.period')}
+              options={[{ value: '', label: t('common.all') }, ...periodOptions]}
               value={selectedPeriodId}
               onChange={handlePeriodFilter}
             />
@@ -249,18 +253,18 @@ export default function ExpenseReimbursementsPage() {
         )}
         <div className="w-40">
           <Select
-            label="Status"
+            label={t('common.status')}
             options={[
-              { value: '', label: 'Todos' },
-              { value: 'pending', label: 'Pendente' },
-              { value: 'paid', label: 'Pago' },
+              { value: '', label: t('common.all') },
+              { value: 'pending', label: t('expenses.pending') },
+              { value: 'paid', label: t('expenses.paid') },
             ]}
             value={filterStatus}
             onChange={(v) => setFilterStatus(v as '' | 'pending' | 'paid')}
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">De</label>
+          <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('expenses.from')}</label>
           <input
             type="date"
             value={filterFrom}
@@ -269,7 +273,7 @@ export default function ExpenseReimbursementsPage() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Ate</label>
+          <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('expenses.to')}</label>
           <input
             type="date"
             value={filterTo}
@@ -280,7 +284,7 @@ export default function ExpenseReimbursementsPage() {
         {selectedPendingCount > 0 && (
           <Button onClick={handleMarkReimbursed} disabled={actionLoading} size="sm">
             <Check size={15} className="mr-1.5" />
-            Marcar como Pago ({selectedPendingCount})
+            {t('expenses.markAsPaid', { count: selectedPendingCount })}
           </Button>
         )}
       </div>
@@ -300,9 +304,9 @@ export default function ExpenseReimbursementsPage() {
       ) : data.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
           <Wallet size={40} className="text-accent mb-3" />
-          <p className="text-text-secondary font-medium">Nenhum reembolso encontrado</p>
+          <p className="text-text-secondary font-medium">{t('expenses.noReimbursements')}</p>
           <p className="text-text-muted text-sm mt-1">
-            Ajuste os filtros ou aguarde despesas aprovadas com reembolso.
+            {t('expenses.adjustFilters')}
           </p>
         </div>
       ) : (
@@ -321,14 +325,14 @@ export default function ExpenseReimbursementsPage() {
                       />
                     )}
                   </TableHeader>
-                  <TableHeader>Consultor</TableHeader>
-                  <TableHeader>Projeto</TableHeader>
-                  <TableHeader>Data</TableHeader>
-                  <TableHeader>Categoria</TableHeader>
-                  <TableHeader className="text-right">Valor</TableHeader>
-                  <TableHeader>Comprov.</TableHeader>
-                  <TableHeader>Status</TableHeader>
-                  <TableHeader className="w-16">Acao</TableHeader>
+                  <TableHeader>{t('expenses.tableConsultant')}</TableHeader>
+                  <TableHeader>{t('expenses.tableProject')}</TableHeader>
+                  <TableHeader>{t('expenses.tableDate')}</TableHeader>
+                  <TableHeader>{t('expenses.tableCategory')}</TableHeader>
+                  <TableHeader className="text-right">{t('expenses.tableValue')}</TableHeader>
+                  <TableHeader>{t('expenses.tableReceipt')}</TableHeader>
+                  <TableHeader>{t('expenses.tableStatus')}</TableHeader>
+                  <TableHeader className="w-16">{t('expenses.tableAction')}</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -371,9 +375,9 @@ export default function ExpenseReimbursementsPage() {
                       </TableCell>
                       <TableCell>
                         {isPaid ? (
-                          <Badge variant="success">Pago</Badge>
+                          <Badge variant="success">{t('expenses.paid')}</Badge>
                         ) : (
-                          <Badge variant="warning">Pendente</Badge>
+                          <Badge variant="warning">{t('expenses.pending')}</Badge>
                         )}
                       </TableCell>
                       <TableCell>
@@ -382,7 +386,7 @@ export default function ExpenseReimbursementsPage() {
                             onClick={() => handleUnmark(item.id)}
                             disabled={actionLoading}
                             className="rounded-md p-1.5 text-text-muted hover:text-warning hover:bg-warning/10 transition-colors disabled:opacity-50"
-                            title="Desfazer reembolso"
+                            title={t('expenses.undoReimbursement')}
                           >
                             <Undo2 size={15} />
                           </button>
@@ -404,10 +408,10 @@ export default function ExpenseReimbursementsPage() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
               >
-                Anterior
+                {t('common.previous')}
               </Button>
               <span className="text-sm text-text-secondary">
-                Pagina {page} de {totalPages}
+                {t('common.pageOf', { page, totalPages })}
               </span>
               <Button
                 variant="secondary"
@@ -415,7 +419,7 @@ export default function ExpenseReimbursementsPage() {
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
               >
-                Proxima
+                {t('common.next')}
               </Button>
             </div>
           )}

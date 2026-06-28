@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, X, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Select } from '../ui/select';
@@ -31,21 +32,6 @@ interface TicketFiltersProps {
   showConsultantFilter?: boolean;
 }
 
-const statusOptions = [
-  { value: 'active', label: 'Não finalizados' },
-  { value: 'all', label: 'Todos os status' },
-  ...Object.entries(TICKET_STATUS_LABELS).map(([value, label]) => ({ value, label })),
-];
-
-const typeOptions = [
-  { value: '', label: 'Todos os tipos' },
-  ...Object.entries(TICKET_TYPE_LABELS).map(([value, label]) => ({ value, label })),
-];
-
-const priorityOptions = [
-  { value: '', label: 'Todas as prioridades' },
-  ...Object.entries(TICKET_PRIORITY_LABELS).map(([value, label]) => ({ value, label })),
-];
 
 const emptyFilters: TicketFilterValues = {
   projectId: '',
@@ -78,15 +64,32 @@ function countActiveSelectFilters(values: TicketFilterValues): number {
 }
 
 export function TicketFilters({ values, onChange, projects, consultants, showConsultantFilter }: TicketFiltersProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
+  const statusOptions = [
+    { value: 'active', label: t('tickets.notFinished') },
+    { value: 'all', label: t('common.allStatuses') },
+    ...Object.entries(TICKET_STATUS_LABELS).map(([value, label]) => ({ value, label: t(label) })),
+  ];
+
+  const typeOptions = [
+    { value: '', label: t('tickets.allTypes') },
+    ...Object.entries(TICKET_TYPE_LABELS).map(([value, label]) => ({ value, label: t(label) })),
+  ];
+
+  const priorityOptions = [
+    { value: '', label: t('tickets.allPriorities') },
+    ...Object.entries(TICKET_PRIORITY_LABELS).map(([value, label]) => ({ value, label: t(label) })),
+  ];
+
   const projectOptions = [
-    { value: '', label: 'Todos os projetos' },
+    { value: '', label: t('tickets.allProjects') },
     ...projects.map((p) => ({ value: p.id, label: p.name })),
   ];
 
   const consultantOptions = [
-    { value: '', label: 'Todos os consultores' },
+    { value: '', label: t('tickets.allConsultants') },
     ...(consultants || []).map((c) => ({ value: c.id, label: c.name })),
   ];
 
@@ -108,7 +111,7 @@ export function TicketFilters({ values, onChange, projects, consultants, showCon
             <Search size={16} />
           </div>
           <Input
-            placeholder="Buscar tickets..."
+            placeholder={t('tickets.searchTickets')}
             value={values.search}
             onChange={(e) => handleChange('search', e.target.value)}
             className="pl-9"
@@ -121,7 +124,7 @@ export function TicketFilters({ values, onChange, projects, consultants, showCon
           className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-3"
         >
           <SlidersHorizontal size={16} />
-          Filtros
+          {t('common.filters')}
           {activeCount > 0 && (
             <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold text-white">
               {activeCount}
@@ -137,7 +140,7 @@ export function TicketFilters({ values, onChange, projects, consultants, showCon
             className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-3"
           >
             <X size={14} />
-            Limpar
+            {t('common.clear')}
           </button>
         )}
       </div>

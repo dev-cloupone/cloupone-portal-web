@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Select } from '../ui/select';
 import { Button } from '../ui/button';
 import type { ConsultantOption } from '../../types/time-entry.types';
@@ -25,14 +26,15 @@ export function ListFilters({
   consultants,
   projects,
 }: ListFiltersProps) {
+  const { t } = useTranslation();
   const consultantOptions = [
-    { value: '', label: 'Meus apontamentos' },
-    { value: '__all__', label: 'Todos' },
+    { value: '', label: t('timesheet.myEntries') },
+    { value: '__all__', label: t('timesheet.allEntries') },
     ...consultants.map(c => ({ value: c.id, label: c.name })),
   ];
 
   const projectOptions = [
-    { value: '', label: 'Todos os projetos' },
+    { value: '', label: t('timesheet.allProjects') },
     ...projects.map(p => ({ value: p.id, label: p.name })),
   ];
 
@@ -53,7 +55,7 @@ export function ListFilters({
       {showConsultantFilter && (
         <div className="min-w-[180px]">
           <Select
-            label="Consultor"
+            label={t('common.consultant')}
             options={consultantOptions}
             value={consultantValue}
             onChange={handleConsultantChange}
@@ -62,7 +64,7 @@ export function ListFilters({
       )}
       <div className="min-w-[180px]">
         <Select
-          label="Projeto"
+          label={t('common.project')}
           options={projectOptions}
           value={filters.projectId || ''}
           onChange={(value) => onFilterChange({ projectId: value || undefined })}
@@ -70,7 +72,7 @@ export function ListFilters({
       </div>
       {hasActiveFilters && (
         <Button variant="ghost" size="sm" onClick={onClear}>
-          Limpar filtros
+          {t('timesheet.clearFilters')}
         </Button>
       )}
     </div>

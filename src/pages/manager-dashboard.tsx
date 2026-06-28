@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Clock, CheckSquare, AlertTriangle, TrendingUp, Ticket, UserX2, AlertOctagon } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -17,6 +18,7 @@ import { formatApiError } from '../services/api';
 import type { ManagerDashboardData } from '../types/dashboard.types';
 import type { TicketStats } from '../types/ticket.types';
 import { ProgressBar } from '../components/phases/progress-bar';
+import { getShortMonthName } from '../utils/formatters';
 
 interface PhasesDashboard {
   alertSubphases: Array<{
@@ -78,18 +80,13 @@ const CHART_COLORS = {
   border: '#1E2036',
 };
 
-const monthLabels: Record<string, string> = {
-  '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr',
-  '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Ago',
-  '09': 'Set', '10': 'Out', '11': 'Nov', '12': 'Dez',
-};
-
 function formatMonth(month: string): string {
   const [, m] = month.split('-');
-  return monthLabels[m] || month;
+  return getShortMonthName(Number(m) - 1);
 }
 
 export default function ManagerDashboardPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const navigate = useNavigate();
   const [data, setData] = useState<ManagerDashboardData | null>(null);
@@ -124,8 +121,8 @@ export default function ManagerDashboardPage() {
   return (
     <SidebarLayout navItems={navItems} title="Dashboard">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Dashboard do Gestor</h2>
-        <p className="mt-1 text-sm text-text-tertiary">Visão geral de horas e projetos do mês atual</p>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('dashboard.managerDashboard')}</h2>
+        <p className="mt-1 text-sm text-text-tertiary">{t('dashboard.managerSubtitle')}</p>
       </div>
 
       {isLoading ? (
@@ -135,34 +132,34 @@ export default function ManagerDashboardPage() {
           ))}
         </div>
       ) : error ? (
-        <div className="py-12 text-center text-danger">Erro ao carregar dashboard: {error}</div>
+        <div className="py-12 text-center text-danger">{t('common.errorLoading', { error })}</div>
       ) : data ? (
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              title="Horas no Mês"
+              title={t('dashboard.monthHours')}
               value={`${data.totalHoursThisMonth.toFixed(1)}h`}
               icon={<Clock size={20} />}
-              description="Horas submetidas + aprovadas"
+              description={t('dashboard.monthHoursDesc')}
             />
             <StatCard
-              title="Horas Aprovadas"
+              title={t('dashboard.approvedHours')}
               value={`${data.totalHoursApproved.toFixed(1)}h`}
               icon={<CheckSquare size={20} />}
-              description="Horas já aprovadas no mês"
+              description={t('dashboard.approvedHoursDesc')}
             />
             <StatCard
-              title="Horas Pendentes"
+              title={t('dashboard.pendingHours')}
               value={`${data.totalHoursPending.toFixed(1)}h`}
               icon={<TrendingUp size={20} />}
-              description="Aguardando aprovação"
+              description={t('dashboard.pendingHoursDesc')}
             />
             <StatCard
-              title="Aprovações Pendentes"
+              title={t('dashboard.pendingApprovals')}
               value={data.pendingApprovalCount}
               icon={<AlertTriangle size={20} />}
-              description="Apontamentos a aprovar"
+              description={t('dashboard.pendingApprovalsDesc')}
             />
           </div>
 
@@ -171,8 +168,8 @@ export default function ManagerDashboardPage() {
             {/* Hours by Project */}
             <Card>
               <CardHeader>
-                <CardTitle>Horas por Projeto</CardTitle>
-                <Badge>Mês Atual</Badge>
+                <CardTitle>{t('dashboard.hoursByProject')}</CardTitle>
+                <Badge>{t('dashboard.currentMonth')}</Badge>
               </CardHeader>
               {data.hoursByProject.length > 0 ? (
                 <div className="h-64">
@@ -189,22 +186,22 @@ export default function ManagerDashboardPage() {
                       <Tooltip
                         contentStyle={{ backgroundColor: CHART_COLORS.surface3, border: `1px solid ${CHART_COLORS.border}`, borderRadius: 8, fontSize: 12 }}
                         labelStyle={{ color: '#fafafa' }}
-                        formatter={(value) => [`${Number(value).toFixed(1)}h`, 'Horas']}
+                        formatter={(value) => [`${Number(value).toFixed(1)}h`, t('dashboard.hours')]}
                       />
                       <Bar dataKey="hours" fill={CHART_COLORS.accent} radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-sm text-text-muted">Sem dados para exibir</p>
+                <p className="py-8 text-center text-sm text-text-muted">{t('dashboard.noDataToShow')}</p>
               )}
             </Card>
 
             {/* Hours by Consultant */}
             <Card>
               <CardHeader>
-                <CardTitle>Horas por Consultor</CardTitle>
-                <Badge>Mês Atual</Badge>
+                <CardTitle>{t('dashboard.hoursByConsultant')}</CardTitle>
+                <Badge>{t('dashboard.currentMonth')}</Badge>
               </CardHeader>
               {data.hoursByConsultant.length > 0 ? (
                 <div className="h-64">
@@ -221,14 +218,14 @@ export default function ManagerDashboardPage() {
                       <Tooltip
                         contentStyle={{ backgroundColor: CHART_COLORS.surface3, border: `1px solid ${CHART_COLORS.border}`, borderRadius: 8, fontSize: 12 }}
                         labelStyle={{ color: '#fafafa' }}
-                        formatter={(value) => [`${Number(value).toFixed(1)}h`, 'Horas']}
+                        formatter={(value) => [`${Number(value).toFixed(1)}h`, t('dashboard.hours')]}
                       />
                       <Bar dataKey="hours" fill={CHART_COLORS.accentHover} radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-sm text-text-muted">Sem dados para exibir</p>
+                <p className="py-8 text-center text-sm text-text-muted">{t('dashboard.noDataToShow')}</p>
               )}
             </Card>
           </div>
@@ -238,8 +235,8 @@ export default function ManagerDashboardPage() {
             {/* Monthly Trend */}
             <Card>
               <CardHeader>
-                <CardTitle>Tendência Mensal</CardTitle>
-                <Badge>Últimos 6 Meses</Badge>
+                <CardTitle>{t('dashboard.monthlyTrend')}</CardTitle>
+                <Badge>{t('dashboard.lastSixMonths')}</Badge>
               </CardHeader>
               {data.monthlyTrend.length > 0 ? (
                 <div className="h-64">
@@ -251,22 +248,22 @@ export default function ManagerDashboardPage() {
                       <Tooltip
                         contentStyle={{ backgroundColor: CHART_COLORS.surface3, border: `1px solid ${CHART_COLORS.border}`, borderRadius: 8, fontSize: 12 }}
                         labelStyle={{ color: '#fafafa' }}
-                        formatter={(value) => [`${Number(value).toFixed(1)}h`, 'Horas']}
+                        formatter={(value) => [`${Number(value).toFixed(1)}h`, t('dashboard.hours')]}
                       />
                       <Line type="monotone" dataKey="hours" stroke={CHART_COLORS.accent} strokeWidth={2} dot={{ fill: CHART_COLORS.accent, r: 4 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-sm text-text-muted">Sem dados para exibir</p>
+                <p className="py-8 text-center text-sm text-text-muted">{t('dashboard.noDataToShow')}</p>
               )}
             </Card>
 
             {/* Budget Alerts */}
             <Card>
               <CardHeader>
-                <CardTitle>Alertas de Orçamento</CardTitle>
-                <Badge variant="warning">Projetos &gt; 80%</Badge>
+                <CardTitle>{t('dashboard.budgetAlerts')}</CardTitle>
+                <Badge variant="warning">{t('dashboard.projectsAbove80')}</Badge>
               </CardHeader>
               {data.budgetAlerts.length > 0 ? (
                 <div className="space-y-3">
@@ -288,7 +285,7 @@ export default function ManagerDashboardPage() {
                   ))}
                 </div>
               ) : (
-                <p className="py-8 text-center text-sm text-text-muted">Nenhum projeto acima de 80% do orçamento</p>
+                <p className="py-8 text-center text-sm text-text-muted">{t('dashboard.noProjectAbove80')}</p>
               )}
             </Card>
           </div>
@@ -296,31 +293,31 @@ export default function ManagerDashboardPage() {
           {/* Ticket Stats */}
           {ticketStats && (
             <div className="mt-8">
-              <h3 className="mb-4 text-lg font-semibold text-text-primary">Atendimento</h3>
+              <h3 className="mb-4 text-lg font-semibold text-text-primary">{t('dashboard.support')}</h3>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
-                  title="Tickets Abertos"
+                  title={t('dashboard.openTickets')}
                   value={(ticketStats.byStatus.open || 0) + (ticketStats.byStatus.in_analysis || 0) + (ticketStats.byStatus.awaiting_customer || 0) + (ticketStats.byStatus.awaiting_third_party || 0)}
                   icon={<Ticket size={20} />}
-                  description="Tickets ativos no sistema"
+                  description={t('dashboard.openTicketsDesc')}
                 />
                 <StatCard
-                  title="Sem Atribuição"
+                  title={t('dashboard.unassigned')}
                   value={ticketStats.unassigned}
                   icon={<UserX2 size={20} />}
-                  description="Tickets sem consultor atribuído"
+                  description={t('dashboard.unassignedDesc')}
                 />
                 <StatCard
-                  title="Críticos"
+                  title={t('dashboard.critical')}
                   value={ticketStats.byPriority.critical || 0}
                   icon={<AlertOctagon size={20} />}
-                  description="Tickets com prioridade crítica"
+                  description={t('dashboard.criticalDesc')}
                 />
                 <StatCard
-                  title="Finalizados"
+                  title={t('dashboard.finished')}
                   value={(ticketStats.byStatus.finished || 0)}
                   icon={<CheckSquare size={20} />}
-                  description="Tickets finalizados"
+                  description={t('dashboard.finishedDesc')}
                 />
               </div>
             </div>
@@ -329,13 +326,13 @@ export default function ManagerDashboardPage() {
           {/* Phases Dashboard */}
           {phasesData && (phasesData.alertSubphases.length > 0 || phasesData.overdueSubphases.length > 0 || phasesData.projectSummaries.length > 0) && (
             <div className="mt-8">
-              <h3 className="mb-4 text-lg font-semibold text-text-primary">Fases e Subfases</h3>
+              <h3 className="mb-4 text-lg font-semibold text-text-primary">{t('dashboard.phasesSubphases')}</h3>
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 {/* Alert Subphases */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Subfases em Alerta</CardTitle>
-                    <Badge variant="warning">&gt; 80%</Badge>
+                    <CardTitle>{t('dashboard.subphasesAlert')}</CardTitle>
+                    <Badge variant="warning">{t('dashboard.above80')}</Badge>
                   </CardHeader>
                   {phasesData.alertSubphases.length > 0 ? (
                     <div className="space-y-3">
@@ -352,15 +349,15 @@ export default function ManagerDashboardPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="py-4 text-center text-sm text-text-muted">Nenhuma subfase em alerta</p>
+                    <p className="py-4 text-center text-sm text-text-muted">{t('dashboard.noSubphasesAlert')}</p>
                   )}
                 </Card>
 
                 {/* Overdue Subphases */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Subfases Atrasadas</CardTitle>
-                    <Badge variant="danger">Prazo expirado</Badge>
+                    <CardTitle>{t('dashboard.overdueSubphases')}</CardTitle>
+                    <Badge variant="danger">{t('dashboard.expiredDeadline')}</Badge>
                   </CardHeader>
                   {phasesData.overdueSubphases.length > 0 ? (
                     <div className="space-y-3">
@@ -372,7 +369,7 @@ export default function ManagerDashboardPage() {
                               <p className="text-xs text-text-tertiary truncate">{sp.projectName} / {sp.phaseName}</p>
                             </div>
                             {sp.endDate && (
-                              <span className="text-xs text-danger shrink-0">Venceu {sp.endDate}</span>
+                              <span className="text-xs text-danger shrink-0">{t('dashboard.expiredOn', { date: sp.endDate })}</span>
                             )}
                           </div>
                           <ProgressBar estimated={sp.estimatedHours} actual={sp.actualHours} />
@@ -380,15 +377,15 @@ export default function ManagerDashboardPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="py-4 text-center text-sm text-text-muted">Nenhuma subfase atrasada</p>
+                    <p className="py-4 text-center text-sm text-text-muted">{t('dashboard.noOverdueSubphases')}</p>
                   )}
                 </Card>
 
                 {/* Project Overview */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Visão Geral</CardTitle>
-                    <Badge>Por Projeto</Badge>
+                    <CardTitle>{t('dashboard.overview')}</CardTitle>
+                    <Badge>{t('dashboard.byProject')}</Badge>
                   </CardHeader>
                   {phasesData.projectSummaries.length > 0 ? (
                     <div className="space-y-3">
@@ -396,17 +393,17 @@ export default function ManagerDashboardPage() {
                         <div key={ps.projectId}>
                           <p className="text-sm font-medium text-text-primary mb-1">{ps.projectName}</p>
                           <div className="flex gap-2 text-xs">
-                            <span className="text-text-tertiary">{ps.totalPhases} fases</span>
+                            <span className="text-text-tertiary">{ps.totalPhases} {t('dashboard.phases')}</span>
                             <span className="text-text-muted">|</span>
-                            <span className="text-text-tertiary">{ps.subphases.planned} planejadas</span>
-                            <span className="text-warning">{ps.subphases.in_progress} em andamento</span>
-                            <span className="text-accent">{ps.subphases.completed} concluídas</span>
+                            <span className="text-text-tertiary">{ps.subphases.planned} {t('dashboard.planned')}</span>
+                            <span className="text-warning">{ps.subphases.in_progress} {t('dashboard.inProgress')}</span>
+                            <span className="text-accent">{ps.subphases.completed} {t('dashboard.completed')}</span>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="py-4 text-center text-sm text-text-muted">Nenhum projeto com fases</p>
+                    <p className="py-4 text-center text-sm text-text-muted">{t('dashboard.noProjectWithPhases')}</p>
                   )}
                 </Card>
               </div>
@@ -420,15 +417,15 @@ export default function ManagerDashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-text-primary">
-                      Você tem {data.pendingApprovalCount} apontamento{data.pendingApprovalCount !== 1 ? 's' : ''} aguardando aprovação
+                      {t('dashboard.pendingApprovalsBanner', { count: data.pendingApprovalCount })}
                     </p>
-                    <p className="text-xs text-text-tertiary">Clique para revisar e aprovar</p>
+                    <p className="text-xs text-text-tertiary">{t('dashboard.clickToReview')}</p>
                   </div>
                   <button
                     onClick={() => navigate('/approvals')}
                     className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface-0 transition-colors hover:bg-accent-hover"
                   >
-                    Ver Aprovações
+                    {t('dashboard.viewApprovals')}
                   </button>
                 </div>
               </Card>
@@ -438,15 +435,15 @@ export default function ManagerDashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-text-primary">
-                      {ticketStats.unassigned} ticket{ticketStats.unassigned !== 1 ? 's' : ''} sem atribuição
+                      {t('dashboard.unassignedTicketsBanner', { count: ticketStats.unassigned })}
                     </p>
-                    <p className="text-xs text-text-tertiary">Atribua consultores para iniciar o atendimento</p>
+                    <p className="text-xs text-text-tertiary">{t('dashboard.assignConsultants')}</p>
                   </div>
                   <button
                     onClick={() => navigate('/tickets')}
                     className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface-0 transition-colors hover:bg-accent-hover"
                   >
-                    Ver Tickets
+                    {t('dashboard.viewTickets')}
                   </button>
                 </div>
               </Card>

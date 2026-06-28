@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Receipt, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Modal } from '../ui/modal';
 import { ExpenseCard } from './expense-card';
 import type { Expense, ExpenseWeekSummary } from '../../types/expense.types';
 import { formatCurrency } from '../../utils/formatters';
+import { useLocaleStore } from '../../stores/locale.store';
 
 interface ExpenseDayPanelProps {
   selectedDate: string;
@@ -21,7 +23,7 @@ interface ExpenseDayPanelProps {
 
 function formatDayHeader(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');
-  const formatted = d.toLocaleDateString('pt-BR', {
+  const formatted = d.toLocaleDateString(useLocaleStore.getState().locale, {
     weekday: 'short',
     day: '2-digit',
     month: 'long',
@@ -41,6 +43,7 @@ export function ExpenseDayPanel({
   onNewExpense,
   onClose,
 }: ExpenseDayPanelProps) {
+  const { t } = useTranslation();
   const dayTotal = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
   const [revertingExpense, setRevertingExpense] = useState<Expense | null>(null);
   const [isReverting, setIsReverting] = useState(false);
@@ -74,13 +77,13 @@ export function ExpenseDayPanel({
             )}
             {isDayInOpenPeriod && (
               <Button variant="secondary" size="sm" onClick={onNewExpense}>
-                <Plus size={14} className="mr-1" /> Nova Despesa
+                <Plus size={14} className="mr-1" /> {t('expenses.newExpense')}
               </Button>
             )}
             <button
               onClick={onClose}
               className="p-0.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-3 transition-colors"
-              aria-label="Fechar painel"
+              aria-label={t('expenses.closePanel')}
             >
               <X size={16} />
             </button>
@@ -91,7 +94,7 @@ export function ExpenseDayPanel({
         {weekSummary && (
           <div className="flex items-center justify-between">
             <span className="text-xs text-text-tertiary">
-              Semana: {formatCurrency(weekSummary.totalAmount)} ({weekSummary.expenseCount} despesa{weekSummary.expenseCount !== 1 ? 's' : ''})
+              {t('expenses.weekSummary', { amount: formatCurrency(weekSummary.totalAmount), count: weekSummary.expenseCount })}
             </span>
           </div>
         )}
@@ -100,7 +103,7 @@ export function ExpenseDayPanel({
       {/* Expenses list */}
       {!isDayInOpenPeriod && expenses.length === 0 && (
         <div className="rounded-lg bg-surface-2 border border-border px-3 py-2">
-          <p className="text-xs text-text-muted">Nenhum período aberto para esta data. Solicite ao gestor a abertura da semana.</p>
+          <p className="text-xs text-text-muted">{t('expenses.noPeriodOpen')}</p>
         </div>
       )}
 
@@ -120,8 +123,8 @@ export function ExpenseDayPanel({
       ) : isDayInOpenPeriod ? (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <Receipt size={32} className="text-text-muted mb-3" />
-          <p className="text-sm text-text-tertiary mb-1">Nenhuma despesa</p>
-          <p className="text-xs text-text-muted">Use o botão acima para registrar uma despesa</p>
+          <p className="text-sm text-text-tertiary mb-1">{t('expenses.noExpenses')}</p>
+          <p className="text-xs text-text-muted">{t('expenses.useButtonAbove')}</p>
         </div>
       ) : null}
 
@@ -129,17 +132,17 @@ export function ExpenseDayPanel({
       <Modal
         isOpen={!!revertingExpense}
         onClose={() => setRevertingExpense(null)}
-        title="Reverter Despesa"
+        title={t('expenses.revertExpense')}
       >
         <p className="text-sm text-text-secondary mb-4">
-          Reverter despesa &ldquo;{revertingExpense?.description || revertingExpense?.categoryName || 'Sem descrição'}&rdquo; de <strong>Aprovada</strong> para <strong>Criada</strong>?
+          {t('expenses.revertConfirm', { name: revertingExpense?.description || revertingExpense?.categoryName || t('expenses.noDescription') })}
         </p>
         <div className="flex items-center gap-2 justify-end">
           <Button variant="ghost" size="sm" onClick={() => setRevertingExpense(null)} disabled={isReverting}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button variant="danger" size="sm" onClick={handleRevert} disabled={isReverting}>
-            {isReverting ? 'Revertendo...' : 'Reverter'}
+            {isReverting ? t('expenses.reverting') : t('expenses.revert')}
           </Button>
         </div>
       </Modal>

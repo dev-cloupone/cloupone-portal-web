@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { User, Ticket, PlayCircle, CheckCircle2, Plus } from 'lucide-react';
 import { Link } from 'react-router';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
@@ -33,6 +34,7 @@ function StatCard({ title, value, icon, description }: StatCardProps) {
 }
 
 export default function HomePage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navItems = useNavItems();
   const navigate = useNavigate();
@@ -68,10 +70,10 @@ export default function HomePage() {
     <SidebarLayout navItems={navItems} title="Home">
       <div className="mb-6">
         <h2 className="text-2xl font-bold tracking-tight text-text-primary">
-          Bem-vindo(a), {user?.name}!
+          {t('dashboard.welcome', { name: user?.name })}
         </h2>
         <p className="text-sm text-text-tertiary mt-1">
-          {isClient ? 'Acompanhe suas solicitacoes' : 'Esta e sua pagina inicial'}
+          {isClient ? t('dashboard.trackRequests') : t('dashboard.homePage')}
         </p>
       </div>
 
@@ -80,22 +82,22 @@ export default function HomePage() {
           {/* Client Ticket Stats */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <StatCard
-              title="Abertos"
+              title={t('dashboard.open')}
               value={openTickets}
               icon={<Ticket size={20} />}
-              description="Tickets aguardando atendimento"
+              description={t('dashboard.openTicketsHome')}
             />
             <StatCard
-              title="Aguardando"
+              title={t('dashboard.waiting')}
               value={inProgressTickets}
               icon={<PlayCircle size={20} />}
-              description="Tickets aguardando retorno"
+              description={t('dashboard.waitingTicketsHome')}
             />
             <StatCard
-              title="Finalizados"
+              title={t('dashboard.finished')}
               value={resolvedTickets}
               icon={<CheckCircle2 size={20} />}
-              description="Tickets finalizados"
+              description={t('dashboard.finishedTicketsHome')}
             />
           </div>
 
@@ -104,11 +106,11 @@ export default function HomePage() {
             <Card>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Precisa de ajuda?</p>
-                  <p className="text-xs text-text-tertiary">Abra um novo ticket para relatar problemas ou solicitar melhorias</p>
+                  <p className="text-sm font-medium text-text-primary">{t('dashboard.needHelp')}</p>
+                  <p className="text-xs text-text-tertiary">{t('dashboard.openNewTicket')}</p>
                 </div>
                 <Button onClick={() => navigate('/tickets/new')}>
-                  <Plus size={14} className="mr-1" /> Novo Ticket
+                  <Plus size={14} className="mr-1" /> {t('dashboard.newTicket')}
                 </Button>
               </div>
             </Card>
@@ -116,14 +118,14 @@ export default function HomePage() {
             <Card>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Ver todos os tickets</p>
-                  <p className="text-xs text-text-tertiary">Acompanhe o andamento das suas solicitacoes</p>
+                  <p className="text-sm font-medium text-text-primary">{t('dashboard.viewAllTickets')}</p>
+                  <p className="text-xs text-text-tertiary">{t('dashboard.trackRequestsDesc')}</p>
                 </div>
                 <button
                   onClick={() => navigate('/tickets')}
                   className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-surface-0 transition-colors hover:bg-accent-hover"
                 >
-                  Ver Tickets
+                  {t('dashboard.viewTickets')}
                 </button>
               </div>
             </Card>
@@ -144,7 +146,7 @@ export default function HomePage() {
                 to="/profile"
                 className="text-xs text-accent hover:text-accent-hover transition-colors"
               >
-                Ver perfil
+                {t('dashboard.viewProfile')}
               </Link>
             </div>
           </Card>

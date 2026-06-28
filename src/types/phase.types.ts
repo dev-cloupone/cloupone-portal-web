@@ -1,9 +1,9 @@
 export type SubphaseStatus = 'planned' | 'in_progress' | 'completed';
 
 export const SUBPHASE_STATUS_LABELS: Record<SubphaseStatus, string> = {
-  planned: 'Planejada',
-  in_progress: 'Em andamento',
-  completed: 'Concluída',
+  planned: 'phases.subphaseStatusPlanned',
+  in_progress: 'phases.subphaseStatusInProgress',
+  completed: 'phases.subphaseStatusCompleted',
 };
 
 export const SUBPHASE_STATUS_VARIANTS: Record<SubphaseStatus, 'default' | 'warning' | 'success'> = {

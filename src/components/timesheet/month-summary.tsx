@@ -1,7 +1,9 @@
 import { Calendar, BarChart3 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '../ui/badge';
 import type { MonthData, WeekSummary } from '../../types/time-entry.types';
 import type { MonthlyTimesheetStatus } from '../../types/monthly-timesheet.types';
+import { useLocaleStore } from '../../stores/locale.store';
 
 interface MonthSummaryProps {
   monthData: MonthData;
@@ -9,13 +11,15 @@ interface MonthSummaryProps {
   monthStatus?: MonthlyTimesheetStatus | null;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; variant: 'warning' | 'success' | 'default' }> = {
-  open: { label: 'Aberto', variant: 'warning' },
-  approved: { label: 'Aprovado', variant: 'success' },
-  reopened: { label: 'Reaberto', variant: 'default' },
+const STATUS_KEYS: Record<string, { key: string; variant: 'warning' | 'success' | 'default' }> = {
+  open: { key: 'timesheet.statusOpen', variant: 'warning' },
+  approved: { key: 'timesheet.statusApproved', variant: 'success' },
+  reopened: { key: 'timesheet.statusReopened', variant: 'default' },
 };
 
 export function MonthSummary({ monthData, weekSummaries, monthStatus }: MonthSummaryProps) {
+  const { t } = useTranslation();
+  const locale = useLocaleStore((s) => s.locale);
   const entries = monthData.entries;
 
   // Days worked
@@ -30,29 +34,29 @@ export function MonthSummary({ monthData, weekSummaries, monthStatus }: MonthSum
   }
   const projectBreakdown = Array.from(projectMap.values()).sort((a, b) => b.hours - a.hours);
 
-  const statusCfg = monthStatus ? STATUS_CONFIG[monthStatus] : null;
+  const statusCfg = monthStatus ? STATUS_KEYS[monthStatus] : null;
 
   return (
     <div className="rounded-xl border border-border bg-surface-1 p-4 space-y-5 animate-fade-in">
       {/* Month status badge */}
       {statusCfg && (
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Status do mês</span>
-          <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
+          <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('timesheet.monthStatus')}</span>
+          <Badge variant={statusCfg.variant}>{t(statusCfg.key)}</Badge>
         </div>
       )}
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-3">
-        <StatCard label="Total registrado" value={`${monthData.totalHours.toFixed(1)}h`} />
-        <StatCard label="Dias trabalhados" value={String(daysWorked)} />
+        <StatCard label={t('timesheet.totalRecorded')} value={`${monthData.totalHours.toFixed(1)}h`} />
+        <StatCard label={t('timesheet.daysWorked')} value={String(daysWorked)} />
       </div>
 
       {/* Project breakdown */}
       {projectBreakdown.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            <BarChart3 size={12} /> Por Projeto
+            <BarChart3 size={12} /> {t('timesheet.byProject')}
           </div>
           <div className="space-y-1.5">
             {projectBreakdown.map(p => {
@@ -77,15 +81,15 @@ export function MonthSummary({ monthData, weekSummaries, monthStatus }: MonthSum
       {weekSummaries.length > 0 && (
         <div className="space-y-2">
           <div className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-            Por Semana
+            {t('timesheet.byWeek')}
           </div>
           <div className="space-y-1">
             {weekSummaries.map(w => {
-              const weekLabel = new Date(w.weekStartDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+              const weekLabel = new Date(w.weekStartDate + 'T12:00:00').toLocaleDateString(locale, { day: '2-digit', month: '2-digit' });
               return (
                 <div key={w.weekStartDate} className="flex items-center justify-between text-xs">
                   <span className="text-text-secondary">
-                    Sem. {weekLabel}
+                    {t('timesheet.weekLabel', { date: weekLabel })}
                   </span>
                   <span className="text-text-tertiary">{w.totalHours.toFixed(1)}h</span>
                 </div>
@@ -98,7 +102,7 @@ export function MonthSummary({ monthData, weekSummaries, monthStatus }: MonthSum
       {/* Hint */}
       <div className="flex items-center gap-2 text-xs text-text-muted pt-2 border-t border-border">
         <Calendar size={14} />
-        <span>Selecione um dia no calendário para ver detalhes</span>
+        <span>{t('timesheet.selectDayHint')}</span>
       </div>
     </div>
   );

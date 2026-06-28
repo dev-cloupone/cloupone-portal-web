@@ -1,5 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { startOfMonth, endOfMonth, subMonths, subWeeks, startOfYear, format } from 'date-fns';
+import { useLocaleStore } from '../../../stores/locale.store';
 import type { ProjectExpensePeriod } from '../../../types/expense.types';
 
 interface WeekMultiSelectProps {
@@ -13,9 +15,10 @@ function toISO(d: Date): string {
 }
 
 function formatWeekRange(weekStart: string, weekEnd: string): string {
+  const locale = useLocaleStore.getState().locale;
   const s = new Date(weekStart + 'T12:00:00');
   const e = new Date(weekEnd + 'T12:00:00');
-  return `${s.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} a ${e.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`;
+  return `${s.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' })} a ${e.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' })}`;
 }
 
 function getMonthKey(dateStr: string): string {
@@ -26,7 +29,7 @@ function getMonthKey(dateStr: string): string {
 function formatMonthLabel(key: string): string {
   const [year, month] = key.split('-');
   const d = new Date(Number(year), Number(month) - 1, 1);
-  return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  return d.toLocaleDateString(useLocaleStore.getState().locale, { month: 'long', year: 'numeric' });
 }
 
 const dateInputClass = 'block w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary transition-all duration-200 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none';
@@ -65,6 +68,7 @@ function getDefaultRange(periods: ProjectExpensePeriod[]): { start: string; end:
 }
 
 export function WeekMultiSelect({ periods, selectedIds, onChange }: WeekMultiSelectProps) {
+  const { t } = useTranslation();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [activePreset, setActivePreset] = useState<RangePreset | null>(null);
@@ -179,16 +183,16 @@ export function WeekMultiSelect({ periods, selectedIds, onChange }: WeekMultiSel
   }
 
   if (periods.length === 0) {
-    return <p className="py-3 text-sm text-text-tertiary">Nenhum período disponível.</p>;
+    return <p className="py-3 text-sm text-text-tertiary">{t('reports.noPeriodAvailable')}</p>;
   }
 
   const presets: { key: RangePreset; label: string }[] = [
-    { key: 'last-week', label: 'Última semana' },
-    { key: 'last-month', label: 'Último mês' },
-    { key: 'last-3-months', label: 'Últimos 3 meses' },
-    { key: 'last-semester', label: 'Último semestre' },
-    { key: 'current-year', label: 'Ano atual' },
-    { key: 'all', label: 'Todo o período' },
+    { key: 'last-week', label: t('reports.lastWeek') },
+    { key: 'last-month', label: t('reports.lastMonth') },
+    { key: 'last-3-months', label: t('reports.last3Months') },
+    { key: 'last-semester', label: t('reports.lastSemester') },
+    { key: 'current-year', label: t('reports.currentYear') },
+    { key: 'all', label: t('reports.allPeriod') },
   ];
 
   return (
@@ -286,7 +290,7 @@ export function WeekMultiSelect({ periods, selectedIds, onChange }: WeekMultiSel
                         />
                         <span>{formatWeekRange(p.weekStart, p.weekEnd)}</span>
                         <span className={`ml-auto text-xs ${p.status === 'open' ? 'text-success' : 'text-text-muted'}`}>
-                          {p.status === 'open' ? 'Aberto' : 'Fechado'}
+                          {p.status === 'open' ? t('common.open') : t('expenses.statusClosed')}
                         </span>
                       </label>
                     ))}
@@ -298,7 +302,7 @@ export function WeekMultiSelect({ periods, selectedIds, onChange }: WeekMultiSel
         </div>
       ) : (
         <div className="rounded-lg border border-border px-4 py-6 text-center">
-          <p className="text-sm text-text-tertiary">Nenhuma semana encontrada neste período.</p>
+          <p className="text-sm text-text-tertiary">{t('reports.noWeeksFound')}</p>
           <button type="button" onClick={() => applyPreset('all')} className="mt-2 text-xs text-accent hover:underline">
             Ver todo o período
           </button>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Pencil } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -23,6 +24,7 @@ const contractTypeOptions = [
 ];
 
 export default function ConsultantsPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const [consultants, setConsultants] = useState<Consultant[]>([]);
   const [availableUsers, setAvailableUsers] = useState<UserRecord[]>([]);
@@ -39,7 +41,7 @@ export default function ConsultantsPage() {
       setConsultants(result.data);
       setMeta(result.meta);
     } catch {
-      setError('Erro ao carregar consultores');
+      setError(t('admin.loadConsultantsError'));
     }
   }
 
@@ -113,8 +115,8 @@ export default function ConsultantsPage() {
   return (
     <SidebarLayout navItems={navItems} title="Admin">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Consultores</h2>
-        <Button onClick={openCreate}><Plus size={16} className="mr-2" /> Novo Consultor</Button>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('admin.consultants')}</h2>
+        <Button onClick={openCreate}><Plus size={16} className="mr-2" /> {t('admin.newConsultant')}</Button>
       </div>
 
       {error && !isCreateOpen && !editing && (
@@ -126,11 +128,11 @@ export default function ConsultantsPage() {
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeader>Nome</TableHeader>
-            <TableHeader>Email</TableHeader>
-            <TableHeader>Taxa/h</TableHeader>
-            <TableHeader>Contrato</TableHeader>
-            <TableHeader>Ações</TableHeader>
+            <TableHeader>{t('common.name')}</TableHeader>
+            <TableHeader>{t('common.email')}</TableHeader>
+            <TableHeader>{t('admin.ratePerHour')}</TableHeader>
+            <TableHeader>{t('admin.contract')}</TableHeader>
+            <TableHeader>{t('common.actions')}</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -141,7 +143,7 @@ export default function ConsultantsPage() {
               <TableCell>R$ {Number(c.hourlyRate).toFixed(2)}</TableCell>
               <TableCell><Badge variant="default">{contractLabel(c.contractType)}</Badge></TableCell>
               <TableCell>
-                <button onClick={() => openEdit(c)} className="text-accent hover:text-accent-hover" title="Editar"><Pencil size={16} /></button>
+                <button onClick={() => openEdit(c)} className="text-accent hover:text-accent-hover" title={t('common.edit')}><Pencil size={16} /></button>
               </TableCell>
             </TableRow>
           ))}
@@ -150,18 +152,18 @@ export default function ConsultantsPage() {
       {meta && <PaginationControls meta={meta} onPageChange={goToPage} />}
 
       {/* Create */}
-      <Modal isOpen={isCreateOpen} onClose={() => { setIsCreateOpen(false); setError(''); }} title="Novo Consultor">
+      <Modal isOpen={isCreateOpen} onClose={() => { setIsCreateOpen(false); setError(''); }} title={t('admin.newConsultant')}>
         <form onSubmit={handleCreate} className="space-y-4">
           <Select
-            label="Usuário"
+            label={t('admin.user')}
             options={availableUsers.map((u) => ({ value: u.id, label: `${u.name} (${u.email})` }))}
             value={createForm.userId}
             onChange={(v) => setCreateForm({ ...createForm, userId: v })}
-            placeholder="Selecione um usuário"
+            placeholder={t('admin.selectUser')}
             required
           />
-          <Input label="Taxa/Hora (R$)" type="number" step="0.01" value={createForm.hourlyRate} onChange={(e) => setCreateForm({ ...createForm, hourlyRate: e.target.value })} required />
-          <Select label="Tipo de Contrato" options={contractTypeOptions} value={createForm.contractType} onChange={(v) => setCreateForm({ ...createForm, contractType: v })} />
+          <Input label={t('admin.hourlyRate')} type="number" step="0.01" value={createForm.hourlyRate} onChange={(e) => setCreateForm({ ...createForm, hourlyRate: e.target.value })} required />
+          <Select label={t('admin.contractType')} options={contractTypeOptions} value={createForm.contractType} onChange={(v) => setCreateForm({ ...createForm, contractType: v })} />
           <label className="flex items-start gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -170,23 +172,23 @@ export default function ConsultantsPage() {
               className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent bg-surface-2"
             />
             <div>
-              <span className="text-sm text-text-primary">Permitir sobreposicao de horarios</span>
-              <p className="text-xs text-text-muted">Quando habilitado, o consultor pode criar registros com horarios sobrepostos no mesmo dia.</p>
+              <span className="text-sm text-text-primary">{t('admin.allowOverlapping')}</span>
+              <p className="text-xs text-text-muted">{t('admin.allowOverlappingDesc')}</p>
             </div>
           </label>
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => { setIsCreateOpen(false); setError(''); }}>Cancelar</Button>
-            <Button type="submit">Criar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setIsCreateOpen(false); setError(''); }}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.create')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit */}
-      <Modal isOpen={!!editing} onClose={() => { setEditing(null); setError(''); }} title="Editar Consultor">
+      <Modal isOpen={!!editing} onClose={() => { setEditing(null); setError(''); }} title={t('admin.editConsultant')}>
         <form onSubmit={handleUpdate} className="space-y-4">
-          <Input label="Taxa/Hora (R$)" type="number" step="0.01" value={editForm.hourlyRate} onChange={(e) => setEditForm({ ...editForm, hourlyRate: e.target.value })} required />
-          <Select label="Tipo de Contrato" options={contractTypeOptions} value={editForm.contractType} onChange={(v) => setEditForm({ ...editForm, contractType: v })} />
+          <Input label={t('admin.hourlyRate')} type="number" step="0.01" value={editForm.hourlyRate} onChange={(e) => setEditForm({ ...editForm, hourlyRate: e.target.value })} required />
+          <Select label={t('admin.contractType')} options={contractTypeOptions} value={editForm.contractType} onChange={(v) => setEditForm({ ...editForm, contractType: v })} />
           <label className="flex items-start gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -195,14 +197,14 @@ export default function ConsultantsPage() {
               className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent bg-surface-2"
             />
             <div>
-              <span className="text-sm text-text-primary">Permitir sobreposicao de horarios</span>
-              <p className="text-xs text-text-muted">Quando habilitado, o consultor pode criar registros com horarios sobrepostos no mesmo dia.</p>
+              <span className="text-sm text-text-primary">{t('admin.allowOverlapping')}</span>
+              <p className="text-xs text-text-muted">{t('admin.allowOverlappingDesc')}</p>
             </div>
           </label>
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => { setEditing(null); setError(''); }}>Cancelar</Button>
-            <Button type="submit">Salvar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setEditing(null); setError(''); }}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.save')}</Button>
           </div>
         </form>
       </Modal>

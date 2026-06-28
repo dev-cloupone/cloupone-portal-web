@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CalendarCell } from './calendar-cell';
 import type { CalendarDay } from '../../types/time-entry.types';
 
@@ -8,7 +9,11 @@ interface MonthCalendarProps {
   onSelectDate: (date: string) => void;
 }
 
-const DAY_HEADERS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
+const DAY_HEADER_KEYS = [
+  'timesheet.dayHeaders.mon', 'timesheet.dayHeaders.tue', 'timesheet.dayHeaders.wed',
+  'timesheet.dayHeaders.thu', 'timesheet.dayHeaders.fri', 'timesheet.dayHeaders.sat',
+  'timesheet.dayHeaders.sun',
+];
 
 function isInSelectedWeek(dateStr: string, weekStartStr: string | null): boolean {
   if (!weekStartStr) return false;
@@ -25,13 +30,14 @@ export function MonthCalendar({
   selectedWeekStart,
   onSelectDate,
 }: MonthCalendarProps) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border border-border bg-surface-1 p-2 sm:p-3">
       {/* Day headers */}
       <div className="grid grid-cols-7 mb-1">
-        {DAY_HEADERS.map(day => (
-          <div key={day} className="text-center text-caption text-text-tertiary py-1.5 font-semibold uppercase tracking-wider">
-            {day}
+        {DAY_HEADER_KEYS.map(key => (
+          <div key={key} className="text-center text-caption text-text-tertiary py-1.5 font-semibold uppercase tracking-wider">
+            {t(key)}
           </div>
         ))}
       </div>

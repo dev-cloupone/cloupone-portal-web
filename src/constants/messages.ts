@@ -1,31 +1,33 @@
+import i18n from '../i18n';
+
 export const MSG = {
   // Erros de API (fallbacks quando o backend não retorna mensagem)
-  AUTH_FAILED: 'Falha na autenticação',
-  ACCESS_DENIED: 'Acesso negado',
-  ACCOUNT_BLOCKED: 'Conta bloqueada',
-  REQUEST_ERROR: 'Erro na requisição',
-  UNEXPECTED_ERROR: 'Erro inesperado',
-  CONNECTION_ERROR: 'Erro de conexão. Verifique sua internet e tente novamente.',
-  WRONG_CREDENTIALS: 'Email ou senha incorretos',
-  RESET_EMAIL_SENT: 'Se o email estiver cadastrado, você receberá instruções para redefinir sua senha.',
-  RESET_PASSWORD_SUCCESS: 'Senha redefinida com sucesso! Faça login com sua nova senha.',
+  AUTH_FAILED: () => i18n.t('errors.authFailed'),
+  ACCESS_DENIED: () => i18n.t('errors.accessDenied'),
+  ACCOUNT_BLOCKED: () => i18n.t('errors.accountBlocked'),
+  REQUEST_ERROR: () => i18n.t('errors.requestError'),
+  UNEXPECTED_ERROR: () => i18n.t('errors.unexpectedError'),
+  CONNECTION_ERROR: () => i18n.t('errors.connectionError'),
+  WRONG_CREDENTIALS: () => i18n.t('errors.wrongCredentials'),
+  RESET_EMAIL_SENT: () => i18n.t('errors.resetEmailSent'),
+  RESET_PASSWORD_SUCCESS: () => i18n.t('errors.resetPasswordSuccess'),
 
   // Erros de validação frontend
-  FILL_ALL_FIELDS: 'Preencha todos os campos',
-  FILL_REQUIRED_FIELDS: 'Preencha os campos obrigatórios',
-  PASSWORD_MIN_LENGTH: 'Senha deve ter no mínimo 8 caracteres',
-  PASSWORDS_DONT_MATCH: 'As senhas não coincidem',
-  CNPJ_INVALID: 'CNPJ inválido',
-  EMAIL_INVALID: 'Email de contato inválido',
-  STATE_INVALID: 'Estado inválido',
+  FILL_ALL_FIELDS: () => i18n.t('errors.fillAllFields'),
+  FILL_REQUIRED_FIELDS: () => i18n.t('errors.fillRequiredFields'),
+  PASSWORD_MIN_LENGTH: () => i18n.t('errors.passwordMinLength'),
+  PASSWORDS_DONT_MATCH: () => i18n.t('errors.passwordsDontMatch'),
+  CNPJ_INVALID: () => i18n.t('errors.cnpjInvalid'),
+  EMAIL_INVALID: () => i18n.t('errors.emailInvalid'),
+  STATE_INVALID: () => i18n.t('errors.stateInvalid'),
 
   // Carregamento de dados
-  LOAD_USERS_ERROR: 'Erro ao carregar usuários',
-  LOAD_DATA_ERROR: 'Erro ao carregar dados',
-  LOAD_SETTINGS_ERROR: 'Erro ao carregar configurações',
-  LOAD_SUPER_ADMINS_ERROR: 'Erro ao carregar super admins',
+  LOAD_USERS_ERROR: () => i18n.t('errors.loadUsersError'),
+  LOAD_DATA_ERROR: () => i18n.t('errors.loadDataError'),
+  LOAD_SETTINGS_ERROR: () => i18n.t('errors.loadSettingsError'),
+  LOAD_SUPER_ADMINS_ERROR: () => i18n.t('errors.loadSuperAdminsError'),
 
   // UI genérica
-  GENERIC_ERROR: 'Algo deu errado',
-  GENERIC_ERROR_RELOAD: 'Ocorreu um erro inesperado. Tente recarregar a página.',
+  GENERIC_ERROR: () => i18n.t('errors.genericError'),
+  GENERIC_ERROR_RELOAD: () => i18n.t('errors.genericErrorReload'),
 } as const;

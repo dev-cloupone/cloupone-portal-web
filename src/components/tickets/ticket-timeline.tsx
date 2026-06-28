@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { MessageSquare, History } from 'lucide-react';
 import { Badge } from '../ui/badge';
@@ -9,6 +10,7 @@ import {
   type TicketComment,
   type TicketHistoryEntry,
 } from '../../types/ticket.types';
+import { useLocaleStore } from '../../stores/locale.store';
 
 type TimelineItem =
   | { kind: 'comment'; data: TicketComment; date: string }
@@ -20,36 +22,37 @@ interface TicketTimelineProps {
 }
 
 const FIELD_LABELS: Record<string, string> = {
-  status: 'Status',
-  priority: 'Prioridade',
-  type: 'Tipo',
-  assigned_to: 'Atribuído a',
-  assignedTo: 'Atribuído a',
-  title: 'Título',
-  description: 'Descrição',
-  is_visible_to_client: 'Visibilidade',
-  isVisibleToClient: 'Visibilidade',
-  due_date: 'Prazo',
-  dueDate: 'Prazo',
-  estimated_hours: 'Estimativa',
-  estimatedHours: 'Estimativa',
+  status: 'tickets.fieldStatus',
+  priority: 'tickets.fieldPriority',
+  type: 'tickets.fieldType',
+  assigned_to: 'tickets.fieldAssigned',
+  assignedTo: 'tickets.fieldAssigned',
+  title: 'tickets.fieldTitle',
+  description: 'tickets.fieldDescription',
+  is_visible_to_client: 'tickets.fieldVisibility',
+  isVisibleToClient: 'tickets.fieldVisibility',
+  due_date: 'tickets.fieldDeadline',
+  dueDate: 'tickets.fieldDeadline',
+  estimated_hours: 'tickets.fieldEstimate',
+  estimatedHours: 'tickets.fieldEstimate',
 };
 
-function formatFieldValue(field: string, value: string | null): string {
+function formatFieldValue(field: string, value: string | null, t: (key: string) => string): string {
   if (value === null || value === '') return '—';
-  if (field === 'status') return TICKET_STATUS_LABELS[value as keyof typeof TICKET_STATUS_LABELS] || value;
-  if (field === 'priority') return TICKET_PRIORITY_LABELS[value as keyof typeof TICKET_PRIORITY_LABELS] || value;
-  if (field === 'type') return TICKET_TYPE_LABELS[value as keyof typeof TICKET_TYPE_LABELS] || value;
-  if (field === 'is_visible_to_client' || field === 'isVisibleToClient') return value === 'true' ? 'Visivel' : 'Interno';
+  if (field === 'status') return t(TICKET_STATUS_LABELS[value as keyof typeof TICKET_STATUS_LABELS] || value);
+  if (field === 'priority') return t(TICKET_PRIORITY_LABELS[value as keyof typeof TICKET_PRIORITY_LABELS] || value);
+  if (field === 'type') return t(TICKET_TYPE_LABELS[value as keyof typeof TICKET_TYPE_LABELS] || value);
+  if (field === 'is_visible_to_client' || field === 'isVisibleToClient') return value === 'true' ? t('common.visible') : t('common.internal');
   return value;
 }
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleString(useLocaleStore.getState().locale, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 export function TicketTimeline({ comments, history }: TicketTimelineProps) {
+  const { t } = useTranslation();
   const items = useMemo<TimelineItem[]>(() => {
     const all: TimelineItem[] = [
       ...comments.map((c) => ({ kind: 'comment' as const, data: c, date: c.createdAt })),
@@ -62,7 +65,7 @@ export function TicketTimeline({ comments, history }: TicketTimelineProps) {
   if (items.length === 0) {
     return (
       <div className="py-8 text-center text-sm text-text-muted">
-        Nenhuma atividade registrada ainda.
+        {t('tickets.noActivityYet')}
       </div>
     );
   }
@@ -88,7 +91,7 @@ export function TicketTimeline({ comments, history }: TicketTimelineProps) {
                   </div>
                   <span className="text-sm font-medium text-text-primary">{comment.userName}</span>
                   {comment.isInternal && (
-                    <Badge variant="warning">Nota Interna</Badge>
+                    <Badge variant="warning">{t('tickets.internalNoteLabel')}</Badge>
                   )}
                 </div>
                 <span className="text-xs text-text-muted">{formatDateTime(comment.createdAt)}</span>
@@ -101,7 +104,8 @@ export function TicketTimeline({ comments, history }: TicketTimelineProps) {
         }
 
         const entry = item.data;
-        const fieldLabel = FIELD_LABELS[entry.field] || entry.field;
+        const fieldLabelKey = FIELD_LABELS[entry.field];
+        const fieldLabel = fieldLabelKey ? t(fieldLabelKey) : entry.field;
 
         if (entry.field === 'description') {
           return (
@@ -115,7 +119,7 @@ export function TicketTimeline({ comments, history }: TicketTimelineProps) {
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-text-muted">
                   <span className="font-medium text-text-secondary">{entry.userName}</span>
-                  {' editou a descricao'}
+                  {t('tickets.editedDescription')}
                 </p>
               </div>
               <span className="text-[11px] text-text-muted shrink-0">{formatDateTime(entry.createdAt)}</span>
@@ -134,16 +138,16 @@ export function TicketTimeline({ comments, history }: TicketTimelineProps) {
             <div className="flex-1 min-w-0">
               <p className="text-xs text-text-muted">
                 <span className="font-medium text-text-secondary">{entry.userName}</span>
-                {' mudou '}
+                {t('tickets.changed')}
                 <span className="font-medium text-text-secondary">{fieldLabel}</span>
                 {entry.oldValue && (
                   <>
-                    {' de '}
-                    <span className="font-medium text-text-secondary">{formatFieldValue(entry.field, entry.oldValue)}</span>
+                    {t('tickets.from')}
+                    <span className="font-medium text-text-secondary">{formatFieldValue(entry.field, entry.oldValue, t)}</span>
                   </>
                 )}
-                {' para '}
-                <span className="font-medium text-text-secondary">{formatFieldValue(entry.field, entry.newValue)}</span>
+                {t('tickets.to')}
+                <span className="font-medium text-text-secondary">{formatFieldValue(entry.field, entry.newValue, t)}</span>
               </p>
             </div>
             <span className="text-[11px] text-text-muted shrink-0">{formatDateTime(entry.createdAt)}</span>

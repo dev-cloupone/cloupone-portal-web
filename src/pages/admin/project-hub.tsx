@@ -13,15 +13,19 @@ import * as projectService from '../../services/project.service';
 import * as phaseService from '../../services/phase.service';
 import type { Project } from '../../types/project.types';
 import { useAuth } from '../../hooks/use-auth';
+import { useTranslation } from 'react-i18next';
 import { STATUS_LABELS, STATUS_VARIANTS, BUDGET_TYPE_LABELS } from '../../constants/project.constants';
 import { formatCurrency } from '../../utils/formatters';
+import { useLocaleStore } from '../../stores/locale.store';
 
 export default function ProjectHubPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const addToast = useToastStore((s) => s.addToast);
   const { user } = useAuth();
+  const locale = useLocaleStore((s) => s.locale);
   const isSuperAdmin = user?.role === 'super_admin';
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +50,7 @@ export default function ProjectHubPage() {
         allocationCount: allocationsResult.data.length,
       });
     } catch {
-      addToast('Erro ao carregar projeto', 'error');
+      addToast(t('projects.loadProjectError'), 'error');
     } finally {
       setLoading(false);
     }
@@ -58,10 +62,10 @@ export default function ProjectHubPage() {
   }, [id, loadData]);
 
   async function handleDeactivate() {
-    if (!confirm('Tem certeza que deseja desativar este projeto?')) return;
+    if (!confirm(t('projects.confirmDeactivate'))) return;
     try {
       await projectService.deactivateProject(id!);
-      addToast('Projeto desativado', 'success');
+      addToast(t('projects.deactivated'), 'success');
       navigate('/admin/projects');
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -85,31 +89,31 @@ export default function ProjectHubPage() {
 
   const cards = [
     {
-      title: 'Geral',
+      title: t('projects.general'),
       icon: <Settings size={20} />,
-      description: 'Nome, cliente, datas, status',
+      description: t('projects.generalDesc'),
       path: `/admin/projects/${id}/general`,
     },
     {
-      title: 'Fases',
+      title: t('projects.phases'),
       icon: <Layers size={20} />,
       description: `${stats.phaseCount} fase${stats.phaseCount !== 1 ? 's' : ''} · ${stats.subphaseCount} subfase${stats.subphaseCount !== 1 ? 's' : ''}`,
       path: `/admin/projects/${id}/phases`,
     },
     {
-      title: 'Equipe',
+      title: t('projects.team'),
       icon: <Users size={20} />,
       description: `${stats.allocationCount} membro${stats.allocationCount !== 1 ? 's' : ''}`,
       path: `/admin/projects/${id}/team`,
     },
     {
-      title: 'Despesas',
+      title: t('projects.expensesCard'),
       icon: <Receipt size={20} />,
-      description: 'Períodos e categorias',
+      description: t('projects.expensesCardDesc'),
       path: `/admin/projects/${id}/expenses`,
     },
     ...(isSuperAdmin ? [{
-      title: 'Financeiro',
+      title: t('projects.financial'),
       icon: <DollarSign size={20} />,
       description: project.billingType === 'fixed_price'
         ? `Valor Fixo · ${formatCurrency(project.fixedPriceTotal || 0)}`
@@ -119,33 +123,33 @@ export default function ProjectHubPage() {
   ];
 
   const budgetLabel = project.budgetHours
-    ? `${project.budgetHours}h ${BUDGET_TYPE_LABELS[project.budgetType || 'total'] || ''}`
+    ? `${project.budgetHours}h ${t(BUDGET_TYPE_LABELS[project.budgetType || 'total'] || 'projects.budgetTotalLower')}`
     : null;
 
   return (
     <SidebarLayout navItems={navItems} title={project.name}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <IconButton onClick={() => navigate('/admin/projects')} aria-label="Voltar">
+        <IconButton onClick={() => navigate('/admin/projects')} aria-label={t('common.back')}>
           <ArrowLeft size={18} />
         </IconButton>
         <div className="flex-1">
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-bold text-text-primary">{project.name}</h1>
             <Badge variant={STATUS_VARIANTS[project.status] || 'default'}>
-              {STATUS_LABELS[project.status] || project.status}
+              {t(STATUS_LABELS[project.status] || 'projects.statusActive')}
             </Badge>
           </div>
           <p className="text-sm text-text-tertiary">
             {project.clientName}
             {budgetLabel && ` · ${budgetLabel}`}
-            {project.startDate && ` · ${new Date(project.startDate).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}`}
-            {project.endDate && ` - ${new Date(project.endDate).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}`}
+            {project.startDate && ` · ${new Date(project.startDate).toLocaleDateString(locale, { month: 'short', year: 'numeric' })}`}
+            {project.endDate && ` - ${new Date(project.endDate).toLocaleDateString(locale, { month: 'short', year: 'numeric' })}`}
           </p>
         </div>
         {project.isActive && (
           <Button variant="danger" onClick={handleDeactivate}>
-            Desativar
+            {t('common.deactivate')}
           </Button>
         )}
       </div>

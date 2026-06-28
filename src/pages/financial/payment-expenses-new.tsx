@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
@@ -12,13 +13,15 @@ import { useToastStore } from '../../stores/toast.store';
 import { useNavItems } from '../../hooks/use-nav-items';
 import type { AvailableExpensePeriod } from '../../types/financial.types';
 import { formatCurrency } from '../../utils/formatters';
+import { useLocaleStore } from '../../stores/locale.store';
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString(useLocaleStore.getState().locale);
 }
 
 export default function PaymentExpensesNewPage() {
   const navItems = useNavItems();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const addToast = useToastStore((s) => s.addToast);
 
@@ -75,7 +78,7 @@ export default function PaymentExpensesNewPage() {
         userId: selectedUser,
         periodIds: [...selectedPeriods],
       });
-      addToast('Pagamento gerado com sucesso.', 'success');
+      addToast(t('payments.draftGenerated'), 'success');
       navigate(`/financial/payments/expenses/${result.id}`);
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -92,17 +95,17 @@ export default function PaymentExpensesNewPage() {
   }, {});
 
   return (
-    <SidebarLayout navItems={navItems} title="Gerar Pagamento de Despesas">
+    <SidebarLayout navItems={navItems} title={t('payments.generateExpensePayment')}>
       <div className="mb-6">
         <button
           onClick={() => navigate('/financial/payments/expenses')}
           className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
-          Voltar
+          {t('common.back')}
         </button>
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Gerar Pagamento de Despesas</h2>
-        <p className="text-sm text-text-muted mt-1">Selecione o consultor e os periodos para gerar o pagamento.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('payments.generateExpensePayment')}</h2>
+        <p className="text-sm text-text-muted mt-1">{t('payments.selectConsultantAndPeriods')}</p>
       </div>
 
       {error && (
@@ -114,8 +117,8 @@ export default function PaymentExpensesNewPage() {
       {/* Step 1: Select consultant */}
       <div className="mb-6 max-w-sm">
         <Select
-          label="Consultor"
-          options={[{ value: '', label: 'Selecione...' }, ...consultantOptions]}
+          label={t('common.consultant')}
+          options={[{ value: '', label: t('payments.select') }, ...consultantOptions]}
           value={selectedUser}
           onChange={setSelectedUser}
         />
@@ -126,11 +129,11 @@ export default function PaymentExpensesNewPage() {
         <div className="mb-4 rounded-lg bg-warning-muted border border-warning/20 px-4 py-3 flex items-start gap-3">
           <AlertTriangle size={18} className="text-warning shrink-0 mt-0.5" />
           <div className="text-sm">
-            <p className="font-medium text-text-primary">Já existe um pagamento em rascunho para este consultor.</p>
+            <p className="font-medium text-text-primary">{t('payments.existingDraftWarning')}</p>
             <p className="text-text-secondary mt-0.5">
-              Edite ou exclua o rascunho existente antes de gerar um novo.{' '}
+              {t('payments.editOrDeleteDraft')}{' '}
               <Link to={`/financial/payments/expenses/${existingDraftId}`} className="text-accent hover:underline font-medium">
-                Ver rascunho
+                {t('payments.viewDraft')}
               </Link>
             </p>
           </div>
@@ -148,7 +151,7 @@ export default function PaymentExpensesNewPage() {
             </div>
           ) : periods.length === 0 ? (
             <div className="rounded-xl border border-border bg-surface-1 p-8 text-center">
-              <p className="text-text-secondary font-medium">Nenhum periodo disponivel para este consultor.</p>
+              <p className="text-text-secondary font-medium">{t('payments.noPeriodsAvailable')}</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -174,7 +177,7 @@ export default function PaymentExpensesNewPage() {
                             {formatDate(period.weekStart)} — {formatDate(period.weekEnd)}
                           </span>
                           <span className="text-xs text-text-muted">
-                            {period.expenseCount} despesa(s)
+                            {t('payments.expensesCount', { count: period.expenseCount })}
                           </span>
                           <span className="text-sm font-mono font-medium text-text-primary">
                             {formatCurrency(period.totalAmount)}
@@ -188,7 +191,7 @@ export default function PaymentExpensesNewPage() {
 
               <div className="flex justify-end">
                 <Button onClick={handleGenerate} disabled={submitting || selectedPeriods.size === 0}>
-                  {submitting ? 'Gerando...' : 'Gerar Draft'}
+                  {submitting ? t('common.generating') : t('projects.generateDraft')}
                 </Button>
               </div>
             </div>

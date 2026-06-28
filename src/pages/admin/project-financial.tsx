@@ -16,14 +16,18 @@ import * as projectService from '../../services/project.service';
 import * as installmentService from '../../services/installment.service';
 import * as invoiceService from '../../services/invoice.service';
 import type { Project, ProjectInstallment } from '../../types/project.types';
-import { billingTypeOptions, INSTALLMENT_STATUS_LABELS, INSTALLMENT_STATUS_VARIANTS } from '../../constants/project.constants';
+import { useTranslation } from 'react-i18next';
+import { getBillingTypeOptions, INSTALLMENT_STATUS_LABELS, INSTALLMENT_STATUS_VARIANTS } from '../../constants/project.constants';
 import { formatCurrency, parseCurrencyInput } from '../../utils/formatters';
+import { useLocaleStore } from '../../stores/locale.store';
 
 export default function ProjectFinancialPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const addToast = useToastStore((s) => s.addToast);
+  const locale = useLocaleStore((s) => s.locale);
 
   const [project, setProject] = useState<Project | null>(null);
   const [installments, setInstallments] = useState<ProjectInstallment[]>([]);
@@ -81,7 +85,7 @@ export default function ProjectFinancialPage() {
         setSelectedIds(new Set());
       }
     } catch {
-      addToast('Erro ao carregar dados financeiros', 'error');
+      addToast(t('projects.loadFinancialError'), 'error');
     } finally {
       setLoading(false);
     }
@@ -108,7 +112,7 @@ export default function ProjectFinancialPage() {
       data.budgetHours = budgetHours ? Number(budgetHours) : undefined;
       data.budgetType = budgetType || undefined;
       await projectService.updateProject(id!, data);
-      addToast('Configuração de cobrança salva', 'success');
+      addToast(t('projects.billingConfigSaved'), 'success');
       await loadData();
     } catch (err) {
       setError(formatApiError(err));
@@ -127,7 +131,7 @@ export default function ProjectFinancialPage() {
       });
       setIsCreateOpen(false);
       setCreateForm({ description: '', amount: '', dueDate: '' });
-      addToast('Parcela criada', 'success');
+      addToast(t('projects.installmentCreated'), 'success');
       await loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -140,7 +144,7 @@ export default function ProjectFinancialPage() {
       const total = parseCurrencyInput(fixedPriceTotal);
       const count = Number(batchForm.count);
       if (!total || total <= 0) {
-        addToast('Valor total do contrato não definido', 'error');
+        addToast(t('projects.contractTotalNotDefined'), 'error');
         return;
       }
       const amount = Math.round((total / count) * 100) / 100;
@@ -151,7 +155,7 @@ export default function ProjectFinancialPage() {
       });
       setIsBatchOpen(false);
       setBatchForm({ count: '', startDate: '' });
-      addToast('Parcelas criadas em lote', 'success');
+      addToast(t('projects.batchCreated'), 'success');
       await loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -178,7 +182,7 @@ export default function ProjectFinancialPage() {
         dueDate: editForm.dueDate || undefined,
       });
       setIsEditOpen(false);
-      addToast('Parcela atualizada', 'success');
+      addToast(t('projects.installmentUpdated'), 'success');
       await loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -186,10 +190,10 @@ export default function ProjectFinancialPage() {
   }
 
   async function handleDelete(inst: ProjectInstallment) {
-    if (!confirm(`Excluir parcela "${inst.description || `#${inst.installmentNumber}`}"?`)) return;
+    if (!confirm(t('projects.deleteInstallment', { name: inst.description || `#${inst.installmentNumber}` }))) return;
     try {
       await installmentService.removeInstallment(id!, inst.id);
-      addToast('Parcela excluída', 'success');
+      addToast(t('projects.installmentDeleted'), 'success');
       await loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -230,7 +234,7 @@ export default function ProjectFinancialPage() {
       });
       setIsInvoiceModalOpen(false);
       setSelectedIds(new Set());
-      addToast('Fatura gerada com sucesso', 'success');
+      addToast(t('projects.invoiceGenerated'), 'success');
       navigate(`/financial/invoices/services/${invoice.id}`);
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -258,22 +262,22 @@ export default function ProjectFinancialPage() {
     <SidebarLayout navItems={navItems} title="Financeiro">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <IconButton onClick={() => navigate(`/admin/projects/${id}`)} aria-label="Voltar">
+        <IconButton onClick={() => navigate(`/admin/projects/${id}`)} aria-label={t('common.back')}>
           <ArrowLeft size={18} />
         </IconButton>
         <div className="flex-1">
           <h1 className="text-xl font-bold text-text-primary">{project.name}</h1>
-          <p className="text-sm text-text-tertiary">Configurações financeiras</p>
+          <p className="text-sm text-text-tertiary">{t('projects.financialConfig')}</p>
         </div>
       </div>
 
       {/* Section 1: Billing Config */}
       <form onSubmit={handleSaveBilling} className="max-w-2xl space-y-4 mb-8">
-        <h2 className="text-lg font-semibold text-text-primary">Configuração de Cobrança</h2>
+        <h2 className="text-lg font-semibold text-text-primary">{t('projects.billingConfig')}</h2>
 
         <Select
-          label="Tipo de Cobrança"
-          options={billingTypeOptions}
+          label={t('projects.billingType')}
+          options={getBillingTypeOptions().map(o => ({ ...o, label: t(o.label) }))}
           value={billingType}
           onChange={(v) => setBillingType(v)}
         />
@@ -281,7 +285,7 @@ export default function ProjectFinancialPage() {
         {billingType === 'hourly' ? (
           <>
             <Input
-              label="Valor/Hora Cliente (R$)"
+              label={t('projects.billingRateClient')}
               type="text"
               value={billingRateDisplay}
               onFocus={() => setBillingRateDisplay(billingRate)}
@@ -295,14 +299,14 @@ export default function ProjectFinancialPage() {
             />
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Horas Orçamento"
+                label={t('projects.budgetHours')}
                 type="number"
                 value={budgetHours}
                 onChange={(e) => setBudgetHours(e.target.value)}
               />
               <Select
-                label="Tipo Orçamento"
-                options={[{ value: 'monthly', label: 'Mensal' }, { value: 'total', label: 'Total' }]}
+                label={t('projects.budgetType')}
+                options={[{ value: 'monthly', label: t('projects.budgetMonthly') }, { value: 'total', label: t('projects.budgetTotal') }]}
                 value={budgetType}
                 onChange={(v) => setBudgetType(v)}
               />
@@ -310,7 +314,7 @@ export default function ProjectFinancialPage() {
           </>
         ) : (
           <Input
-            label="Valor Total do Contrato (R$)"
+            label={t('projects.fixedPriceTotal')}
             type="text"
             value={fixedPriceTotalDisplay}
             onFocus={() => setFixedPriceTotalDisplay(fixedPriceTotal)}
@@ -331,7 +335,7 @@ export default function ProjectFinancialPage() {
         )}
 
         <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
+          {saving ? t('common.saving') : t('common.save')}
         </Button>
       </form>
 
@@ -346,7 +350,7 @@ export default function ProjectFinancialPage() {
       {project.billingType === 'fixed_price' && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-text-primary">Parcelas</h2>
+            <h2 className="text-lg font-semibold text-text-primary">{t('projects.installments')}</h2>
             <div className="flex gap-2">
               {selectedIds.size > 0 && (
                 <Button onClick={() => setIsInvoiceModalOpen(true)}>
@@ -354,16 +358,16 @@ export default function ProjectFinancialPage() {
                 </Button>
               )}
               <Button variant="secondary" onClick={() => { setBatchForm({ count: '', startDate: '' }); setIsBatchOpen(true); }}>
-                <Layers size={16} className="mr-2" /> Gerar em Lote
+                <Layers size={16} className="mr-2" /> {t('projects.generateBatch')}
               </Button>
               <Button onClick={() => { setCreateForm({ description: '', amount: '', dueDate: '' }); setIsCreateOpen(true); }}>
-                <Plus size={16} className="mr-2" /> Parcela
+                <Plus size={16} className="mr-2" /> {t('projects.installment')}
               </Button>
             </div>
           </div>
 
           {installments.length === 0 ? (
-            <p className="text-sm text-text-tertiary">Nenhuma parcela cadastrada.</p>
+            <p className="text-sm text-text-tertiary">{t('projects.noInstallments')}</p>
           ) : (
             <>
               <Table>
@@ -373,11 +377,11 @@ export default function ProjectFinancialPage() {
                       <input type="checkbox" checked={allPendingSelected} onChange={toggleAllPending} disabled={pendingInstallments.length === 0} />
                     </TableHeader>
                     <TableHeader>#</TableHeader>
-                    <TableHeader>Descrição</TableHeader>
-                    <TableHeader>Valor</TableHeader>
-                    <TableHeader>Vencimento</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                    <TableHeader>Ações</TableHeader>
+                    <TableHeader>{t('common.description')}</TableHeader>
+                    <TableHeader>{t('common.value')}</TableHeader>
+                    <TableHeader>{t('common.dueDate')}</TableHeader>
+                    <TableHeader>{t('common.status')}</TableHeader>
+                    <TableHeader>{t('common.actions')}</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -392,21 +396,21 @@ export default function ProjectFinancialPage() {
                       <TableCell>{inst.description || '—'}</TableCell>
                       <TableCell>{formatCurrency(inst.amount)}</TableCell>
                       <TableCell>
-                        {inst.dueDate ? new Date(inst.dueDate + 'T12:00:00').toLocaleDateString('pt-BR') : '—'}
+                        {inst.dueDate ? new Date(inst.dueDate + 'T12:00:00').toLocaleDateString(locale) : '—'}
                       </TableCell>
                       <TableCell>
                         <Badge variant={INSTALLMENT_STATUS_VARIANTS[inst.status] || 'default'}>
-                          {INSTALLMENT_STATUS_LABELS[inst.status] || inst.status}
+                          {t(INSTALLMENT_STATUS_LABELS[inst.status] || 'projects.installmentPending')}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           {inst.status === 'pending' && (
                             <>
-                              <IconButton onClick={() => openEdit(inst)} aria-label="Editar">
+                              <IconButton onClick={() => openEdit(inst)} aria-label={t('common.edit')}>
                                 <Pencil size={14} />
                               </IconButton>
-                              <IconButton onClick={() => handleDelete(inst)} aria-label="Excluir">
+                              <IconButton onClick={() => handleDelete(inst)} aria-label={t('common.delete')}>
                                 <Trash2 size={14} />
                               </IconButton>
                             </>
@@ -440,11 +444,11 @@ export default function ProjectFinancialPage() {
       )}
 
       {/* Create Installment Modal */}
-      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Nova Parcela">
+      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title={t('projects.newInstallment')}>
         <form onSubmit={handleCreateInstallment} className="space-y-4">
-          <Input label="Descrição" value={createForm.description} onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })} />
+          <Input label={t('common.description')} value={createForm.description} onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })} />
           <Input
-            label="Valor (R$)"
+            label={t('common.value')}
             type="text"
             value={createForm.amount}
             onChange={(e) => setCreateForm({ ...createForm, amount: e.target.value })}
@@ -454,37 +458,37 @@ export default function ProjectFinancialPage() {
             }}
             required
           />
-          <Input label="Vencimento" type="date" value={createForm.dueDate} onChange={(e) => setCreateForm({ ...createForm, dueDate: e.target.value })} />
+          <Input label={t('common.dueDate')} type="date" value={createForm.dueDate} onChange={(e) => setCreateForm({ ...createForm, dueDate: e.target.value })} />
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
-            <Button type="submit">Criar</Button>
+            <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.create')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* Batch Modal */}
-      <Modal isOpen={isBatchOpen} onClose={() => setIsBatchOpen(false)} title="Gerar Parcelas em Lote">
+      <Modal isOpen={isBatchOpen} onClose={() => setIsBatchOpen(false)} title={t('projects.batchModal')}>
         <form onSubmit={handleCreateBatch} className="space-y-4">
-          <Input label="Quantidade de Parcelas" type="number" min="1" max="60" value={batchForm.count} onChange={(e) => setBatchForm({ ...batchForm, count: e.target.value })} required />
+          <Input label={t('projects.batchCount')} type="number" min="1" max="60" value={batchForm.count} onChange={(e) => setBatchForm({ ...batchForm, count: e.target.value })} required />
           {Number(batchForm.count) > 0 && Number(fixedPriceTotal) > 0 && (
             <p className="text-sm text-text-secondary">
               Valor por parcela: <strong>{formatCurrency(parseCurrencyInput(fixedPriceTotal) / Number(batchForm.count))}</strong>
             </p>
           )}
-          <Input label="Data do Primeiro Vencimento" type="date" value={batchForm.startDate} onChange={(e) => setBatchForm({ ...batchForm, startDate: e.target.value })} />
+          <Input label={t('projects.batchFirstDueDate')} type="date" value={batchForm.startDate} onChange={(e) => setBatchForm({ ...batchForm, startDate: e.target.value })} />
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setIsBatchOpen(false)}>Cancelar</Button>
-            <Button type="submit">Gerar</Button>
+            <Button variant="secondary" type="button" onClick={() => setIsBatchOpen(false)}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.generate')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit Installment Modal */}
-      <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Editar Parcela">
+      <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title={t('projects.editInstallment')}>
         <form onSubmit={handleEditInstallment} className="space-y-4">
-          <Input label="Descrição" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+          <Input label={t('common.description')} value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
           <Input
-            label="Valor (R$)"
+            label={t('common.value')}
             type="text"
             value={editForm.amount}
             onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
@@ -494,16 +498,16 @@ export default function ProjectFinancialPage() {
             }}
             required
           />
-          <Input label="Vencimento" type="date" value={editForm.dueDate} onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })} />
+          <Input label={t('common.dueDate')} type="date" value={editForm.dueDate} onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })} />
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
-            <Button type="submit">Salvar</Button>
+            <Button variant="secondary" type="button" onClick={() => setIsEditOpen(false)}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.save')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* Generate Invoice Modal */}
-      <Modal isOpen={isInvoiceModalOpen} onClose={() => setIsInvoiceModalOpen(false)} title="Gerar Fatura de Parcelas">
+      <Modal isOpen={isInvoiceModalOpen} onClose={() => setIsInvoiceModalOpen(false)} title={t('projects.generateInvoiceModal')}>
         <div className="space-y-4">
           <div className="text-sm text-text-secondary">
             <p className="mb-2"><strong>{selectedInstallments.length}</strong> parcela(s) selecionada(s):</p>
@@ -515,24 +519,24 @@ export default function ProjectFinancialPage() {
             <p className="mt-3 font-semibold">Total: {formatCurrency(selectedTotal)}</p>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Ano" type="number" value={invoiceYear} onChange={(e) => setInvoiceYear(e.target.value)} required />
+            <Input label={t('common.year')} type="number" value={invoiceYear} onChange={(e) => setInvoiceYear(e.target.value)} required />
             <Select
               label="Mês"
               options={[
-                { value: '1', label: 'Janeiro' }, { value: '2', label: 'Fevereiro' },
-                { value: '3', label: 'Março' }, { value: '4', label: 'Abril' },
-                { value: '5', label: 'Maio' }, { value: '6', label: 'Junho' },
-                { value: '7', label: 'Julho' }, { value: '8', label: 'Agosto' },
-                { value: '9', label: 'Setembro' }, { value: '10', label: 'Outubro' },
-                { value: '11', label: 'Novembro' }, { value: '12', label: 'Dezembro' },
+                { value: '1', label: t('months.january') }, { value: '2', label: t('months.february') },
+                { value: '3', label: t('months.march') }, { value: '4', label: t('months.april') },
+                { value: '5', label: t('months.may') }, { value: '6', label: t('months.june') },
+                { value: '7', label: t('months.july') }, { value: '8', label: t('months.august') },
+                { value: '9', label: t('months.september') }, { value: '10', label: t('months.october') },
+                { value: '11', label: t('months.november') }, { value: '12', label: t('months.december') },
               ]}
               value={invoiceMonth}
               onChange={(v) => setInvoiceMonth(v)}
             />
           </div>
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => setIsInvoiceModalOpen(false)}>Cancelar</Button>
-            <Button onClick={handleGenerateInvoice} disabled={generatingInvoice}>{generatingInvoice ? 'Gerando...' : 'Gerar Draft'}</Button>
+            <Button variant="secondary" type="button" onClick={() => setIsInvoiceModalOpen(false)}>{t('common.cancel')}</Button>
+            <Button onClick={handleGenerateInvoice} disabled={generatingInvoice}>{generatingInvoice ? t('common.generating') : t('projects.generateDraft')}</Button>
           </div>
         </div>
       </Modal>

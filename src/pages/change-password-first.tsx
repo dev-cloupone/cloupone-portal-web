@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/use-auth';
 import { getHomeRoute } from '../utils/get-home-route';
 import { api, formatApiError } from '../services/api';
@@ -10,6 +11,7 @@ import { Input } from '../components/ui/input';
 import { AuthLayout } from '../components/ui/auth-layout';
 
 export default function ChangePasswordFirstPage() {
+  const { t } = useTranslation();
   const { user, isAuthenticated, setUser } = useAuth();
   const navigate = useNavigate();
   const [currentPassword, setCurrentPassword] = useState('');
@@ -31,12 +33,12 @@ export default function ChangePasswordFirstPage() {
     setError('');
 
     if (newPassword.length < 8) {
-      setError(MSG.PASSWORD_MIN_LENGTH);
+      setError(MSG.PASSWORD_MIN_LENGTH());
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError(MSG.PASSWORDS_DONT_MATCH);
+      setError(MSG.PASSWORDS_DONT_MATCH());
       return;
     }
 
@@ -56,10 +58,10 @@ export default function ChangePasswordFirstPage() {
   };
 
   return (
-    <AuthLayout subtitle="Você precisa alterar sua senha antes de continuar">
+    <AuthLayout subtitle={t('auth.changePasswordRequired')}>
       <form onSubmit={handleSubmit} className="space-y-5">
         <Input
-          label="Senha Atual"
+          label={t('auth.currentPassword')}
           type="password"
           autoComplete="current-password"
           value={currentPassword}
@@ -68,22 +70,22 @@ export default function ChangePasswordFirstPage() {
         />
 
         <Input
-          label="Nova Senha"
+          label={t('auth.newPassword')}
           type="password"
           autoComplete="new-password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          placeholder="Minimo 8 caracteres"
+          placeholder={t('auth.minChars')}
           required
         />
 
         <Input
-          label="Confirmar Nova Senha"
+          label={t('auth.confirmNewPassword')}
           type="password"
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Repita a nova senha"
+          placeholder={t('auth.repeatNewPassword')}
           required
         />
 
@@ -94,7 +96,7 @@ export default function ChangePasswordFirstPage() {
         )}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? 'Alterando...' : 'Alterar Senha'}
+          {isSubmitting ? t('auth.changing') : t('auth.changePassword')}
         </Button>
       </form>
     </AuthLayout>

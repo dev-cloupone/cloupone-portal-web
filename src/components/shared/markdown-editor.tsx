@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Eye, EyeOff } from 'lucide-react';
@@ -25,6 +26,7 @@ export function MarkdownEditor({
   preview,
   minHeightClass = 'min-h-[100px]',
 }: MarkdownEditorProps) {
+  const { t } = useTranslation();
   const [internalPreview, setInternalPreview] = useState(false);
   const isControlled = preview !== undefined;
   const showPreview = isControlled ? preview : internalPreview;
@@ -38,7 +40,7 @@ export function MarkdownEditor({
           {value.trim() ? (
             <ReactMarkdown>{value}</ReactMarkdown>
           ) : (
-            <p className="text-text-muted italic">Nada para visualizar</p>
+            <p className="text-text-muted italic">{t('markdown.nothingToPreview')}</p>
           )}
         </div>
       ) : (
@@ -59,7 +61,7 @@ export function MarkdownEditor({
           className="inline-flex items-center gap-1.5 px-3 text-xs text-text-muted hover:text-text-secondary transition-colors"
         >
           {showPreview ? <EyeOff size={14} /> : <Eye size={14} />}
-          {showPreview ? 'Editar' : 'Preview'}
+          {showPreview ? t('common.edit') : t('common.preview')}
         </button>
       )}
     </div>

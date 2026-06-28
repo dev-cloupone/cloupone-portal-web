@@ -1,7 +1,9 @@
+import './i18n';
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { useAuthStore } from './stores/auth.store';
 import { useThemeStore } from './stores/theme.store';
+import { useLocaleStore } from './stores/locale.store';
 import { ProtectedRoute } from './components/protected-route';
 import { RoleGuard } from './components/role-guard';
 import { DefaultRedirect } from './components/default-redirect';
@@ -100,6 +102,7 @@ export default function App() {
   useEffect(() => {
     void initialize();
     initializeTheme();
+    useLocaleStore.getState().initialize();
   }, [initialize, initializeTheme]);
 
   return (

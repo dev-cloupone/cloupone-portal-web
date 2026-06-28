@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Send, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../ui/button';
 import { MarkdownEditor } from '../shared/markdown-editor';
@@ -9,6 +10,7 @@ interface TicketCommentFormProps {
 }
 
 export function TicketCommentForm({ onSubmit, canMarkInternal }: TicketCommentFormProps) {
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [isInternal, setIsInternal] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -40,7 +42,7 @@ export function TicketCommentForm({ onSubmit, canMarkInternal }: TicketCommentFo
           onChange={setContent}
           rows={3}
           preview={showPreview}
-          placeholder={isInternal ? 'Adicionar nota interna...' : 'Adicionar comentario...'}
+          placeholder={isInternal ? t('tickets.addInternalNote') : t('tickets.addComment')}
         />
 
         <div className="flex items-center justify-between border-t border-border/50 px-3 py-2">
@@ -51,7 +53,7 @@ export function TicketCommentForm({ onSubmit, canMarkInternal }: TicketCommentFo
               className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors"
             >
               {showPreview ? <EyeOff size={14} /> : <Eye size={14} />}
-              {showPreview ? 'Editar' : 'Preview'}
+              {showPreview ? t('common.edit') : t('common.preview')}
             </button>
 
             {canMarkInternal && (
@@ -62,14 +64,14 @@ export function TicketCommentForm({ onSubmit, canMarkInternal }: TicketCommentFo
                   onChange={(e) => setIsInternal(e.target.checked)}
                   className="h-3.5 w-3.5 rounded border-border bg-surface-2 text-warning focus:ring-warning focus:ring-offset-0"
                 />
-                Nota interna
+                {t('tickets.internalNote')}
               </label>
             )}
           </div>
 
           <Button type="submit" size="sm" disabled={submitting || !content.trim()}>
             <Send size={14} className="mr-1.5" />
-            {isInternal ? 'Nota Interna' : 'Comentar'}
+            {isInternal ? t('tickets.internalNoteLabel') : t('common.comment')}
           </Button>
         </div>
       </div>

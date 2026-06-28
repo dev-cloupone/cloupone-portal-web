@@ -1,5 +1,6 @@
 import { useState, useRef, type DragEvent, type ChangeEvent } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface FileUploadProps {
   accept?: string;
@@ -22,6 +23,7 @@ export function FileUpload({
   onRemove,
   uploading = false,
 }: FileUploadProps) {
+  const { t } = useTranslation();
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -30,7 +32,7 @@ export function FileUpload({
 
   function validateFile(file: File): string | null {
     if (maxSize && file.size > maxSize) {
-      return `Arquivo muito grande. Máximo: ${Math.round(maxSize / 1024 / 1024)}MB`;
+      return t('common.fileTooLarge', { size: Math.round(maxSize / 1024 / 1024) });
     }
     if (accept && accept !== '*') {
       const acceptedTypes = accept.split(',').map((t) => t.trim());
@@ -41,7 +43,7 @@ export function FileUpload({
         return file.type === type;
       });
       if (!isValid) {
-        return 'Tipo de arquivo não permitido.';
+        return t('common.fileTypeNotAllowed');
       }
     }
     return null;
@@ -132,7 +134,7 @@ export function FileUpload({
           className="hidden"
         />
         {uploading ? (
-          <p className="text-xs text-text-tertiary">Enviando...</p>
+          <p className="text-xs text-text-tertiary">{t('common.uploading')}</p>
         ) : (
           <>
             {preview ? (
@@ -141,10 +143,10 @@ export function FileUpload({
               <Upload size={24} className="mb-2 text-text-muted" />
             )}
             <p className="text-xs text-text-tertiary">
-              Arraste um arquivo ou <span className="text-accent">clique para selecionar</span>
+              {t('common.dragFile')} <span className="text-accent">{t('common.clickToSelect')}</span>
             </p>
             <p className="mt-1 text-[10px] text-text-muted">
-              Máximo {Math.round(maxSize / 1024 / 1024)}MB
+              {t('common.maxFileSize', { size: Math.round(maxSize / 1024 / 1024) })}
             </p>
           </>
         )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, Eye, EyeOff, User as UserIcon } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Select } from '../ui/select';
@@ -6,6 +7,7 @@ import { TicketPriorityBadge } from './ticket-priority-badge';
 import { TicketTypeBadge } from './ticket-type-badge';
 import { TicketAttachments } from './ticket-attachments';
 import { TicketTimeEntries } from './ticket-time-entries';
+import { useLocaleStore } from '../../stores/locale.store';
 import {
   TICKET_PRIORITY_LABELS,
   type Ticket,
@@ -40,7 +42,7 @@ interface TicketSidebarProps {
 
 function formatDate(iso: string | null): string {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('pt-BR');
+  return new Date(iso).toLocaleDateString(useLocaleStore.getState().locale);
 }
 
 function isOverdue(dueDate: string | null): boolean {
@@ -64,16 +66,17 @@ export function TicketSidebar({
   onAttachmentRemove,
   uploading,
 }: TicketSidebarProps) {
+  const { t } = useTranslation();
   const canChangePriority = !isFinished && ['consultor', 'gestor', 'super_admin'].includes(userRole);
   const canChangeAssignee = !isFinished && ['consultor', 'gestor', 'super_admin'].includes(userRole);
 
   const priorityOptions = Object.entries(TICKET_PRIORITY_LABELS).map(([value, label]) => ({
     value,
-    label,
+    label: t(label),
   }));
 
   const assigneeOptions = [
-    { value: '', label: 'Sem atribuição' },
+    { value: '', label: t('tickets.noAssignment') },
     ...consultants,
   ];
   if (
@@ -90,7 +93,7 @@ export function TicketSidebar({
     <div className="space-y-6">
       {/* Priority */}
       <div className="space-y-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Prioridade</h4>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('tickets.priority')}</h4>
         {canChangePriority ? (
           <Select
             options={priorityOptions}
@@ -104,13 +107,13 @@ export function TicketSidebar({
 
       {/* Type */}
       <div className="space-y-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Tipo</h4>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('tickets.type')}</h4>
         <TicketTypeBadge type={ticket.type} />
       </div>
 
       {/* Assignee */}
       <div className="space-y-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Atribuído a</h4>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('tickets.fieldAssigned')}</h4>
         {canChangeAssignee ? (
           <>
             <Select
@@ -125,21 +128,21 @@ export function TicketSidebar({
                 className="w-full mt-1.5"
                 onClick={() => onAssigneeChange(userId)}
               >
-                Atribuir a mim
+                {t('tickets.assignToMe')}
               </Button>
             )}
           </>
         ) : (
           <div className="flex items-center gap-2 text-sm text-text-secondary">
             <UserIcon size={14} className="text-text-muted" />
-            {ticket.assignedToName || <span className="text-text-muted">Sem atribuição</span>}
+            {ticket.assignedToName || <span className="text-text-muted">{t('tickets.noAssignment')}</span>}
           </div>
         )}
       </div>
 
       {/* Project */}
       <div className="space-y-1">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Projeto</h4>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('tickets.project')}</h4>
         <p className="text-sm text-text-secondary">{ticket.projectName}</p>
         {ticket.clientName && (
           <p className="text-xs text-text-muted">{ticket.clientName}</p>
@@ -148,7 +151,7 @@ export function TicketSidebar({
 
       {/* Created by */}
       <div className="space-y-1">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Criado por</h4>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('tickets.createdBy')}</h4>
         <p className="text-sm text-text-secondary">{ticket.createdByName}</p>
         <p className="text-xs text-text-muted">{formatDate(ticket.createdAt)}</p>
       </div>
@@ -156,12 +159,12 @@ export function TicketSidebar({
       {/* Due date */}
       {ticket.dueDate && (
         <div className="space-y-1">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Prazo</h4>
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('tickets.deadline')}</h4>
           <div className="flex items-center gap-2">
             <Calendar size={14} className={isOverdue(ticket.dueDate) ? 'text-danger' : 'text-text-muted'} />
             <span className={`text-sm ${isOverdue(ticket.dueDate) ? 'text-danger font-medium' : 'text-text-secondary'}`}>
               {formatDate(ticket.dueDate)}
-              {isOverdue(ticket.dueDate) && ' (atrasado)'}
+              {isOverdue(ticket.dueDate) && ` ${t('tickets.overdue')}`}
             </span>
           </div>
         </div>
@@ -170,7 +173,7 @@ export function TicketSidebar({
       {/* Estimated hours */}
       {isInternalUser && ticket.estimatedHours != null && (
         <div className="space-y-1">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Estimativa</h4>
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('tickets.estimate')}</h4>
           <div className="flex items-center gap-2">
             <Clock size={14} className="text-text-muted" />
             <span className="text-sm text-text-secondary">{ticket.estimatedHours}h</span>
@@ -181,17 +184,17 @@ export function TicketSidebar({
       {/* Visibility */}
       {userRole !== 'client' && (
         <div className="space-y-1">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Visibilidade</h4>
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('tickets.visibility')}</h4>
           <div className="flex items-center gap-2 text-sm">
             {ticket.isVisibleToClient ? (
               <>
                 <Eye size={14} className="text-accent" />
-                <span className="text-text-secondary">Visivel ao cliente</span>
+                <span className="text-text-secondary">{t('tickets.visibleToClient')}</span>
               </>
             ) : (
               <>
                 <EyeOff size={14} className="text-warning" />
-                <span className="text-warning">Ticket interno</span>
+                <span className="text-warning">{t('tickets.internalTicket')}</span>
               </>
             )}
           </div>
@@ -201,7 +204,7 @@ export function TicketSidebar({
       {/* CC Emails */}
       <div className="space-y-2">
         <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-          E-mails em Cópia
+          {t('tickets.ccEmails')}
         </h4>
         {isFinished ? (
           ticket.ccEmails.length > 0 ? (
@@ -211,7 +214,7 @@ export function TicketSidebar({
               ))}
             </div>
           ) : (
-            <p className="text-xs text-text-muted">Nenhum</p>
+            <p className="text-xs text-text-muted">{t('common.none')}</p>
           )
         ) : (
           <CcEmailsInput

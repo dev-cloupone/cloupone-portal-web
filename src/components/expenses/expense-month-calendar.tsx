@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ExpenseCalendarCell } from './expense-calendar-cell';
 import { ExpenseCalendarLegend } from './expense-calendar-legend';
 import type { ExpenseCalendarDay } from '../../types/expense.types';
@@ -8,8 +9,6 @@ interface ExpenseMonthCalendarProps {
   selectedWeekStart: string | null;
   onSelectDate: (date: string) => void;
 }
-
-const DAY_HEADERS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
 
 function isInSelectedWeek(dateStr: string, weekStartStr: string | null): boolean {
   if (!weekStartStr) return false;
@@ -26,6 +25,17 @@ export function ExpenseMonthCalendar({
   selectedWeekStart,
   onSelectDate,
 }: ExpenseMonthCalendarProps) {
+  const { t } = useTranslation();
+  const DAY_HEADERS = [
+    t('timesheet.dayHeaders.sun'),
+    t('timesheet.dayHeaders.mon'),
+    t('timesheet.dayHeaders.tue'),
+    t('timesheet.dayHeaders.wed'),
+    t('timesheet.dayHeaders.thu'),
+    t('timesheet.dayHeaders.fri'),
+    t('timesheet.dayHeaders.sat'),
+  ];
+
   return (
     <div className="space-y-3">
       <div className="rounded-xl border border-border bg-surface-1 p-2 sm:p-3">

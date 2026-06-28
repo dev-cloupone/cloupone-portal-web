@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Pencil, UserX } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -16,16 +17,11 @@ import { formatApiError } from '../../services/api';
 import type { UserRecord } from '../../services/admin.service';
 import type { Client } from '../../types/client.types';
 import { useNavItems } from '../../hooks/use-nav-items';
-
-const ROLE_LABELS: Record<string, string> = {
-  super_admin: 'Super Admin',
-  administrative: 'Administrativo',
-  gestor: 'Gestor',
-  consultor: 'Consultor',
-  client: 'Cliente',
-};
+import { useLocaleStore } from '../../stores/locale.store';
 
 export default function UsersPage() {
+  const { t } = useTranslation();
+  const locale = useLocaleStore((s) => s.locale);
   const navItems = useNavItems();
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -59,7 +55,7 @@ export default function UsersPage() {
       setUsers(result.data);
       setMeta(result.meta);
     } catch {
-      setError(MSG.LOAD_USERS_ERROR);
+      setError(MSG.LOAD_USERS_ERROR());
     }
   }
 
@@ -67,7 +63,7 @@ export default function UsersPage() {
     e.preventDefault();
     setError('');
     if (createForm.role === 'client' && !createForm.clientId) {
-      setError('Selecione um cliente.');
+      setError(t('admin.selectClient'));
       return;
     }
     try {
@@ -91,7 +87,7 @@ export default function UsersPage() {
     if (!editingUser) return;
     setError('');
     if (editForm.role === 'client' && !editForm.clientId) {
-      setError('Selecione um cliente.');
+      setError(t('admin.selectClient'));
       return;
     }
     try {
@@ -109,7 +105,7 @@ export default function UsersPage() {
   }
 
   async function handleDeactivate(user: UserRecord) {
-    if (!confirm(`Desativar ${user.name}?`)) return;
+    if (!confirm(t('admin.confirmDeactivateUser', { name: user.name }))) return;
     try {
       await adminService.deactivateUser(user.id);
       await loadData();
@@ -139,12 +135,20 @@ export default function UsersPage() {
 
   const clientMap = new Map(clients.map((c) => [c.id, c.companyName]));
 
+  const ROLE_LABELS: Record<string, string> = {
+    super_admin: t('admin.roleSuperAdmin'),
+    administrative: t('admin.roleAdministrative'),
+    gestor: t('admin.roleGestor'),
+    consultor: t('admin.roleConsultor'),
+    client: t('admin.roleClient'),
+  };
+
   return (
     <SidebarLayout navItems={navItems} title="Admin">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Usuarios</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('admin.users')}</h2>
         <Button onClick={openCreate}>
-          <Plus size={16} className="mr-2" /> Novo Usuario
+          <Plus size={16} className="mr-2" /> {t('admin.newUser')}
         </Button>
       </div>
 
@@ -157,14 +161,14 @@ export default function UsersPage() {
       <div className="mb-4 flex gap-4">
         <div className="w-44">
           <Select
-            label="Role"
+            label={t('common.role')}
             options={[
-              { value: '', label: 'Todas' },
-              { value: 'super_admin', label: 'Super Admin' },
-              { value: 'administrative', label: 'Administrativo' },
-              { value: 'gestor', label: 'Gestor' },
-              { value: 'consultor', label: 'Consultor' },
-              { value: 'client', label: 'Cliente' },
+              { value: '', label: t('common.allFeminine') },
+              { value: 'super_admin', label: t('admin.roleSuperAdmin') },
+              { value: 'administrative', label: t('admin.roleAdministrative') },
+              { value: 'gestor', label: t('admin.roleGestor') },
+              { value: 'consultor', label: t('admin.roleConsultor') },
+              { value: 'client', label: t('admin.roleClient') },
             ]}
             value={filterRole}
             onChange={handleFilterRole}
@@ -172,19 +176,19 @@ export default function UsersPage() {
         </div>
         <div className="w-52">
           <Select
-            label="Cliente"
-            options={[{ value: '', label: 'Todos' }, ...clients.map((c) => ({ value: c.id, label: c.companyName }))]}
+            label={t('admin.roleClient')}
+            options={[{ value: '', label: t('common.all') }, ...clients.map((c) => ({ value: c.id, label: c.companyName }))]}
             value={filterClient}
             onChange={handleFilterClient}
           />
         </div>
         <div className="w-36">
           <Select
-            label="Status"
+            label={t('common.status')}
             options={[
-              { value: '', label: 'Todos' },
-              { value: 'true', label: 'Ativo' },
-              { value: 'false', label: 'Inativo' },
+              { value: '', label: t('common.all') },
+              { value: 'true', label: t('common.active') },
+              { value: 'false', label: t('common.inactive') },
             ]}
             value={filterStatus}
             onChange={handleFilterStatus}
@@ -195,13 +199,13 @@ export default function UsersPage() {
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeader>Nome</TableHeader>
-            <TableHeader>Email</TableHeader>
-            <TableHeader>Role</TableHeader>
-            <TableHeader>Cliente</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Criado em</TableHeader>
-            <TableHeader>Ações</TableHeader>
+            <TableHeader>{t('common.name')}</TableHeader>
+            <TableHeader>{t('common.email')}</TableHeader>
+            <TableHeader>{t('common.role')}</TableHeader>
+            <TableHeader>{t('admin.roleClient')}</TableHeader>
+            <TableHeader>{t('common.status')}</TableHeader>
+            <TableHeader>{t('common.createdAt')}</TableHeader>
+            <TableHeader>{t('common.actions')}</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -223,17 +227,17 @@ export default function UsersPage() {
               </TableCell>
               <TableCell>
                 <Badge variant={u.isActive ? 'success' : 'danger'}>
-                  {u.isActive ? 'Ativo' : 'Inativo'}
+                  {u.isActive ? t('common.active') : t('common.inactive')}
                 </Badge>
               </TableCell>
-              <TableCell>{new Date(u.createdAt).toLocaleDateString('pt-BR')}</TableCell>
+              <TableCell>{new Date(u.createdAt).toLocaleDateString(locale)}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
-                  <button onClick={() => openEdit(u)} className="text-accent hover:text-accent-hover" title="Editar">
+                  <button onClick={() => openEdit(u)} className="text-accent hover:text-accent-hover" title={t('common.edit')}>
                     <Pencil size={16} />
                   </button>
                   {u.isActive && (
-                    <button onClick={() => handleDeactivate(u)} className="text-danger hover:text-danger/80" title="Desativar">
+                    <button onClick={() => handleDeactivate(u)} className="text-danger hover:text-danger/80" title={t('common.deactivate')}>
                       <UserX size={16} />
                     </button>
                   )}
@@ -246,55 +250,55 @@ export default function UsersPage() {
       {meta && <PaginationControls meta={meta} onPageChange={goToPage} />}
 
       {/* Create User Modal */}
-      <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); setError(''); }} title="Novo Usuario">
+      <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); setError(''); }} title={t('admin.newUser')}>
         <form onSubmit={handleCreate} className="space-y-4">
           <Input
-            label="Nome"
+            label={t('common.name')}
             value={createForm.name}
             onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-            placeholder="Nome completo"
+            placeholder={t('common.fullName')}
             required
           />
           <Input
-            label="Email"
+            label={t('common.email')}
             type="email"
             value={createForm.email}
             onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
             required
           />
           <Input
-            label="Senha"
+            label={t('admin.password')}
             type="password"
             value={createForm.password}
             onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-            placeholder="Minimo 8 caracteres"
+            placeholder={t('admin.minChars')}
             required
             minLength={8}
           />
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">Role</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">{t('common.role')}</label>
             <select
               value={createForm.role}
               onChange={(e) => setCreateForm({ ...createForm, role: e.target.value, clientId: '' })}
               className="block w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary"
             >
-              <option value="client">Cliente</option>
-              <option value="consultor">Consultor</option>
-              <option value="administrative">Administrativo</option>
-              <option value="gestor">Gestor</option>
-              <option value="super_admin">Super Admin</option>
+              <option value="client">{t('admin.roleClient')}</option>
+              <option value="consultor">{t('admin.roleConsultor')}</option>
+              <option value="administrative">{t('admin.roleAdministrative')}</option>
+              <option value="gestor">{t('admin.roleGestor')}</option>
+              <option value="super_admin">{t('admin.roleSuperAdmin')}</option>
             </select>
           </div>
           {createForm.role === 'client' && (
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">Cliente *</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">{t('admin.clientLabel')}</label>
               <select
                 required
                 value={createForm.clientId}
                 onChange={(e) => setCreateForm({ ...createForm, clientId: e.target.value })}
                 className="block w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary"
               >
-                <option value="">Selecione um cliente</option>
+                <option value="">{t('common.selectClient')}</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>{c.companyName}</option>
                 ))}
@@ -307,52 +311,52 @@ export default function UsersPage() {
             </div>
           )}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => { setIsCreateModalOpen(false); setError(''); }}>Cancelar</Button>
-            <Button type="submit">Criar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setIsCreateModalOpen(false); setError(''); }}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.create')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit User Modal */}
-      <Modal isOpen={!!editingUser} onClose={() => { setEditingUser(null); setError(''); }} title="Editar Usuario">
+      <Modal isOpen={!!editingUser} onClose={() => { setEditingUser(null); setError(''); }} title={t('admin.editUser')}>
         <form onSubmit={handleUpdate} className="space-y-4">
           <Input
-            label="Nome"
+            label={t('common.name')}
             value={editForm.name}
             onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
             required
           />
           <Input
-            label="Email"
+            label={t('common.email')}
             type="email"
             value={editForm.email}
             onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
             required
           />
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">Role</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">{t('common.role')}</label>
             <select
               value={editForm.role}
               onChange={(e) => setEditForm({ ...editForm, role: e.target.value, clientId: '' })}
               className="block w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary"
             >
-              <option value="client">Cliente</option>
-              <option value="consultor">Consultor</option>
-              <option value="administrative">Administrativo</option>
-              <option value="gestor">Gestor</option>
-              <option value="super_admin">Super Admin</option>
+              <option value="client">{t('admin.roleClient')}</option>
+              <option value="consultor">{t('admin.roleConsultor')}</option>
+              <option value="administrative">{t('admin.roleAdministrative')}</option>
+              <option value="gestor">{t('admin.roleGestor')}</option>
+              <option value="super_admin">{t('admin.roleSuperAdmin')}</option>
             </select>
           </div>
           {editForm.role === 'client' && (
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">Cliente *</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-1 block">{t('admin.clientLabel')}</label>
               <select
                 required
                 value={editForm.clientId}
                 onChange={(e) => setEditForm({ ...editForm, clientId: e.target.value })}
                 className="block w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-text-primary"
               >
-                <option value="">Selecione um cliente</option>
+                <option value="">{t('common.selectClient')}</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>{c.companyName}</option>
                 ))}
@@ -365,8 +369,8 @@ export default function UsersPage() {
             </div>
           )}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => { setEditingUser(null); setError(''); }}>Cancelar</Button>
-            <Button type="submit">Salvar</Button>
+            <Button variant="secondary" type="button" onClick={() => { setEditingUser(null); setError(''); }}>{t('common.cancel')}</Button>
+            <Button type="submit">{t('common.save')}</Button>
           </div>
         </form>
       </Modal>

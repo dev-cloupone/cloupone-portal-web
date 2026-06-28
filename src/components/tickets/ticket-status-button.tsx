@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, Loader2 } from 'lucide-react';
 import { TicketStatusBadge } from './ticket-status-badge';
 import { TICKET_STATUS_LABELS, type TicketStatus } from '../../types/ticket.types';
@@ -34,10 +35,10 @@ function canTransition(from: TicketStatus, to: TicketStatus, role: string): bool
   return STATUS_ROLE_PERMISSIONS[to]?.includes(role) ?? false;
 }
 
-function getActionLabel(_from: TicketStatus, to: TicketStatus, role: string): string {
-  if (role === 'client' && to === 'finished') return 'Encerrar chamado';
-  if (role === 'client' && to === 'in_analysis') return 'Devolver para análise';
-  return TICKET_STATUS_LABELS[to];
+function getActionLabel(_from: TicketStatus, to: TicketStatus, role: string, t: (key: string) => string): string {
+  if (role === 'client' && to === 'finished') return t('tickets.closeTicket');
+  if (role === 'client' && to === 'in_analysis') return t('tickets.returnToAnalysis');
+  return t(TICKET_STATUS_LABELS[to]);
 }
 
 interface TicketStatusButtonProps {
@@ -47,6 +48,7 @@ interface TicketStatusButtonProps {
 }
 
 export function TicketStatusButton({ status, userRole, onChange }: TicketStatusButtonProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -71,7 +73,7 @@ export function TicketStatusButton({ status, userRole, onChange }: TicketStatusB
   async function handleSelect(to: TicketStatus) {
     setOpen(false);
     if (to === 'finished') {
-      if (!window.confirm('Tem certeza? Após finalizado, o ticket não poderá mais ser editado.')) {
+      if (!window.confirm(t('tickets.confirmClose'))) {
         return;
       }
     }
@@ -107,7 +109,7 @@ export function TicketStatusButton({ status, userRole, onChange }: TicketStatusB
               onClick={() => handleSelect(to)}
               className="block w-full rounded-md px-3 py-1.5 text-left text-sm text-text-secondary hover:bg-surface-2 hover:text-text-primary transition-colors"
             >
-              {getActionLabel(status, to, userRole)}
+              {getActionLabel(status, to, userRole, t)}
             </button>
           ))}
         </div>

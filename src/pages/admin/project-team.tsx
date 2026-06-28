@@ -15,6 +15,7 @@ import * as projectService from '../../services/project.service';
 import * as consultantService from '../../services/consultant.service';
 import type { ProjectAllocation } from '../../types/project.types';
 import type { Consultant } from '../../types/consultant.types';
+import { useTranslation } from 'react-i18next';
 
 interface AllocationRow extends ProjectAllocation {
   editCostRate: string;
@@ -22,6 +23,7 @@ interface AllocationRow extends ProjectAllocation {
 }
 
 export default function ProjectTeamPage() {
+  const { t } = useTranslation();
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const navItems = useNavItems();
@@ -72,18 +74,18 @@ export default function ProjectTeamPage() {
       await projectService.addAllocation(projectId, addUserId);
       setAddUserId('');
       await loadData();
-      addToast('Consultor alocado com sucesso.', 'success');
+      addToast(t('projects.consultantAllocated'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
   }
 
   async function handleRemove(userId: string, userName: string) {
-    if (!projectId || !confirm(`Remover ${userName} do projeto?`)) return;
+    if (!projectId || !confirm(t('projects.removeFromProject', { name: userName }))) return;
     try {
       await projectService.removeAllocation(projectId, userId);
       await loadData();
-      addToast(`${userName} removido do projeto.`, 'success');
+      addToast(t('projects.removedFromProject', { name: userName }), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
@@ -101,7 +103,7 @@ export default function ProjectTeamPage() {
         costRate: row.editCostRate,
         billingRate: row.editBillingRate,
       });
-      addToast(`Rates de ${row.userName} atualizados.`, 'success');
+      addToast(t('projects.ratesUpdated', { name: row.userName }), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
@@ -112,14 +114,14 @@ export default function ProjectTeamPage() {
   if (!projectId) return null;
 
   return (
-    <SidebarLayout navItems={navItems} title="Equipe do Projeto">
+    <SidebarLayout navItems={navItems} title={t('projects.team')}>
       <div className="flex items-center gap-3 mb-6">
-        <IconButton onClick={() => navigate(`/admin/projects/${projectId}`)} aria-label="Voltar">
+        <IconButton onClick={() => navigate(`/admin/projects/${projectId}`)} aria-label={t('common.back')}>
           <ArrowLeft size={18} />
         </IconButton>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-text-primary">{projectName || 'Carregando...'}</h1>
-          <p className="text-sm text-text-tertiary">Gerenciamento de equipe</p>
+          <h1 className="text-xl font-bold text-text-primary">{projectName || t('common.loading')}</h1>
+          <p className="text-sm text-text-tertiary">{t('projects.teamManagement')}</p>
         </div>
       </div>
 
@@ -136,11 +138,11 @@ export default function ProjectTeamPage() {
             options={availableConsultants.map((c) => ({ value: c.userId, label: `${c.userName} (${c.userEmail})` }))}
             value={addUserId}
             onChange={setAddUserId}
-            placeholder="Selecione um consultor"
+            placeholder={t('projects.selectConsultant')}
           />
         </div>
         <Button onClick={handleAdd} disabled={!addUserId}>
-          <UserPlus size={16} className="mr-2" /> Alocar
+          <UserPlus size={16} className="mr-2" /> {t('common.allocate')}
         </Button>
       </div>
 
@@ -152,17 +154,17 @@ export default function ProjectTeamPage() {
         </div>
       ) : rows.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
-          <p className="text-text-muted text-sm">Nenhum consultor alocado neste projeto.</p>
+          <p className="text-text-muted text-sm">{t('projects.noConsultantsAllocated')}</p>
         </div>
       ) : (
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>Consultor</TableHeader>
-              <TableHeader>Email</TableHeader>
-              {isSuperAdmin && <TableHeader>Custo/Hora Consultor</TableHeader>}
-              {isSuperAdmin && <TableHeader>Valor/Hora Cliente</TableHeader>}
-              <TableHeader>Ações</TableHeader>
+              <TableHeader>{t('common.consultant')}</TableHeader>
+              <TableHeader>{t('common.email')}</TableHeader>
+              {isSuperAdmin && <TableHeader>{t('projects.costRateConsultant')}</TableHeader>}
+              {isSuperAdmin && <TableHeader>{t('projects.billingRateClientTeam')}</TableHeader>}
+              <TableHeader>{t('common.actions')}</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -202,13 +204,13 @@ export default function ProjectTeamPage() {
                         disabled={savingUser === row.userId}
                       >
                         <Save size={16} className="mr-1" />
-                        {savingUser === row.userId ? 'Salvando...' : 'Salvar'}
+                        {savingUser === row.userId ? t('common.saving') : t('common.save')}
                       </Button>
                     )}
                     <button
                       onClick={() => handleRemove(row.userId, row.userName)}
                       className="text-danger hover:text-danger/80"
-                      title="Remover"
+                      title={t('common.remove')}
                     >
                       <UserMinus size={16} />
                     </button>

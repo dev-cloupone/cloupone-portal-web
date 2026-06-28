@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Select } from '../ui/select';
 import type { ProjectAllocation } from '../../types/project.types';
 import { useAuth } from '../../hooks/use-auth';
@@ -20,6 +21,7 @@ export function ExpenseContextBar({
   allocatedProjects,
   allocationsByProject,
 }: ExpenseContextBarProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   // Extract unique consultants from all project allocations (excluding current user)
@@ -33,7 +35,7 @@ export function ExpenseContextBar({
       }
     }
     return [
-      { value: '', label: 'Minhas despesas' },
+      { value: '', label: t('expenses.myExpenses') },
       ...Array.from(seen.entries())
         .sort((a, b) => a[1].localeCompare(b[1]))
         .map(([id, name]) => ({ value: id, label: name })),
@@ -67,7 +69,7 @@ export function ExpenseContextBar({
       <div className="flex flex-wrap items-end gap-3">
         <div className="w-56">
           <Select
-            label="Visualizar como"
+            label={t('expenses.viewAs')}
             options={consultantOptions}
             value={selectedConsultantUserId ?? ''}
             onChange={(val) => onConsultantChange(val || null)}
@@ -76,18 +78,18 @@ export function ExpenseContextBar({
         {selectedConsultantUserId && (
           <div className="w-72">
             <Select
-              label="Projeto"
+              label={t('common.project')}
               options={projectOptions}
               value={selectedProjectId ?? ''}
               onChange={(val) => onProjectChange(val || null)}
-              placeholder="Selecione um projeto"
+              placeholder={t('expenses.selectProject')}
             />
           </div>
         )}
       </div>
       {selectedConsultantUserId && selectedProjectId && selectedConsultantName && selectedProjectName && (
         <p className="text-xs text-text-muted">
-          Despesas de <span className="font-semibold text-text-primary">{selectedConsultantName}</span> — {selectedProjectName}
+          {t('expenses.expensesOfLabel')} <span className="font-semibold text-text-primary">{selectedConsultantName}</span> — {selectedProjectName}
         </p>
       )}
     </div>

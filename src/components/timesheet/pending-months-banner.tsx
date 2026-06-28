@@ -1,6 +1,8 @@
 import { AlertTriangle, CheckCircle, Eye } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
 import type { PendingMonth } from '../../types/monthly-timesheet.types';
+import { getShortMonthName } from '../../utils/formatters';
 
 interface PendingMonthsBannerProps {
   pendingMonths: PendingMonth[];
@@ -9,18 +11,14 @@ interface PendingMonthsBannerProps {
   canApproveMonth?: (year: number, month: number) => boolean;
 }
 
-const MONTH_NAMES = [
-  '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-];
-
 export function PendingMonthsBanner({ pendingMonths, onApprove, onNavigate, canApproveMonth }: PendingMonthsBannerProps) {
+  const { t } = useTranslation();
   if (pendingMonths.length === 0) return null;
 
   return (
     <div className="space-y-2">
       {pendingMonths.map((pm) => {
-        const label = `${MONTH_NAMES[pm.month]}/${pm.year}`;
+        const label = `${getShortMonthName(pm.month - 1)}/${pm.year}`;
         const isReopened = pm.status === 'reopened';
 
         return (
@@ -37,12 +35,12 @@ export function PendingMonthsBanner({ pendingMonths, onApprove, onNavigate, canA
               <div className="min-w-0">
                 <p className="text-sm text-text-primary">
                   {isReopened
-                    ? `O mês de ${label} foi reaberto.`
-                    : `O mês de ${label} ainda não foi aprovado.`}
+                    ? t('timesheet.monthReopened', { month: label })
+                    : t('timesheet.monthNotApproved', { month: label })}
                 </p>
                 {isReopened && pm.reopenReason && (
                   <p className="text-xs text-text-secondary mt-0.5 truncate">
-                    Motivo: {pm.reopenReason}
+                    {t('timesheet.reasonLabel', { reason: pm.reopenReason })}
                   </p>
                 )}
               </div>
@@ -50,11 +48,11 @@ export function PendingMonthsBanner({ pendingMonths, onApprove, onNavigate, canA
             <div className="flex items-center gap-2 shrink-0">
               {!isReopened && (!canApproveMonth || canApproveMonth(pm.year, pm.month)) && (
                 <Button size="sm" onClick={() => onApprove(pm.year, pm.month)}>
-                  <CheckCircle size={14} className="mr-1" /> Aprovar mês
+                  <CheckCircle size={14} className="mr-1" /> {t('timesheet.approveMonth')}
                 </Button>
               )}
               <Button size="sm" variant="ghost" onClick={() => onNavigate(pm.year, pm.month)}>
-                <Eye size={14} className="mr-1" /> Ver mês
+                <Eye size={14} className="mr-1" /> {t('timesheet.viewMonth')}
               </Button>
             </div>
           </div>

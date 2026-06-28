@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Modal } from '../ui/modal';
 import { Button } from '../ui/button';
@@ -28,6 +29,7 @@ const config = {
 } as const;
 
 export function RevertInvoiceModal({ isOpen, onClose, onConfirm, type, invoiceNumber }: RevertInvoiceModalProps) {
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { title, description, confirmLabel, loadingLabel } = config[type];
 
@@ -56,7 +58,7 @@ export function RevertInvoiceModal({ isOpen, onClose, onConfirm, type, invoiceNu
 
         <div className="modal-actions">
           <Button variant="secondary" type="button" onClick={handleClose} disabled={isSubmitting}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button variant="danger" onClick={handleConfirm} disabled={isSubmitting}>
             {isSubmitting ? loadingLabel : confirmLabel}

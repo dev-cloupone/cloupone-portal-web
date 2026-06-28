@@ -11,9 +11,11 @@ import { useToastStore } from '../../stores/toast.store';
 import { formatApiError } from '../../services/api';
 import * as projectService from '../../services/project.service';
 import * as clientService from '../../services/client.service';
-import { statusOptions } from '../../constants/project.constants';
+import { getStatusOptions } from '../../constants/project.constants';
+import { useTranslation } from 'react-i18next';
 
 export default function ProjectGeneralPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const navItems = useNavItems();
@@ -53,7 +55,7 @@ export default function ProjectGeneralPage() {
         clients.data.map((c) => ({ value: c.id, label: c.companyName }))
       );
     } catch {
-      addToast('Erro ao carregar projeto', 'error');
+      addToast(t('projects.loadProjectError'), 'error');
     } finally {
       setLoading(false);
     }
@@ -78,7 +80,7 @@ export default function ProjectGeneralPage() {
         endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
         status: form.status,
       });
-      addToast('Projeto atualizado com sucesso', 'success');
+      addToast(t('projects.updated'), 'success');
       navigate(`/admin/projects/${id}`);
     } catch (err) {
       setError(formatApiError(err));
@@ -89,7 +91,7 @@ export default function ProjectGeneralPage() {
 
   if (loading) {
     return (
-      <SidebarLayout navItems={navItems} title="Dados Gerais">
+      <SidebarLayout navItems={navItems} title={t('projects.generalData')}>
         <div className="animate-pulse space-y-4">
           <div className="h-8 w-48 rounded bg-surface-2" />
           <div className="space-y-3">
@@ -103,61 +105,61 @@ export default function ProjectGeneralPage() {
   }
 
   return (
-    <SidebarLayout navItems={navItems} title="Dados Gerais">
+    <SidebarLayout navItems={navItems} title={t('projects.generalData')}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <IconButton onClick={() => navigate(`/admin/projects/${id}`)} aria-label="Voltar">
+        <IconButton onClick={() => navigate(`/admin/projects/${id}`)} aria-label={t('common.back')}>
           <ArrowLeft size={18} />
         </IconButton>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-text-primary">{form.name || 'Carregando...'}</h1>
-          <p className="text-sm text-text-tertiary">Dados gerais do projeto</p>
+          <h1 className="text-xl font-bold text-text-primary">{form.name || t('common.loading')}</h1>
+          <p className="text-sm text-text-tertiary">{t('projects.generalDataSubtitle')}</p>
         </div>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="max-w-2xl space-y-4">
         <Input
-          label="Nome"
+          label={t('common.name')}
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           required
         />
         <Input
-          label="Descrição"
+          label={t('common.description')}
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
         />
         <Select
-          label="Cliente"
+          label={t('projects.client')}
           options={clientOptions}
           value={form.clientId}
           onChange={(v) => setForm({ ...form, clientId: v })}
-          placeholder="Selecione um cliente"
+          placeholder={t('common.selectClient')}
           required
         />
         <Input
-          label="Horas Orçamento"
+          label={t('projects.budgetHours')}
           type="number"
           value={form.budgetHours}
           onChange={(e) => setForm({ ...form, budgetHours: e.target.value })}
         />
         <div className="rounded-lg bg-surface-2 border border-border px-4 py-3 text-sm text-text-secondary">
-          Dados financeiros e de orçamento (valor/hora, tipo de orçamento, parcelas) podem ser visualizados e editados na{' '}
+          {t('projects.financialNote')}{' '}
           <Link to={`/admin/projects/${id}/financial`} className="text-primary underline hover:text-primary/80">
-            aba Financeiro
+            {t('projects.financialTab')}
           </Link>
           .
         </div>
         <div className="grid grid-cols-2 gap-4">
           <Input
-            label="Data Início"
+            label={t('projects.startDate')}
             type="date"
             value={form.startDate}
             onChange={(e) => setForm({ ...form, startDate: e.target.value })}
           />
           <Input
-            label="Data Fim"
+            label={t('projects.endDate')}
             type="date"
             value={form.endDate}
             onChange={(e) => setForm({ ...form, endDate: e.target.value })}
@@ -165,7 +167,7 @@ export default function ProjectGeneralPage() {
         </div>
         <Select
           label="Status"
-          options={statusOptions}
+          options={getStatusOptions().map(o => ({ ...o, label: t(o.label) }))}
           value={form.status}
           onChange={(v) => setForm({ ...form, status: v })}
         />
@@ -178,10 +180,10 @@ export default function ProjectGeneralPage() {
 
         <div className="flex gap-3 pt-2">
           <Button variant="secondary" type="button" onClick={() => navigate(`/admin/projects/${id}`)}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={saving}>
-            {saving ? 'Salvando...' : 'Salvar'}
+            {saving ? t('common.saving') : t('common.save')}
           </Button>
         </div>
       </form>

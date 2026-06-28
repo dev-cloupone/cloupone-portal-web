@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Paperclip, Download, Trash2, FileText, Image, Film, FileArchive } from 'lucide-react';
 import { Button } from '../ui/button';
 import { BASE_URL } from '../../services/api';
@@ -27,6 +28,7 @@ function getFileIcon(mimeType: string) {
 }
 
 export function TicketAttachments({ attachments, onUpload, onRemove, canRemove, uploading, readOnly }: TicketAttachmentsProps) {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -44,7 +46,7 @@ export function TicketAttachments({ attachments, onUpload, onRemove, canRemove, 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Anexos</h4>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">{t('common.attachments')}</h4>
         {!readOnly && (
           <>
             <Button
@@ -54,7 +56,7 @@ export function TicketAttachments({ attachments, onUpload, onRemove, canRemove, 
               disabled={uploading}
             >
               <Paperclip size={14} className="mr-1.5" />
-              {uploading ? 'Enviando...' : 'Anexar'}
+              {uploading ? t('common.uploading') : t('common.attach')}
             </Button>
             <input
               ref={fileInputRef}
@@ -67,7 +69,7 @@ export function TicketAttachments({ attachments, onUpload, onRemove, canRemove, 
       </div>
 
       {attachments.length === 0 ? (
-        <p className="text-xs text-text-muted">Nenhum anexo</p>
+        <p className="text-xs text-text-muted">{t('common.noAttachments')}</p>
       ) : (
         <div className="space-y-2">
           {attachments.map((attachment) => (
@@ -99,7 +101,7 @@ export function TicketAttachments({ attachments, onUpload, onRemove, canRemove, 
                     type="button"
                     onClick={() => onRemove(attachment.id)}
                     className="p-1 text-text-muted hover:text-danger transition-colors"
-                    title="Remover"
+                    title={t('common.delete')}
                   >
                     <Trash2 size={14} />
                   </button>

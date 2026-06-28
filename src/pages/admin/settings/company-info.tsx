@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { formatApiError } from '../../../services/api';
 import * as companyInfoService from '../../../services/company-info.service';
 
 export default function CompanyInfoPage() {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     companyName: '',
     cnpj: '',
@@ -64,17 +66,17 @@ export default function CompanyInfoPage() {
     <div className="max-w-xl">
       <form onSubmit={handleSave} className="space-y-6">
         <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-text-primary">Dados da Empresa</h3>
-          <Input label="Razao Social" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} required />
-          <Input label="CNPJ" value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} required />
-          <Input label="Endereco" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} required />
+          <h3 className="text-sm font-semibold text-text-primary">{t('admin.companyInfo')}</h3>
+          <Input label={t('admin.companyNameLabel')} value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} required />
+          <Input label={t('admin.cnpj')} value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} required />
+          <Input label={t('admin.addressLabel')} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} required />
           <div className="grid grid-cols-2 gap-4">
-            <Input label="CEP" value={form.zipCode} onChange={(e) => setForm({ ...form, zipCode: e.target.value })} required />
-            <Input label="Cidade / Estado" value={form.cityState} onChange={(e) => setForm({ ...form, cityState: e.target.value })} required />
+            <Input label={t('common.zipCode')} value={form.zipCode} onChange={(e) => setForm({ ...form, zipCode: e.target.value })} required />
+            <Input label={t('admin.cityState')} value={form.cityState} onChange={(e) => setForm({ ...form, cityState: e.target.value })} required />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Telefone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-            <Input label="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} type="email" />
+            <Input label={t('common.phone')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <Input label={t('common.email')} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} type="email" />
           </div>
         </div>
 
@@ -85,13 +87,13 @@ export default function CompanyInfoPage() {
         )}
         {success && (
           <div className="rounded-lg bg-success-muted border border-success/20 px-3 py-2">
-            <p className="text-xs text-success">Dados salvos com sucesso!</p>
+            <p className="text-xs text-success">{t('admin.dataSaved')}</p>
           </div>
         )}
 
         <Button type="submit" disabled={saving}>
           <Save size={16} className="mr-2" />
-          {saving ? 'Salvando...' : 'Salvar'}
+          {saving ? t('common.saving') : t('common.save')}
         </Button>
       </form>
     </div>

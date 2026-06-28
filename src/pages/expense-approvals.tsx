@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronRight, CheckCheck, User, Receipt, Paperclip, MessageSquare } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { MonthNavigator } from '../components/ui/month-navigator';
@@ -16,6 +17,7 @@ import { useToastStore } from '../stores/toast.store';
 import { formatCurrency } from '../utils/formatters';
 import { useNavItems } from '../hooks/use-nav-items';
 import { toMonthString } from '../utils/formatters';
+import { useLocaleStore } from '../stores/locale.store';
 import type { PendingExpense } from '../types/expense.types';
 
 interface PendingExpenseGroup {
@@ -37,14 +39,15 @@ function getSunday(dateStr: string): string {
 }
 
 function formatWeekRange(start: string, end: string): string {
+  const locale = useLocaleStore.getState().locale;
   const s = new Date(start + 'T12:00:00');
   const e = new Date(end + 'T12:00:00');
-  return `${s.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} — ${e.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+  return `${s.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' })} — ${e.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 }
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  return d.toLocaleDateString(useLocaleStore.getState().locale, { day: '2-digit', month: '2-digit' });
 }
 
 function groupByWeek(entries: PendingExpense[]): PendingExpenseGroup[] {
@@ -85,6 +88,7 @@ function groupByWeek(entries: PendingExpense[]): PendingExpenseGroup[] {
 }
 
 export default function ExpenseApprovalsPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const addToast = useToastStore((s) => s.addToast);
   const [groups, setGroups] = useState<PendingExpenseGroup[]>([]);
@@ -194,7 +198,7 @@ export default function ExpenseApprovalsPage() {
     if (ids.length === 0) return;
     try {
       await expenseService.approveExpenses(ids);
-      addToast(`${ids.length} despesa(s) aprovada(s) com sucesso.`, 'success');
+      addToast(t('expenses.expensesApproved', { count: ids.length }), 'success');
       setSelected(new Set());
       await loadData();
     } catch (err) {
@@ -206,7 +210,7 @@ export default function ExpenseApprovalsPage() {
     setActionLoading(true);
     try {
       await expenseService.approveExpenses(ids, updates);
-      addToast(`${ids.length} despesa(s) aprovada(s).`, 'success');
+      addToast(t('expenses.expensesApprovedSingle', { count: ids.length }), 'success');
       await loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -219,7 +223,7 @@ export default function ExpenseApprovalsPage() {
     setActionLoading(true);
     try {
       await expenseService.approveExpenses([id], updates);
-      addToast('Despesa aprovada.', 'success');
+      addToast(t('expenses.expenseApproved'), 'success');
       await loadData();
     } catch (err) {
       addToast(formatApiError(err), 'error');
@@ -233,7 +237,7 @@ export default function ExpenseApprovalsPage() {
     setActionLoading(true);
     try {
       await expenseService.rejectExpense(rejectingId, rejectComment);
-      addToast('Despesa rejeitada.', 'warning');
+      addToast(t('expenses.expenseRejected'), 'warning');
       setRejectingId(null);
       setRejectComment('');
       await loadData();
@@ -248,7 +252,7 @@ export default function ExpenseApprovalsPage() {
   const totalAmount = groups.reduce((sum, g) => sum + g.totalAmount, 0);
 
   return (
-    <SidebarLayout navItems={navItems} title="Aprov. Despesas">
+    <SidebarLayout navItems={navItems} title={t('expenses.approvals')}>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-2">
           <MonthNavigator
@@ -258,16 +262,16 @@ export default function ExpenseApprovalsPage() {
             onToday={goToToday}
           />
           <p className="text-sm text-text-muted">
-            {totalPending} despesa{totalPending !== 1 ? 's' : ''} pendente{totalPending !== 1 ? 's' : ''}
-            {totalPending > 0 && ` — Total: ${formatCurrency(totalAmount)}`}
+            {t('expenses.pendingExpenses', { count: totalPending })}
+            {totalPending > 0 && ` — ${t('common.total')}: ${formatCurrency(totalAmount)}`}
           </p>
         </div>
         <div className="flex gap-3 items-end">
           <div className="w-56">
             <Select
-              label="Filtrar consultor"
+              label={t('expenses.filterConsultant')}
               options={[
-                { value: '', label: 'Todos os consultores' },
+                { value: '', label: t('common.allConsultants') },
                 ...consultantOptions,
               ]}
               value={filterConsultant}
@@ -277,7 +281,7 @@ export default function ExpenseApprovalsPage() {
           {selected.size > 0 && (
             <Button onClick={handleBatchApprove} size="sm">
               <CheckCheck size={15} className="mr-1.5" />
-              Aprovar {selected.size} semana{selected.size !== 1 ? 's' : ''}
+              {t('expenses.approveWeeks', { count: selected.size })}
             </Button>
           )}
         </div>
@@ -298,9 +302,9 @@ export default function ExpenseApprovalsPage() {
       ) : groups.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
           <CheckCheck size={40} className="text-accent mb-3" />
-          <p className="text-text-secondary font-medium">Nenhuma despesa pendente</p>
+          <p className="text-text-secondary font-medium">{t('expenses.noPendingExpenses')}</p>
           <p className="text-text-muted text-sm mt-1">
-            Todas as despesas foram processadas.
+            {t('expenses.allProcessed')}
           </p>
         </div>
       ) : (
@@ -313,7 +317,7 @@ export default function ExpenseApprovalsPage() {
                 onChange={toggleSelectAll}
                 className="h-4 w-4 rounded border-border text-accent focus:ring-accent bg-surface-2"
               />
-              <span className="text-xs text-text-muted">Selecionar tudo</span>
+              <span className="text-xs text-text-muted">{t('expenses.selectAll')}</span>
             </div>
           )}
 
@@ -361,7 +365,7 @@ export default function ExpenseApprovalsPage() {
                 <div className="flex items-center gap-3 shrink-0">
                   <Badge variant="warning">{formatCurrency(group.totalAmount)}</Badge>
                   <span className="text-xs text-text-muted">
-                    {group.expenses.length} item{group.expenses.length !== 1 ? 's' : ''}
+                    {t('expenses.itemCount', { count: group.expenses.length })}
                   </span>
                 </div>
               </div>
@@ -390,35 +394,35 @@ export default function ExpenseApprovalsPage() {
       <Modal
         isOpen={!!rejectingId}
         onClose={() => setRejectingId(null)}
-        title="Rejeitar Despesa"
+        title={t('expenses.rejectExpense')}
       >
         <div className="space-y-4">
           <p className="text-sm text-text-secondary">
-            Informe o motivo da rejeição. O consultor será notificado e poderá corrigir a despesa.
+            {t('expenses.rejectReason')}
           </p>
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-text-tertiary">
-              Motivo
+              {t('expenses.reason')}
             </label>
             <textarea
               value={rejectComment}
               onChange={(e) => setRejectComment(e.target.value)}
               rows={3}
               maxLength={500}
-              placeholder="Descreva o motivo da rejeição..."
+              placeholder={t('expenses.rejectPlaceholder')}
               className="block w-full rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
             />
           </div>
           <div className="modal-actions">
             <Button variant="secondary" type="button" onClick={() => setRejectingId(null)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               variant="danger"
               onClick={handleReject}
               disabled={actionLoading || !rejectComment.trim()}
             >
-              <MessageSquare size={15} className="mr-1.5" /> Rejeitar
+              <MessageSquare size={15} className="mr-1.5" /> {t('expenses.reject')}
             </Button>
           </div>
         </div>
@@ -438,6 +442,7 @@ interface ExpenseGroupDetailProps {
 }
 
 function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, loading }: ExpenseGroupDetailProps) {
+  const { t } = useTranslation();
   const sorted = [...expenses].sort((a, b) => a.date.localeCompare(b.date));
   const total = sorted.reduce((sum, e) => sum + Number(e.amount), 0);
 
@@ -479,14 +484,14 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>Data</TableHeader>
-              <TableHeader>Projeto</TableHeader>
-              <TableHeader>Categoria</TableHeader>
-              <TableHeader className="text-right">Valor</TableHeader>
-              <TableHeader className="text-right">Valor Aprovado</TableHeader>
-              <TableHeader>Descrição</TableHeader>
-              <TableHeader>Comprov.</TableHeader>
-              <TableHeader className="w-24">Ações</TableHeader>
+              <TableHeader>{t('expenses.tableDate')}</TableHeader>
+              <TableHeader>{t('expenses.tableProject')}</TableHeader>
+              <TableHeader>{t('expenses.tableCategory')}</TableHeader>
+              <TableHeader className="text-right">{t('expenses.tableValue')}</TableHeader>
+              <TableHeader className="text-right">{t('expenses.tableApprovedAmount')}</TableHeader>
+              <TableHeader>{t('expenses.tableDescription')}</TableHeader>
+              <TableHeader>{t('expenses.tableReceipt')}</TableHeader>
+              <TableHeader className="w-24">{t('expenses.tableActions')}</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -505,7 +510,7 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
                   <div>{expense.categoryName || '—'}</div>
                   {expense.categoryMaxAmount != null && Number(expense.categoryMaxAmount) > 0 && (
                     <div className={`text-xs ${Number(expense.amount) > Number(expense.categoryMaxAmount) ? 'text-danger font-medium' : 'text-text-muted'}`}>
-                      Limite: {formatCurrency(expense.categoryMaxAmount)}
+                      {t('expenses.limit')}: {formatCurrency(expense.categoryMaxAmount)}
                     </div>
                   )}
                 </TableCell>
@@ -543,7 +548,7 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
                       onClick={() => handleApproveOneWithOverride(expense)}
                       disabled={loading}
                       className="rounded-md p-1.5 text-accent hover:bg-success-muted transition-colors disabled:opacity-50"
-                      title="Aprovar"
+                      title={t('expenses.approve')}
                     >
                       <CheckCheck size={15} />
                     </button>
@@ -551,7 +556,7 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
                       onClick={() => onReject(expense.id)}
                       disabled={loading}
                       className="rounded-md p-1.5 text-danger hover:bg-danger-muted transition-colors disabled:opacity-50"
-                      title="Rejeitar"
+                      title={t('expenses.reject')}
                     >
                       <MessageSquare size={15} />
                     </button>
@@ -565,10 +570,10 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
 
       <div className="flex items-center justify-between pt-2">
         <span className="text-sm text-text-secondary">
-          Total:{' '}
+          {t('expenses.totalLabel')}{' '}
           <span className="font-semibold text-text-primary">{formatCurrency(total)}</span>
           {' \u00b7 '}
-          {sorted.length} despesa{sorted.length !== 1 ? 's' : ''}
+          {t('expenses.expenseCount', { count: sorted.length })}
         </span>
         <Button onClick={() => {
           const updates: Record<string, { approvedAmount: string }> = {};
@@ -581,7 +586,7 @@ function ExpenseGroupDetail({ expenses, onApproveAll, onApproveOne, onReject, lo
           }
           onApproveAll(sorted.map(e => e.id), Object.keys(updates).length > 0 ? updates : undefined);
         }} disabled={loading} size="sm">
-          <CheckCheck size={15} className="mr-1.5" /> Aprovar Tudo
+          <CheckCheck size={15} className="mr-1.5" /> {t('expenses.approveAll')}
         </Button>
       </div>
     </div>

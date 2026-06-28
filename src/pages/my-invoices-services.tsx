@@ -12,12 +12,12 @@ import { useToastStore } from '../stores/toast.store';
 import { useNavItems } from '../hooks/use-nav-items';
 import type { Invoice, InvoiceLine } from '../types/financial.types';
 import type { PaginationMeta } from '../types/pagination.types';
+import { useTranslation } from 'react-i18next';
 import { INVOICE_STATUS_MAP } from '../constants/invoice-status';
-import { formatCurrency } from '../utils/formatters';
-
-const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+import { formatCurrency, getShortMonthName } from '../utils/formatters';
 
 export default function MyInvoicesServicesPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const addToast = useToastStore((s) => s.addToast);
 
@@ -89,7 +89,7 @@ export default function MyInvoicesServicesPage() {
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
             <FileText size={40} className="text-accent mb-3" />
-            <p className="text-text-secondary font-medium">Nenhuma fatura encontrada</p>
+            <p className="text-text-secondary font-medium">{t('invoices.noInvoicesFound')}</p>
           </div>
         ) : (
           <>
@@ -99,9 +99,9 @@ export default function MyInvoicesServicesPage() {
                   <TableRow>
                     <TableHeader className="w-8" />
                     <TableHeader>Nº</TableHeader>
-                    <TableHeader>Projeto</TableHeader>
-                    <TableHeader>Mês/Ano</TableHeader>
-                    <TableHeader>Status</TableHeader>
+                    <TableHeader>{t('common.project')}</TableHeader>
+                    <TableHeader>{t('payments.monthYear')}</TableHeader>
+                    <TableHeader>{t('common.status')}</TableHeader>
                     <TableHeader className="text-right">Total Horas</TableHeader>
                     <TableHeader className="text-right">Total Valor</TableHeader>
                     <TableHeader className="w-20">PDF</TableHeader>
@@ -119,8 +119,8 @@ export default function MyInvoicesServicesPage() {
                           </TableCell>
                           <TableCell className="font-mono text-sm">{invoice.invoiceNumber}</TableCell>
                           <TableCell><span className="font-medium text-sm">{invoice.projectName}</span></TableCell>
-                          <TableCell>{MONTH_NAMES[invoice.month - 1]}/{invoice.year}</TableCell>
-                          <TableCell><Badge variant={status.variant}>{status.label}</Badge></TableCell>
+                          <TableCell>{getShortMonthName(invoice.month - 1)}/{invoice.year}</TableCell>
+                          <TableCell><Badge variant={status.variant}>{t(status.label)}</Badge></TableCell>
                           <TableCell className="text-right font-mono">{Number(invoice.totalHours).toFixed(2)}</TableCell>
                           <TableCell className="text-right font-mono">{formatCurrency(invoice.totalAmount)}</TableCell>
                           <TableCell>
@@ -140,7 +140,7 @@ export default function MyInvoicesServicesPage() {
                                 <Table>
                                   <TableHead>
                                     <TableRow>
-                                      <TableHeader>Consultor</TableHeader>
+                                      <TableHeader>{t('invoices.consultantColumn')}</TableHeader>
                                       <TableHeader className="text-right">Horas</TableHeader>
                                       <TableHeader className="text-right">Rate</TableHeader>
                                       <TableHeader className="text-right">Subtotal</TableHeader>

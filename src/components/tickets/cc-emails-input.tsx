@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { listUsers } from '../../services/admin.service';
 
@@ -18,6 +19,7 @@ interface Suggestion {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function CcEmailsInput({ value, onChange, disabled, maxEmails = 10 }: CcEmailsInputProps) {
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -134,7 +136,7 @@ export function CcEmailsInput({ value, onChange, disabled, maxEmails = 10 }: CcE
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
             onFocus={() => input.length >= 2 && suggestions.length > 0 && setShowDropdown(true)}
-            placeholder={value.length === 0 ? 'Digite e-mails...' : ''}
+            placeholder={value.length === 0 ? t('tickets.typeEmail') : ''}
             className="flex-1 min-w-[120px] bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
           />
         )}

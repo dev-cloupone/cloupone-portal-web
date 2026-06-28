@@ -12,10 +12,12 @@ import { useToastStore } from '../stores/toast.store';
 import { useNavItems } from '../hooks/use-nav-items';
 import type { ExpenseInvoice, ExpenseInvoiceItem } from '../types/financial.types';
 import type { PaginationMeta } from '../types/pagination.types';
+import { useTranslation } from 'react-i18next';
 import { INVOICE_STATUS_MAP } from '../constants/invoice-status';
 import { formatCurrency, formatDate } from '../utils/formatters';
 
 export default function MyInvoicesExpensesPage() {
+  const { t } = useTranslation();
   const navItems = useNavItems();
   const addToast = useToastStore((s) => s.addToast);
 
@@ -87,7 +89,7 @@ export default function MyInvoicesExpensesPage() {
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-1 py-16">
             <Receipt size={40} className="text-accent mb-3" />
-            <p className="text-text-secondary font-medium">Nenhuma fatura encontrada</p>
+            <p className="text-text-secondary font-medium">{t('invoices.noInvoicesFound')}</p>
           </div>
         ) : (
           <>
@@ -97,9 +99,9 @@ export default function MyInvoicesExpensesPage() {
                   <TableRow>
                     <TableHeader className="w-8" />
                     <TableHeader>Nº</TableHeader>
-                    <TableHeader>Projeto</TableHeader>
-                    <TableHeader>Período</TableHeader>
-                    <TableHeader>Status</TableHeader>
+                    <TableHeader>{t('common.project')}</TableHeader>
+                    <TableHeader>{t('common.period')}</TableHeader>
+                    <TableHeader>{t('common.status')}</TableHeader>
                     <TableHeader className="text-right">Total Valor</TableHeader>
                     <TableHeader className="w-20">PDF</TableHeader>
                   </TableRow>
@@ -119,7 +121,7 @@ export default function MyInvoicesExpensesPage() {
                           <TableCell className="whitespace-nowrap">
                             {formatDate(invoice.periodStart)} — {formatDate(invoice.periodEnd)}
                           </TableCell>
-                          <TableCell><Badge variant={status.variant}>{status.label}</Badge></TableCell>
+                          <TableCell><Badge variant={status.variant}>{t(status.label)}</Badge></TableCell>
                           <TableCell className="text-right font-mono">{formatCurrency(invoice.totalAmount)}</TableCell>
                           <TableCell>
                             <Button
@@ -138,7 +140,7 @@ export default function MyInvoicesExpensesPage() {
                                 <Table>
                                   <TableHead>
                                     <TableRow>
-                                      <TableHeader>Descrição</TableHeader>
+                                      <TableHeader>{t('common.description')}</TableHeader>
                                       <TableHeader className="text-right">Valor Cobrado</TableHeader>
                                     </TableRow>
                                   </TableHead>

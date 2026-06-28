@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { AuthLayout } from '../components/ui/auth-layout';
@@ -8,6 +9,7 @@ import { formatApiError } from '../services/api';
 import { MSG } from '../constants/messages';
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
@@ -23,10 +25,10 @@ export default function ResetPasswordPage() {
           <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-danger/10 border border-danger/20">
             <div className="h-3 w-3 rounded-full bg-danger" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Link Inválido</h2>
-          <p className="text-sm text-text-tertiary">Este link de redefinição de senha é inválido.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('auth.invalidLink')}</h2>
+          <p className="text-sm text-text-tertiary">{t('auth.invalidLinkMessage')}</p>
           <Button variant="secondary" onClick={() => navigate('/forgot-password')}>
-            Solicitar novo link
+            {t('auth.requestNewLink')}
           </Button>
         </div>
       </AuthLayout>
@@ -38,12 +40,12 @@ export default function ResetPasswordPage() {
     setError('');
 
     if (password.length < 8) {
-      setError(MSG.PASSWORD_MIN_LENGTH);
+      setError(MSG.PASSWORD_MIN_LENGTH());
       return;
     }
 
     if (password !== confirmPassword) {
-      setError(MSG.PASSWORDS_DONT_MATCH);
+      setError(MSG.PASSWORDS_DONT_MATCH());
       return;
     }
 
@@ -53,7 +55,7 @@ export default function ResetPasswordPage() {
       setIsSuccess(true);
     } catch (err) {
       if (err instanceof Error && err.message.includes('fetch')) {
-        setError(MSG.CONNECTION_ERROR);
+        setError(MSG.CONNECTION_ERROR());
       } else {
         setError(formatApiError(err));
       }
@@ -69,10 +71,10 @@ export default function ResetPasswordPage() {
           <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 border border-accent/20">
             <div className="h-3 w-3 rounded-full bg-accent shadow-[0_0_12px_rgba(59,130,246,0.5)]" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Senha Redefinida</h2>
-          <p className="text-sm text-text-tertiary">{MSG.RESET_PASSWORD_SUCCESS}</p>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary">{t('auth.passwordResetTitle')}</h2>
+          <p className="text-sm text-text-tertiary">{MSG.RESET_PASSWORD_SUCCESS()}</p>
           <Button onClick={() => navigate('/login', { state: { passwordReset: true } })}>
-            Ir para Login
+            {t('auth.goToLogin')}
           </Button>
         </div>
       </AuthLayout>
@@ -80,25 +82,25 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <AuthLayout subtitle="Crie sua nova senha">
+    <AuthLayout subtitle={t('auth.createNewPassword')}>
       <form onSubmit={handleSubmit} className="space-y-5">
         <Input
-          label="Nova Senha"
+          label={t('auth.newPassword')}
           type="password"
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Minimo 8 caracteres"
+          placeholder={t('auth.minChars')}
           required
         />
 
         <Input
-          label="Confirmar Nova Senha"
+          label={t('auth.confirmNewPassword')}
           type="password"
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Repita a nova senha"
+          placeholder={t('auth.repeatNewPassword')}
           required
         />
 
@@ -109,13 +111,13 @@ export default function ResetPasswordPage() {
         )}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? 'Redefinindo...' : 'Redefinir Senha'}
+          {isSubmitting ? t('auth.resetting') : t('auth.resetPassword')}
         </Button>
       </form>
 
       <p className="mt-5 text-center text-sm text-text-muted">
         <Link to="/login" className="text-text-tertiary hover:text-text-secondary transition-colors">
-          Voltar para Login
+          {t('auth.backToLogin')}
         </Link>
       </p>
     </AuthLayout>

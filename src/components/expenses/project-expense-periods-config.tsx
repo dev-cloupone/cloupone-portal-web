@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { CalendarPlus, Lock, LockOpen, Pencil, Tags } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -8,17 +9,18 @@ import { Badge } from '../ui/badge';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../ui/table';
 import * as periodService from '../../services/project-expense-period.service';
 import { formatApiError } from '../../services/api';
+import { useLocaleStore } from '../../stores/locale.store';
 import type { ProjectExpensePeriod } from '../../types/expense.types';
 
 interface Props {
   projectId: string;
 }
 
-const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+// DAY_LABELS is defined inside the component to use t()
 
 function formatDateBR(dateStr: string) {
   const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return d.toLocaleDateString(useLocaleStore.getState().locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function getSundayOfWeek(dateStr: string): string {
@@ -40,7 +42,17 @@ function getWeekDays(weekStart: string): string[] {
 }
 
 export function ProjectExpensePeriodsConfig({ projectId }: Props) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const DAY_LABELS = [
+    t('timesheet.dayHeaders.sun'),
+    t('timesheet.dayHeaders.mon'),
+    t('timesheet.dayHeaders.tue'),
+    t('timesheet.dayHeaders.wed'),
+    t('timesheet.dayHeaders.thu'),
+    t('timesheet.dayHeaders.fri'),
+    t('timesheet.dayHeaders.sat'),
+  ];
   const [periods, setPeriods] = useState<ProjectExpensePeriod[]>([]);
   const [isOpenModalOpen, setIsOpenModalOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<ProjectExpensePeriod | null>(null);
@@ -56,7 +68,7 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
       const result = await periodService.listByProject(projectId);
       setPeriods(result.data);
     } catch {
-      setError('Erro ao carregar períodos');
+      setError(t('expenses.loadPeriodsError'));
     }
   }, [projectId]);
 
@@ -98,7 +110,7 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
   }
 
   async function handleClosePeriod(period: ProjectExpensePeriod) {
-    if (!confirm(`Fechar o período ${formatDateBR(period.weekStart)} — ${formatDateBR(period.weekEnd)}?`)) return;
+    if (!confirm(t('expenses.closePeriodConfirm', { start: formatDateBR(period.weekStart), end: formatDateBR(period.weekEnd) }))) return;
     try {
       await periodService.closePeriod(projectId, period.id);
       await loadData();
@@ -108,7 +120,7 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
   }
 
   async function handleReopenPeriod(period: ProjectExpensePeriod) {
-    if (!confirm(`Reabrir o período ${formatDateBR(period.weekStart)} — ${formatDateBR(period.weekEnd)}? Consultores poderão lançar despesas novamente.`)) return;
+    if (!confirm(t('expenses.reopenPeriodConfirm', { start: formatDateBR(period.weekStart), end: formatDateBR(period.weekEnd) }))) return;
     try {
       await periodService.reopenPeriod(projectId, period.id);
       await loadData();
@@ -151,13 +163,13 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-text-primary">Períodos Semanais</h3>
+        <h3 className="text-lg font-semibold text-text-primary">{t('expenses.weeklyPeriods')}</h3>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="secondary" onClick={() => navigate(`/admin/projects/${projectId}/expense-categories`)}>
-            <Tags size={14} className="mr-1.5" /> Categorias
+            <Tags size={14} className="mr-1.5" /> {t('expenses.categoriesButton')}
           </Button>
           <Button size="sm" onClick={openCreateModal}>
-            <CalendarPlus size={14} className="mr-1.5" /> Abrir Semana
+            <CalendarPlus size={14} className="mr-1.5" /> {t('expenses.openWeek')}
           </Button>
         </div>
       </div>
@@ -170,16 +182,16 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
 
       {periods.length === 0 ? (
         <p className="text-sm text-text-tertiary py-4 text-center">
-          Nenhum período criado. Abra uma semana para permitir lançamento de despesas.
+          {t('expenses.noPeriodsCreated')}
         </p>
       ) : (
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>Semana</TableHeader>
-              <TableHeader>Dias</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Ações</TableHeader>
+              <TableHeader>{t('expenses.tableWeek')}</TableHeader>
+              <TableHeader>{t('expenses.tableDays')}</TableHeader>
+              <TableHeader>{t('expenses.tableStatus')}</TableHeader>
+              <TableHeader>{t('expenses.tableActions')}</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -190,14 +202,14 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
                 </TableCell>
                 <TableCell>
                   {p.customDays ? (
-                    <span className="text-xs text-text-tertiary">{p.customDays.length} dias</span>
+                    <span className="text-xs text-text-tertiary">{t('expenses.daysCount', { count: p.customDays.length })}</span>
                   ) : (
-                    <span className="text-xs text-text-tertiary">7 dias</span>
+                    <span className="text-xs text-text-tertiary">{t('expenses.allDays')}</span>
                   )}
                 </TableCell>
                 <TableCell>
                   <Badge variant={p.status === 'open' ? 'success' : 'default'}>
-                    {p.status === 'open' ? 'Aberto' : 'Fechado'}
+                    {p.status === 'open' ? t('expenses.statusOpen') : t('expenses.statusClosed')}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -206,16 +218,16 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
                       <button
                         onClick={() => openEditModal(p)}
                         className="text-accent hover:text-accent/80 flex items-center gap-1 text-sm"
-                        title="Editar dias"
+                        title={t('expenses.editDays')}
                       >
-                        <Pencil size={14} /> Editar
+                        <Pencil size={14} /> {t('expenses.editDays')}
                       </button>
                       <button
                         onClick={() => handleClosePeriod(p)}
                         className="text-warning hover:text-warning/80 flex items-center gap-1 text-sm"
-                        title="Fechar período"
+                        title={t('expenses.closePeriod')}
                       >
-                        <Lock size={14} /> Fechar
+                        <Lock size={14} /> {t('expenses.closePeriod')}
                       </button>
                     </div>
                   )}
@@ -223,9 +235,9 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
                     <button
                       onClick={() => handleReopenPeriod(p)}
                       className="text-accent hover:text-accent/80 flex items-center gap-1 text-sm"
-                      title="Reabrir período"
+                      title={t('expenses.reopenPeriod')}
                     >
-                      <LockOpen size={14} /> Reabrir
+                      <LockOpen size={14} /> {t('expenses.reopenPeriod')}
                     </button>
                   )}
                 </TableCell>
@@ -236,10 +248,10 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
       )}
 
       {/* Open Period Modal */}
-      <Modal isOpen={isOpenModalOpen} onClose={() => { setIsOpenModalOpen(false); setError(''); }} title="Abrir Período Semanal">
+      <Modal isOpen={isOpenModalOpen} onClose={() => { setIsOpenModalOpen(false); setError(''); }} title={t('expenses.openWeeklyPeriod')}>
         <form onSubmit={handleOpenPeriod} className="space-y-4">
           <Input
-            label="Selecione uma data da semana"
+            label={t('expenses.selectWeekDate')}
             type="date"
             value={weekStartInput}
             onChange={(e) => {
@@ -250,7 +262,7 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
           />
           {resolvedWeekStart && (
             <p className="text-xs text-text-tertiary">
-              Semana: {formatDateBR(resolvedWeekStart)} (Dom) — {formatDateBR(weekDays[6])} (Sáb)
+              {t('expenses.weekRange', { start: formatDateBR(resolvedWeekStart), end: formatDateBR(weekDays[6]) })}
             </p>
           )}
 
@@ -263,7 +275,7 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
               className="rounded border-border"
             />
             <label htmlFor="useCustomDays" className="text-sm text-text-primary">
-              Selecionar dias específicos
+              {t('expenses.selectSpecificDays')}
             </label>
           </div>
 
@@ -288,22 +300,22 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
 
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => { setIsOpenModalOpen(false); setError(''); }}>Cancelar</Button>
-            <Button type="submit" disabled={!resolvedWeekStart}>Abrir Período</Button>
+            <Button variant="secondary" type="button" onClick={() => { setIsOpenModalOpen(false); setError(''); }}>{t('common.cancel')}</Button>
+            <Button type="submit" disabled={!resolvedWeekStart}>{t('expenses.openPeriod')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit Period Days Modal */}
-      <Modal isOpen={!!editingPeriod} onClose={() => { setEditingPeriod(null); setUseCustomDays(false); setSelectedDays(new Set()); setError(''); }} title="Editar Período Semanal">
+      <Modal isOpen={!!editingPeriod} onClose={() => { setEditingPeriod(null); setUseCustomDays(false); setSelectedDays(new Set()); setError(''); }} title={t('expenses.editWeeklyPeriod')}>
         <form onSubmit={handleUpdateDays} className="space-y-4">
           {editingPeriod && (
             <p className="text-xs text-text-tertiary">
-              Semana: {formatDateBR(editingPeriod.weekStart)} (Dom) — {formatDateBR(editingPeriod.weekEnd)} (Sáb)
+              {t('expenses.weekRange', { start: formatDateBR(editingPeriod.weekStart), end: formatDateBR(editingPeriod.weekEnd) })}
             </p>
           )}
 
-          <p className="text-sm text-text-primary">Selecione os dias abertos:</p>
+          <p className="text-sm text-text-primary">{t('expenses.selectOpenDays')}</p>
 
           {editWeekDays.length > 0 && (
             <div className="flex gap-2 flex-wrap">
@@ -326,8 +338,8 @@ export function ProjectExpensePeriodsConfig({ projectId }: Props) {
 
           {error && <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2"><p className="text-xs text-danger whitespace-pre-line">{error}</p></div>}
           <div className="modal-actions">
-            <Button variant="secondary" type="button" onClick={() => { setEditingPeriod(null); setUseCustomDays(false); setSelectedDays(new Set()); setError(''); }}>Cancelar</Button>
-            <Button type="submit" disabled={selectedDays.size === 0}>Salvar Alterações</Button>
+            <Button variant="secondary" type="button" onClick={() => { setEditingPeriod(null); setUseCustomDays(false); setSelectedDays(new Set()); setError(''); }}>{t('common.cancel')}</Button>
+            <Button type="submit" disabled={selectedDays.size === 0}>{t('expenses.saveChanges')}</Button>
           </div>
         </form>
       </Modal>
