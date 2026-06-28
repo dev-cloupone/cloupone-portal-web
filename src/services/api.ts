@@ -1,4 +1,5 @@
 import { MSG } from '../constants/messages';
+import i18n from '../i18n';
 
 function getBaseUrl(): string {
   const url = import.meta.env.VITE_API_URL;
@@ -195,9 +196,17 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
 }
 
 export function formatApiError(err: unknown): string {
-  const e = err as Error & { fields?: Array<{ field: string; message: string }> };
+  const e = err as Error & {
+    code?: string;
+    fields?: Array<{ field: string; message: string }>;
+  };
   if (e.fields?.length) {
     return e.fields.map((f) => f.message).join('\n');
+  }
+  if (e.code) {
+    const key = `apiErrors.${e.code}`;
+    const translated = i18n.t(key);
+    if (translated !== key) return translated;
   }
   return e.message || MSG.UNEXPECTED_ERROR();
 }
