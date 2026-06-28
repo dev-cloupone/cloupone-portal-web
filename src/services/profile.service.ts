@@ -4,7 +4,7 @@ export async function getMe() {
   return api<{ user: Record<string, unknown> }>('/auth/me');
 }
 
-export async function updateMe(data: { name?: string; email?: string }) {
+export async function updateMe(data: { name?: string; email?: string; locale?: string }) {
   return api<{ user: Record<string, unknown> }>('/auth/me', {
     method: 'PATCH',
     body: JSON.stringify(data),

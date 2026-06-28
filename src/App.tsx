@@ -100,9 +100,11 @@ export default function App() {
   const initializeTheme = useThemeStore((s) => s.initialize);
 
   useEffect(() => {
-    void initialize();
+    void initialize().then(() => {
+      const user = useAuthStore.getState().user;
+      useLocaleStore.getState().initialize(user?.locale);
+    });
     initializeTheme();
-    useLocaleStore.getState().initialize();
   }, [initialize, initializeTheme]);
 
   return (
