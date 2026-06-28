@@ -86,10 +86,6 @@ const InvoiceExpensesDetailPage = lazy(() => import('./pages/financial/invoice-e
 const MyPaymentsHoursPage = lazy(() => import('./pages/my-payments-hours'));
 const MyPaymentsExpensesPage = lazy(() => import('./pages/my-payments-expenses'));
 
-// My Invoices (client)
-const MyInvoicesServicesPage = lazy(() => import('./pages/my-invoices-services'));
-const MyInvoicesExpensesPage = lazy(() => import('./pages/my-invoices-expenses'));
-
 // Tickets (all authenticated roles)
 const TicketsPage = lazy(() => import('./pages/tickets'));
 const TicketNewPage = lazy(() => import('./pages/ticket-new'));
@@ -323,28 +319,6 @@ export default function App() {
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['consultor', 'gestor']}>
                   <MyPaymentsExpensesPage />
-                </RoleGuard>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* My Invoices (client) */}
-          <Route
-            path="/my-invoices/services"
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['client']}>
-                  <MyInvoicesServicesPage />
-                </RoleGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-invoices/expenses"
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['client']}>
-                  <MyInvoicesExpensesPage />
                 </RoleGuard>
               </ProtectedRoute>
             }

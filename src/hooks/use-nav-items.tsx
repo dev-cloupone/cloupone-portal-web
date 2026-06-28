@@ -141,8 +141,6 @@ export function useNavItems(): NavEntry[] {
 
   return [
     { label: t('nav.items.support'), path: '/tickets', icon: <Headset size={18} /> },
-    { label: t('nav.items.serviceInvoices'), path: '/my-invoices/services', icon: <FileText size={18} /> },
-    { label: t('nav.items.expenseInvoices'), path: '/my-invoices/expenses', icon: <Receipt size={18} /> },
     { label: t('nav.items.profile'), path: '/profile', icon: <User size={18} /> },
   ];
 }
