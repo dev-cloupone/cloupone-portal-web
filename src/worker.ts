@@ -1,6 +1,5 @@
 interface Env {
   ASSETS: Fetcher;
-  RATE_LIMITER: RateLimit;
 }
 
 const BLOCKED_TLS = new Set(["TLSv1", "TLSv1.1"]);
@@ -62,21 +61,6 @@ export default {
         status: 403,
         headers: { "Content-Type": "text/plain" },
       });
-    }
-
-    // Rate limiting — only for non-asset requests (HTML pages / SPA routes)
-    if (!ASSET_EXTENSION_REGEX.test(url.pathname)) {
-      const clientIP = request.headers.get("CF-Connecting-IP") ?? "unknown";
-      const { success } = await env.RATE_LIMITER.limit({ key: clientIP });
-      if (!success) {
-        return new Response("Too many requests", {
-          status: 429,
-          headers: {
-            "Content-Type": "text/plain",
-            "Retry-After": "60",
-          },
-        });
-      }
     }
 
     // Fetch asset from the static assets binding
