@@ -247,7 +247,16 @@ export default function PaymentHoursDetailPage() {
           <h2 className="text-2xl font-bold tracking-tight text-text-primary">
             {payment.consultantName}
             <span className="mx-2 text-text-muted">—</span>
-            <span className="font-mono">{getShortMonthName(payment.month - 1)}/{payment.year}</span>
+            <span className="inline-flex flex-col gap-0.5 align-middle">
+              <span className="flex items-center gap-1.5">
+                <span className="text-sm text-text-secondary">Referencia:</span>
+                <span className="font-mono">{getShortMonthName(payment.month - 1)}/{payment.year}</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="text-sm text-text-secondary">Pagamento:</span>
+                <span className="font-mono text-lg font-semibold">{getShortMonthName(payment.billingMonth - 1)}/{payment.billingYear}</span>
+              </span>
+            </span>
           </h2>
           <Badge variant={status.variant}>{t(status.label)}</Badge>
         </div>

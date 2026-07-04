@@ -18,6 +18,8 @@ export interface ConsultantPayment {
   consultantName: string;
   year: number;
   month: number;
+  billingYear: number;
+  billingMonth: number;
   status: ConsultantPaymentStatus;
   totalHours: string;
   totalAmount: string;
@@ -102,6 +104,8 @@ export interface Invoice {
   projectName: string;
   year: number;
   month: number;
+  billingYear: number;
+  billingMonth: number;
   status: InvoiceStatus;
   invoiceType: InvoiceType;
   totalHours: string;

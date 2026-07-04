@@ -26,10 +26,9 @@ const STATUS_MAP: Record<string, { variant: 'default' | 'success' | 'warning' | 
   cancelled: { variant: 'danger', label: 'payments.statusCancelled' },
 };
 
-function getLastMonth(): string {
+function getCurrentMonth(): string {
   const now = new Date();
-  const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function parseMonth(m: string): { year: number; month: number } {
@@ -49,7 +48,7 @@ export default function PaymentHoursListPage() {
   const [error, setError] = useState('');
 
   // Month navigation
-  const [currentMonth, setCurrentMonth] = useState(getLastMonth);
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth);
 
   // Pending warning
   const [pendingWarning, setPendingWarning] = useState<{ count: number; consultants: string[] } | null>(null);
@@ -80,7 +79,7 @@ export default function PaymentHoursListPage() {
   }
 
   function goToToday() {
-    setCurrentMonth(getLastMonth());
+    setCurrentMonth(getCurrentMonth());
   }
 
   const loadData = useCallback(async () => {
@@ -248,7 +247,7 @@ export default function PaymentHoursListPage() {
                           <span className="font-medium text-sm">{payment.consultantName}</span>
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {getShortMonthName(payment.month - 1)}/{payment.year}
+                          {getShortMonthName(payment.billingMonth - 1)}/{payment.billingYear}
                         </TableCell>
                         <TableCell className="text-right font-mono whitespace-nowrap">
                           {Number(payment.totalHours).toFixed(2)}

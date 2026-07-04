@@ -20,10 +20,9 @@ import { useTranslation } from 'react-i18next';
 import { INVOICE_STATUS_MAP } from '../../constants/invoice-status';
 import { formatCurrency, getShortMonthName } from '../../utils/formatters';
 
-function getLastMonth(): string {
+function getCurrentMonth(): string {
   const now = new Date();
-  const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function parseMonth(m: string): { year: number; month: number } {
@@ -42,7 +41,7 @@ export default function InvoiceServicesListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [currentMonth, setCurrentMonth] = useState(getLastMonth);
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth);
   const [pendingWarning, setPendingWarning] = useState<{ count: number; consultants: string[] } | null>(null);
   const [warningDismissed, setWarningDismissed] = useState(false);
   const [installmentWarning, setInstallmentWarning] = useState<{ count: number; projects: { projectId: string; projectName: string; count: number }[] } | null>(null);
@@ -72,7 +71,7 @@ export default function InvoiceServicesListPage() {
   }
 
   function goToDefault() {
-    setCurrentMonth(getLastMonth());
+    setCurrentMonth(getCurrentMonth());
   }
 
   const loadData = useCallback(async () => {
@@ -286,7 +285,7 @@ export default function InvoiceServicesListPage() {
                         </TableCell>
                         <TableCell className="text-sm">{invoice.clientName}</TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {getShortMonthName(invoice.month - 1)}/{invoice.year}
+                          {getShortMonthName(invoice.billingMonth - 1)}/{invoice.billingYear}
                         </TableCell>
                         <TableCell className="text-right font-mono whitespace-nowrap">
                           {invoice.invoiceType === 'fixed_price' ? '—' : Number(invoice.totalHours).toFixed(2)}
