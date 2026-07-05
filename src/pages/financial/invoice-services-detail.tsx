@@ -358,7 +358,16 @@ export default function InvoiceServicesDetailPage() {
             <span className="mx-2 text-text-muted">—</span>
             <span className="text-lg">{invoice.projectName}</span>
             <span className="mx-2 text-text-muted">—</span>
-            <span className="font-mono text-lg">{getShortMonthName(invoice.month - 1)}/{invoice.year}</span>
+            <span className="inline-flex flex-col gap-0.5 align-middle">
+              <span className="flex items-center gap-1.5">
+                <span className="text-sm text-text-secondary">Referencia:</span>
+                <span className="font-mono">{getShortMonthName(invoice.month - 1)}/{invoice.year}</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="text-sm text-text-secondary">Cobranca:</span>
+                <span className="font-mono text-lg font-semibold">{getShortMonthName(invoice.billingMonth - 1)}/{invoice.billingYear}</span>
+              </span>
+            </span>
           </h2>
           <Badge variant={status.variant}>{t(status.label)}</Badge>
         </div>

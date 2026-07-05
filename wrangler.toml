@@ -10,14 +10,6 @@ directory = "./dist"
 not_found_handling = "single-page-application"
 binding = "ASSETS"
 
-[[ratelimits]]
-name = "RATE_LIMITER"
-namespace_id = "1001"
-
-[ratelimits.simple]
-limit = 200
-period = 60
-
 # --- Dev environment ---
 
 [env.dev]
@@ -28,10 +20,3 @@ directory = "./dist"
 not_found_handling = "single-page-application"
 binding = "ASSETS"
 
-[[env.dev.ratelimits]]
-name = "RATE_LIMITER"
-namespace_id = "1002"
-
-[env.dev.ratelimits.simple]
-limit = 200
-period = 60
