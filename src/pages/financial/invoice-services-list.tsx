@@ -105,7 +105,10 @@ export default function InvoiceServicesListPage() {
     const { year, month } = parseMonth(currentMonth);
     setWarningDismissed(false);
     setInstallmentWarningDismissed(false);
-    invoiceService.getPendingApprovals(year, month)
+    // Pending approvals are for the reference month (billing - 1)
+    const refMonth = month === 1 ? 12 : month - 1;
+    const refYear = month === 1 ? year - 1 : year;
+    invoiceService.getPendingApprovals(refYear, refMonth)
       .then((result) => setPendingWarning(result.count > 0 ? result : null))
       .catch(() => setPendingWarning(null));
     invoiceService.getPendingInstallments()

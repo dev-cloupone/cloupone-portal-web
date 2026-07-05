@@ -112,7 +112,10 @@ export default function PaymentHoursListPage() {
   useEffect(() => {
     const { year, month } = parseMonth(currentMonth);
     setWarningDismissed(false);
-    paymentService.getPendingApprovals(year, month)
+    // Pending approvals are for the reference month (billing - 1)
+    const refMonth = month === 1 ? 12 : month - 1;
+    const refYear = month === 1 ? year - 1 : year;
+    paymentService.getPendingApprovals(refYear, refMonth)
       .then((result) => setPendingWarning(result.count > 0 ? result : null))
       .catch(() => setPendingWarning(null));
   }, [currentMonth]);
