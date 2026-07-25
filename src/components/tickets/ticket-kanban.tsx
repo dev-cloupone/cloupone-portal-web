@@ -39,18 +39,40 @@ const KANBAN_COLUMNS: TicketStatus[] = [
   'finished',
 ];
 
+const FINISHED_DAYS_KEY = 'cloupone_kanban_finished_days';
+const FINISHED_DAYS_OPTIONS = [7, 15, 30] as const;
+type FinishedDays = (typeof FINISHED_DAYS_OPTIONS)[number];
+
+function getInitialFinishedDays(): FinishedDays {
+  try {
+    const saved = Number(localStorage.getItem(FINISHED_DAYS_KEY));
+    if (FINISHED_DAYS_OPTIONS.includes(saved as FinishedDays)) return saved as FinishedDays;
+  } catch { /* ignore */ }
+  return 7;
+}
+
 interface TicketKanbanProps {
   filters: TicketFilterValues;
   projects: { id: string; name: string }[];
   onTicketUpdated: () => void;
+  onViewAllFinished?: () => void;
 }
 
-export function TicketKanban({ filters, onTicketUpdated }: TicketKanbanProps) {
+export function TicketKanban({ filters, onTicketUpdated, onViewAllFinished }: TicketKanbanProps) {
   const { t } = useTranslation();
   const addToast = useToastStore((s) => s.addToast);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
+  const [finishedDays, setFinishedDays] = useState<FinishedDays>(getInitialFinishedDays);
+  const [totalFinished, setTotalFinished] = useState(0);
+
+  function handleFinishedDaysChange(days: FinishedDays) {
+    setFinishedDays(days);
+    try {
+      localStorage.setItem(FINISHED_DAYS_KEY, String(days));
+    } catch { /* ignore */ }
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -60,24 +82,42 @@ export function TicketKanban({ filters, onTicketUpdated }: TicketKanbanProps) {
   const loadTickets = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await ticketService.list({
-        limit: 100,
+      const finishedAfterDate = new Date();
+      finishedAfterDate.setDate(finishedAfterDate.getDate() - finishedDays);
+
+      const commonParams = {
         projectId: filters.projectId || undefined,
-        status: filters.status && filters.status !== 'active' && filters.status !== 'all' ? filters.status : undefined,
         type: (filters.type as Ticket['type']) || undefined,
         priority: (filters.priority as Ticket['priority']) || undefined,
         search: filters.search || undefined,
         assignedTo: filters.assignedTo || undefined,
-        sort: 'updated_at',
-        order: 'desc',
-      });
+      };
+
+      const [result, finishedCountResult] = await Promise.all([
+        ticketService.list({
+          ...commonParams,
+          limit: 100,
+          status: filters.status && filters.status !== 'active' && filters.status !== 'all' ? filters.status : undefined,
+          sort: 'updated_at',
+          order: 'desc',
+          finishedAfter: finishedAfterDate.toISOString(),
+        }),
+        ticketService.list({
+          ...commonParams,
+          status: 'finished',
+          limit: 1,
+          page: 1,
+        }),
+      ]);
+
       setTickets(result.data);
+      setTotalFinished(finishedCountResult.meta.total);
     } catch (err) {
       addToast(formatApiError(err), 'error');
     } finally {
       setLoading(false);
     }
-  }, [filters, addToast]);
+  }, [filters, finishedDays, addToast]);
 
   useEffect(() => {
     loadTickets();
@@ -181,6 +221,12 @@ export function TicketKanban({ filters, onTicketUpdated }: TicketKanbanProps) {
               key={status}
               status={status}
               tickets={columnTickets}
+              {...(status === 'finished' ? {
+                finishedDays,
+                onFinishedDaysChange: handleFinishedDaysChange,
+                hiddenFinishedCount: Math.max(0, totalFinished - columnTickets.length),
+                onViewAllFinished,
+              } : {})}
             />
           );
         })}
@@ -196,9 +242,13 @@ export function TicketKanban({ filters, onTicketUpdated }: TicketKanbanProps) {
 interface KanbanColumnProps {
   status: TicketStatus;
   tickets: Ticket[];
+  finishedDays?: FinishedDays;
+  onFinishedDaysChange?: (days: FinishedDays) => void;
+  hiddenFinishedCount?: number;
+  onViewAllFinished?: () => void;
 }
 
-function KanbanColumn({ status, tickets }: KanbanColumnProps) {
+function KanbanColumn({ status, tickets, finishedDays, onFinishedDaysChange, hiddenFinishedCount, onViewAllFinished }: KanbanColumnProps) {
   const { t } = useTranslation();
   const ticketIds = useMemo(() => tickets.map((tk) => tk.id), [tickets]);
   const { setNodeRef, isOver } = useDroppable({ id: status });
@@ -209,9 +259,23 @@ function KanbanColumn({ status, tickets }: KanbanColumnProps) {
         <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
           {t(TICKET_STATUS_LABELS[status])}
         </span>
-        <span className="text-[11px] font-medium text-text-muted bg-surface-3 rounded-full px-2 py-0.5">
-          {tickets.length}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {finishedDays != null && onFinishedDaysChange && (
+            <select
+              value={finishedDays}
+              onChange={(e) => onFinishedDaysChange(Number(e.target.value) as FinishedDays)}
+              className="text-[11px] bg-surface-3 border-none rounded px-1.5 py-0.5 text-text-secondary cursor-pointer focus:outline-none focus:ring-1 focus:ring-accent"
+              data-testid="finished-days-select"
+            >
+              {FINISHED_DAYS_OPTIONS.map((d) => (
+                <option key={d} value={d}>{t('tickets.lastNDays', { n: d })}</option>
+              ))}
+            </select>
+          )}
+          <span className="text-[11px] font-medium text-text-muted bg-surface-3 rounded-full px-2 py-0.5">
+            {tickets.length}
+          </span>
+        </div>
       </div>
 
       <SortableContext items={ticketIds} strategy={verticalListSortingStrategy} id={status}>
@@ -233,6 +297,17 @@ function KanbanColumn({ status, tickets }: KanbanColumnProps) {
           )}
         </div>
       </SortableContext>
+
+      {hiddenFinishedCount != null && hiddenFinishedCount > 0 && (
+        <button
+          type="button"
+          onClick={onViewAllFinished}
+          className="mt-2 w-full text-center text-xs text-accent hover:underline py-1"
+          data-testid="view-all-finished"
+        >
+          {t('tickets.olderFinished', { count: hiddenFinishedCount })} — {t('tickets.viewAll')}
+        </button>
+      )}
     </div>
   );
 }
