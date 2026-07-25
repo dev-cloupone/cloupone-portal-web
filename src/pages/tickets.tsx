@@ -136,6 +136,12 @@ export default function TicketsPage() {
     loadTickets();
   }
 
+  function handleViewAllFinished() {
+    setFilters({ ...filters, status: 'finished' });
+    handleViewModeChange('list');
+    resetPage();
+  }
+
   const isInternalUser = user?.role !== 'client';
   const effectiveViewMode: ViewMode = isInternalUser ? viewMode : 'list';
 
@@ -251,6 +257,7 @@ export default function TicketsPage() {
           filters={filters}
           projects={projects}
           onTicketUpdated={handleTicketUpdated}
+          onViewAllFinished={handleViewAllFinished}
         />
       )}
     </SidebarLayout>

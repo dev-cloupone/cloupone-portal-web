@@ -109,6 +109,7 @@ export interface ListTicketParams {
   order?: 'asc' | 'desc';
   page?: number;
   limit?: number;
+  finishedAfter?: string;
 }
 
 export const TICKET_TYPE_LABELS: Record<TicketType, string> = {
