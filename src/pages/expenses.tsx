@@ -69,8 +69,8 @@ export default function ExpensesPage() {
     loadTemplates();
     if (user) {
       if (user.role === 'super_admin') {
-        // Super admin sees all active projects
-        projectService.listProjects({ limit: 100 }).then((res) => {
+        // Super admin sees only active projects (finished projects are excluded)
+        projectService.listProjects({ limit: 100, status: 'active' }).then((res) => {
           setAllocatedProjects(res.data.map(p => ({
             projectId: p.id,
             projectName: p.name,
