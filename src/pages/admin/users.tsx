@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, UserX } from 'lucide-react';
+import { Plus, Pencil, UserX, Mail, KeyRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
@@ -388,17 +388,17 @@ export default function UsersPage() {
               <p className="text-xs text-danger whitespace-pre-line">{error}</p>
             </div>
           )}
+          {editingUser?.isActive && (
+            <div className="border-t border-border pt-3 flex gap-2">
+              <Button variant="ghost" size="sm" type="button" onClick={() => handleResendWelcome(editingUser)}>
+                <Mail size={14} className="mr-1.5" /> Reenviar boas-vindas
+              </Button>
+              <Button variant="ghost" size="sm" type="button" onClick={() => handleSendPasswordReset(editingUser)}>
+                <KeyRound size={14} className="mr-1.5" /> Enviar reset de senha
+              </Button>
+            </div>
+          )}
           <div className="modal-actions">
-            {editingUser?.isActive && (
-              <div className="flex gap-2 mr-auto">
-                <Button variant="secondary" type="button" onClick={() => handleResendWelcome(editingUser)}>
-                  Reenviar boas-vindas
-                </Button>
-                <Button variant="secondary" type="button" onClick={() => handleSendPasswordReset(editingUser)}>
-                  Enviar reset de senha
-                </Button>
-              </div>
-            )}
             <Button variant="secondary" type="button" onClick={() => { setEditingUser(null); setError(''); }}>{t('common.cancel')}</Button>
             <Button type="submit">{t('common.save')}</Button>
           </div>
