@@ -104,6 +104,26 @@ export default function UsersPage() {
     }
   }
 
+  async function handleResendWelcome(user: UserRecord) {
+    if (!confirm(`Isso irá gerar uma nova senha para ${user.name} e enviá-la por e-mail. A senha atual será substituída. Deseja continuar?`)) return;
+    try {
+      await adminService.resendWelcomeEmail(user.id);
+      setError('');
+    } catch (err) {
+      setError(formatApiError(err));
+    }
+  }
+
+  async function handleSendPasswordReset(user: UserRecord) {
+    if (!confirm(`Enviar link de redefinição de senha para ${user.name}?`)) return;
+    try {
+      await adminService.sendPasswordResetEmail(user.id);
+      setError('');
+    } catch (err) {
+      setError(formatApiError(err));
+    }
+  }
+
   async function handleDeactivate(user: UserRecord) {
     if (!confirm(t('admin.confirmDeactivateUser', { name: user.name }))) return;
     try {
@@ -369,6 +389,16 @@ export default function UsersPage() {
             </div>
           )}
           <div className="modal-actions">
+            {editingUser?.isActive && (
+              <div className="flex gap-2 mr-auto">
+                <Button variant="secondary" type="button" onClick={() => handleResendWelcome(editingUser)}>
+                  Reenviar boas-vindas
+                </Button>
+                <Button variant="secondary" type="button" onClick={() => handleSendPasswordReset(editingUser)}>
+                  Enviar reset de senha
+                </Button>
+              </div>
+            )}
             <Button variant="secondary" type="button" onClick={() => { setEditingUser(null); setError(''); }}>{t('common.cancel')}</Button>
             <Button type="submit">{t('common.save')}</Button>
           </div>
