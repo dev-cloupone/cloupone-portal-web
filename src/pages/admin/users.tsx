@@ -28,6 +28,7 @@ export default function UsersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [error, setError] = useState('');
+  const [emailFeedback, setEmailFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', role: 'client', clientId: '' });
   const [editForm, setEditForm] = useState({ name: '', email: '', role: 'client', clientId: '' });
   const [filterRole, setFilterRole] = useState('');
@@ -108,9 +109,9 @@ export default function UsersPage() {
     if (!confirm(`Isso irá gerar uma nova senha para ${user.name} e enviá-la por e-mail. A senha atual será substituída. Deseja continuar?`)) return;
     try {
       await adminService.resendWelcomeEmail(user.id);
-      setError('');
+      setEmailFeedback({ type: 'success', message: 'E-mail de boas-vindas enviado com sucesso.' });
     } catch (err) {
-      setError(formatApiError(err));
+      setEmailFeedback({ type: 'error', message: formatApiError(err) });
     }
   }
 
@@ -118,9 +119,9 @@ export default function UsersPage() {
     if (!confirm(`Enviar link de redefinição de senha para ${user.name}?`)) return;
     try {
       await adminService.sendPasswordResetEmail(user.id);
-      setError('');
+      setEmailFeedback({ type: 'success', message: 'Link de redefinição de senha enviado.' });
     } catch (err) {
-      setError(formatApiError(err));
+      setEmailFeedback({ type: 'error', message: formatApiError(err) });
     }
   }
 
@@ -142,6 +143,7 @@ export default function UsersPage() {
       clientId: user.clientId || '',
     });
     setError('');
+    setEmailFeedback(null);
     setEditingUser(user);
   }
 
@@ -389,13 +391,20 @@ export default function UsersPage() {
             </div>
           )}
           {editingUser?.isActive && (
-            <div className="border-t border-border pt-3 flex gap-2">
-              <Button variant="ghost" size="sm" type="button" onClick={() => handleResendWelcome(editingUser)}>
-                <Mail size={14} className="mr-1.5" /> Reenviar boas-vindas
-              </Button>
-              <Button variant="ghost" size="sm" type="button" onClick={() => handleSendPasswordReset(editingUser)}>
-                <KeyRound size={14} className="mr-1.5" /> Enviar reset de senha
-              </Button>
+            <div className="border-t border-border pt-3 flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" type="button" onClick={() => handleResendWelcome(editingUser)}>
+                  <Mail size={14} className="mr-1.5" /> Reenviar boas-vindas
+                </Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => handleSendPasswordReset(editingUser)}>
+                  <KeyRound size={14} className="mr-1.5" /> Enviar reset de senha
+                </Button>
+              </div>
+              {emailFeedback && (
+                <p className={`text-xs ${emailFeedback.type === 'success' ? 'text-success' : 'text-danger'}`}>
+                  {emailFeedback.message}
+                </p>
+              )}
             </div>
           )}
           <div className="modal-actions">
