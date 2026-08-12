@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, UserX } from 'lucide-react';
+import { Plus, Pencil, UserX, Mail, KeyRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { Button } from '../../components/ui/button';
@@ -28,6 +28,7 @@ export default function UsersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [error, setError] = useState('');
+  const [emailFeedback, setEmailFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', role: 'client', clientId: '' });
   const [editForm, setEditForm] = useState({ name: '', email: '', role: 'client', clientId: '' });
   const [filterRole, setFilterRole] = useState('');
@@ -104,6 +105,26 @@ export default function UsersPage() {
     }
   }
 
+  async function handleResendWelcome(user: UserRecord) {
+    if (!confirm(`Isso irá gerar uma nova senha para ${user.name} e enviá-la por e-mail. A senha atual será substituída. Deseja continuar?`)) return;
+    try {
+      await adminService.resendWelcomeEmail(user.id);
+      setEmailFeedback({ type: 'success', message: 'E-mail de boas-vindas enviado com sucesso.' });
+    } catch (err) {
+      setEmailFeedback({ type: 'error', message: formatApiError(err) });
+    }
+  }
+
+  async function handleSendPasswordReset(user: UserRecord) {
+    if (!confirm(`Enviar link de redefinição de senha para ${user.name}?`)) return;
+    try {
+      await adminService.sendPasswordResetEmail(user.id);
+      setEmailFeedback({ type: 'success', message: 'Link de redefinição de senha enviado.' });
+    } catch (err) {
+      setEmailFeedback({ type: 'error', message: formatApiError(err) });
+    }
+  }
+
   async function handleDeactivate(user: UserRecord) {
     if (!confirm(t('admin.confirmDeactivateUser', { name: user.name }))) return;
     try {
@@ -122,6 +143,7 @@ export default function UsersPage() {
       clientId: user.clientId || '',
     });
     setError('');
+    setEmailFeedback(null);
     setEditingUser(user);
   }
 
@@ -366,6 +388,23 @@ export default function UsersPage() {
           {error && (
             <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">
               <p className="text-xs text-danger whitespace-pre-line">{error}</p>
+            </div>
+          )}
+          {editingUser?.isActive && (
+            <div className="border-t border-border pt-3 flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" type="button" onClick={() => handleResendWelcome(editingUser)}>
+                  <Mail size={14} className="mr-1.5" /> Reenviar boas-vindas
+                </Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => handleSendPasswordReset(editingUser)}>
+                  <KeyRound size={14} className="mr-1.5" /> Enviar reset de senha
+                </Button>
+              </div>
+              {emailFeedback && (
+                <p className={`text-xs ${emailFeedback.type === 'success' ? 'text-success' : 'text-danger'}`}>
+                  {emailFeedback.message}
+                </p>
+              )}
             </div>
           )}
           <div className="modal-actions">

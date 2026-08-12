@@ -76,3 +76,11 @@ export async function updateUser(id: string, data: { name?: string; email?: stri
 export async function deactivateUser(id: string): Promise<UserRecord> {
   return api<UserRecord>(`/users/${id}`, { method: 'DELETE' });
 }
+
+export async function resendWelcomeEmail(id: string): Promise<{ message: string }> {
+  return api<{ message: string }>(`/users/${id}/resend-welcome`, { method: 'POST' });
+}
+
+export async function sendPasswordResetEmail(id: string): Promise<{ message: string }> {
+  return api<{ message: string }>(`/users/${id}/send-password-reset`, { method: 'POST' });
+}
