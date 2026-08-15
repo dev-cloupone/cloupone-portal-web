@@ -472,3 +472,39 @@ header,
 .animate-modal-enter {
   animation: modal-enter 0.3s ease-out;
 }
+
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-dropdown-in {
+  animation: dropdown-in 0.2s ease-out;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(100%) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.animate-toast-in {
+  animation: toast-in 0.35s ease-out;
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to   { opacity: 0; transform: translateX(100%) scale(0.95); }
+}
+
+.animate-toast-out {
+  animation: toast-out 0.3s ease-in forwards;
+}
+
+@keyframes toast-progress {
+  from { width: 100%; }
+  to   { width: 0; }
+}
+
+.animate-toast-progress {
+  animation: toast-progress 8s linear forwards;
+}

@@ -1572,6 +1572,11 @@
     "viewLater": "Ver depois",
     "goToTicket": "Ir para ticket",
     "ticketsWaiting": "tickets aguardando",
-    "now": "Agora mesmo"
+    "now": "Agora mesmo",
+    "newNotification": "Nova notificação",
+    "view": "Ver",
+    "dnd": "Não perturbe",
+    "dndOn": "Não perturbe ativado",
+    "dndOff": "Não perturbe desativado"
   }
 }

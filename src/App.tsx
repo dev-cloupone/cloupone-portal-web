@@ -20,6 +20,7 @@ const ResetPasswordPage = lazy(() => import('./pages/reset-password'));
 const ProfilePage = lazy(() => import('./pages/profile'));
 const ChangePasswordFirstPage = lazy(() => import('./pages/change-password-first'));
 const HomePage = lazy(() => import('./pages/home'));
+const NotificationsPage = lazy(() => import('./pages/notifications'));
 
 // Super Admin pages (lazy)
 const AdminDashboardPage = lazy(() => import('./pages/admin/dashboard'));
@@ -136,6 +137,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationsPage />
               </ProtectedRoute>
             }
           />

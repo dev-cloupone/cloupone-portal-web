@@ -1,24 +1,22 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useNotificationStore } from '../stores/notification.store';
-import { useAuth } from './use-auth';
-import { useToastStore } from '../stores/toast.store';
+import { useNotificationToastStore } from '../stores/notification-toast.store';
+import { useAuthStore } from '../stores/auth.store';
 import { getAccessToken, BASE_URL } from '../services/api';
+import { playNotificationSound } from '../utils/notification-sound';
 import type { Notification } from '../types/notification.types';
 
 export function useNotificationSSE() {
-  const { user } = useAuth();
-  const addNotification = useNotificationStore((s) => s.addNotification);
-  const enqueueModal = useNotificationStore((s) => s.enqueueModal);
-  const isDndActive = useNotificationStore((s) => s.isDndActive);
-  const addToast = useToastStore((s) => s.addToast);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  // Depende apenas do id: o objeto `user` muda de identidade a cada refresh de
+  // perfil e derrubaria o stream. Estado volatil (DND, preferencias) e lido
+  // dentro do handler via getState().
+  const userId = useAuthStore((s) => s.user?.id);
 
   useEffect(() => {
     const token = getAccessToken();
-    if (!user || !token) return;
+    if (!userId || !token) return;
 
     const es = new EventSource(`${BASE_URL}/notifications/stream?token=${token}`);
-    eventSourceRef.current = es;
 
     es.onmessage = (event) => {
       try {
@@ -26,13 +24,20 @@ export function useNotificationSSE() {
         if (data.type === 'connected') return;
 
         const notification = data as Notification;
+        const { addNotification, enqueueModal, isDndActive } = useNotificationStore.getState();
+        const user = useAuthStore.getState().user;
+
         addNotification(notification);
 
-        // Decide: modal (triage) or toast
-        if (user.urgentNotificationsEnabled && !isDndActive) {
+        if (user?.notificationSoundEnabled && !isDndActive) {
+          playNotificationSound();
+        }
+
+        // DND rebaixa o modal de triagem para toast
+        if (user?.urgentNotificationsEnabled && !isDndActive) {
           enqueueModal(notification);
         } else {
-          addToast(notification.title, 'info');
+          useNotificationToastStore.getState().push(notification);
         }
       } catch {
         // Ignore invalid messages (heartbeats, etc)
@@ -45,7 +50,6 @@ export function useNotificationSSE() {
 
     return () => {
       es.close();
-      eventSourceRef.current = null;
     };
-  }, [user, addNotification, enqueueModal, isDndActive, addToast]);
+  }, [userId]);
 }

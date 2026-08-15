@@ -1568,6 +1568,11 @@
     "viewLater": "View later",
     "goToTicket": "Go to ticket",
     "ticketsWaiting": "tickets waiting",
-    "now": "Just now"
+    "now": "Just now",
+    "newNotification": "New notification",
+    "view": "View",
+    "dnd": "Do not disturb",
+    "dndOn": "Do not disturb on",
+    "dndOff": "Do not disturb off"
   }
 }

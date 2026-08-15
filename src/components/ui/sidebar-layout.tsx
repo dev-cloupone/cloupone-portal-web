@@ -1,4 +1,4 @@
-import { type ReactNode, useState, useEffect, useMemo } from 'react';
+import { type ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useLocation } from 'react-router';
 import { LogOut, Menu, ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { LanguageToggle } from './language-toggle';
 import { type NavEntry, type NavItem, type NavGroup, isNavGroup } from '../../hooks/use-nav-items';
 import { NotificationBell } from '../notifications/notification-bell';
 import { NotificationModal } from '../notifications/notification-modal';
+import { NotificationToastContainer } from '../notifications/notification-toast';
 import { useNotificationSSE } from '../../hooks/use-notification-sse';
 import { useNotificationStore } from '../../stores/notification.store';
 
@@ -99,9 +100,17 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
   const { user, logout } = useAuth();
   const isMobile = useMobile();
   const { t } = useTranslation();
-  const { isOpen, isCollapsed, open, close, toggleCollapse } = useSidebarStore();
+  const { isOpen, isCollapsed, open, close, toggleCollapse: toggleSidebarCollapse } = useSidebarStore();
   const fetchUnreadCount = useNotificationStore((s) => s.fetchUnreadCount);
   const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
+  const closeNotificationDropdown = useNotificationStore((s) => s.closeDropdown);
+
+  // Fecha o dropdown junto com o collapse: a sidebar anima a largura por 200ms
+  // e o painel ficaria ancorado na posicao antiga.
+  const toggleCollapse = useCallback(() => {
+    closeNotificationDropdown();
+    toggleSidebarCollapse();
+  }, [closeNotificationDropdown, toggleSidebarCollapse]);
 
   // Initialize SSE and fetch initial data
   useNotificationSSE();
@@ -282,6 +291,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
         </main>
       </div>
       <NotificationModal />
+      <NotificationToastContainer />
     </div>
   );
 }
