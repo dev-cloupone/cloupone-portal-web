@@ -29,12 +29,15 @@ export function useNotificationSSE() {
 
         addNotification(notification);
 
-        if (user?.notificationSoundEnabled && !isDndActive) {
+        // DND silencia tudo: sem modal, sem toast e sem som. A notificacao
+        // continua registrada no sino (badge + lista).
+        if (isDndActive) return;
+
+        if (user?.notificationSoundEnabled) {
           playNotificationSound();
         }
 
-        // DND rebaixa o modal de triagem para toast
-        if (user?.urgentNotificationsEnabled && !isDndActive) {
+        if (user?.urgentNotificationsEnabled) {
           enqueueModal(notification);
         } else {
           useNotificationToastStore.getState().push(notification);
