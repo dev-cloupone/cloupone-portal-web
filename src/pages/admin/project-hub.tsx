@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, Settings, Layers, Users, Receipt, DollarSign } from 'lucide-react';
+import { ArrowLeft, Settings, Layers, Users, Receipt, DollarSign, Bell } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { IconButton } from '../../components/ui/icon-button';
 import { Button } from '../../components/ui/button';
@@ -112,14 +112,22 @@ export default function ProjectHubPage() {
       description: t('projects.expensesCardDesc'),
       path: `/admin/projects/${id}/expenses`,
     },
-    ...(isSuperAdmin ? [{
-      title: t('projects.financial'),
-      icon: <DollarSign size={20} />,
-      description: project.billingType === 'fixed_price'
-        ? `Valor Fixo · ${formatCurrency(project.fixedPriceTotal || 0)}`
-        : `${formatCurrency(project.billingRate)}/h`,
-      path: `/admin/projects/${id}/financial`,
-    }] : []),
+    ...(isSuperAdmin ? [
+      {
+        title: t('projects.financial'),
+        icon: <DollarSign size={20} />,
+        description: project.billingType === 'fixed_price'
+          ? `Valor Fixo · ${formatCurrency(project.fixedPriceTotal || 0)}`
+          : `${formatCurrency(project.billingRate)}/h`,
+        path: `/admin/projects/${id}/financial`,
+      },
+      {
+        title: t('projects.notifications'),
+        icon: <Bell size={20} />,
+        description: t('projects.notificationsDescription'),
+        path: `/admin/projects/${id}/notifications`,
+      },
+    ] : []),
   ];
 
   const budgetLabel = project.budgetHours

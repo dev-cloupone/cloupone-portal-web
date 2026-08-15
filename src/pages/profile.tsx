@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/use-auth';
 import { useNavItems } from '../hooks/use-nav-items';
 import { api, formatApiError } from '../services/api';
 import * as loginHistoryService from '../services/login-history';
+import * as notificationService from '../services/notification.service';
 import { MSG } from '../constants/messages';
 import type { LoginHistoryEntry } from '../types/login-history.types';
 import { useLocaleStore } from '../stores/locale.store';
@@ -159,6 +160,67 @@ export default function ProfilePage() {
             {saving ? t('common.saving') : t('auth.changePassword')}
           </Button>
         </form>
+
+        {/* Notification Preferences */}
+        <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
+          <h3 className="text-sm font-semibold text-text-primary">{t('notifications.preferences')}</h3>
+
+          <label className="flex items-center justify-between gap-4 py-2">
+            <div>
+              <p className="text-sm text-text-primary">{t('notifications.triageMode')}</p>
+              <p className="text-[11px] text-text-muted">{t('notifications.triageModeDescription')}</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={user?.urgentNotificationsEnabled ?? false}
+              onClick={async () => {
+                const newVal = !(user?.urgentNotificationsEnabled ?? false);
+                try {
+                  await notificationService.updateNotificationPreferences({ urgentNotificationsEnabled: newVal });
+                  setUser({ ...user!, urgentNotificationsEnabled: newVal });
+                } catch (err) {
+                  setError(formatApiError(err));
+                }
+              }}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                user?.urgentNotificationsEnabled ? 'bg-accent' : 'bg-surface-3'
+              }`}
+            >
+              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
+                user?.urgentNotificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
+          </label>
+
+          <label className="flex items-center justify-between gap-4 py-2">
+            <div>
+              <p className="text-sm text-text-primary">{t('notifications.soundEnabled')}</p>
+              <p className="text-[11px] text-text-muted">{t('notifications.soundEnabledDescription')}</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={user?.notificationSoundEnabled ?? false}
+              onClick={async () => {
+                const newVal = !(user?.notificationSoundEnabled ?? false);
+                try {
+                  await notificationService.updateNotificationPreferences({ notificationSoundEnabled: newVal });
+                  setUser({ ...user!, notificationSoundEnabled: newVal });
+                } catch (err) {
+                  setError(formatApiError(err));
+                }
+              }}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                user?.notificationSoundEnabled ? 'bg-accent' : 'bg-surface-3'
+              }`}
+            >
+              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
+                user?.notificationSoundEnabled ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
+          </label>
+        </div>
 
         {/* Login History */}
         {loginHistory.length > 0 && (

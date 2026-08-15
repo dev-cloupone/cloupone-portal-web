@@ -9,6 +9,10 @@ import { useSidebarStore } from '../../stores/sidebar.store';
 import { ThemeToggle } from './theme-toggle';
 import { LanguageToggle } from './language-toggle';
 import { type NavEntry, type NavItem, type NavGroup, isNavGroup } from '../../hooks/use-nav-items';
+import { NotificationBell } from '../notifications/notification-bell';
+import { NotificationModal } from '../notifications/notification-modal';
+import { useNotificationSSE } from '../../hooks/use-notification-sse';
+import { useNotificationStore } from '../../stores/notification.store';
 
 interface SidebarLayoutProps {
   children: ReactNode;
@@ -96,6 +100,15 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
   const isMobile = useMobile();
   const { t } = useTranslation();
   const { isOpen, isCollapsed, open, close, toggleCollapse } = useSidebarStore();
+  const fetchUnreadCount = useNotificationStore((s) => s.fetchUnreadCount);
+  const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
+
+  // Initialize SSE and fetch initial data
+  useNotificationSSE();
+  useEffect(() => {
+    fetchUnreadCount().catch(() => {});
+    fetchNotifications().catch(() => {});
+  }, [fetchUnreadCount, fetchNotifications]);
 
   const groupNames = useMemo(
     () => navItems.filter(isNavGroup).map((g) => g.group),
@@ -143,22 +156,25 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
               alt={title}
               className="h-7 w-auto brand-logo-shadow"
             />
-            {showToggle && (
-              <button
-                onClick={toggleCollapse}
-                title={t('common.collapseMenu')}
-                className="flex items-center justify-center rounded-lg p-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                <PanelLeftClose size={16} />
-              </button>
-            )}
+            <div className="flex items-center gap-1">
+              <NotificationBell />
+              {showToggle && (
+                <button
+                  onClick={toggleCollapse}
+                  title={t('common.collapseMenu')}
+                  className="flex items-center justify-center rounded-lg p-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <PanelLeftClose size={16} />
+                </button>
+              )}
+            </div>
           </>
         )}
       </div>
 
-      {/* Botao expandir (colapsado, abaixo do header) */}
+      {/* Botao expandir + sino (colapsado, abaixo do header) */}
       {collapsed && showToggle && (
-        <div className="flex justify-center py-2">
+        <div className="flex flex-col items-center gap-1 py-2">
           <button
             onClick={toggleCollapse}
             title={t('common.expandMenu')}
@@ -166,6 +182,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
           >
             <PanelLeftOpen size={16} />
           </button>
+          <NotificationBell collapsed />
         </div>
       )}
 
@@ -253,7 +270,8 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
               <IconButton onClick={open} aria-label={t('common.openMenu')}>
                 <Menu size={20} />
               </IconButton>
-              <h1 className="ml-3 text-sm font-bold text-text-primary">{title}</h1>
+              <h1 className="ml-3 flex-1 text-sm font-bold text-text-primary">{title}</h1>
+              <NotificationBell />
             </div>
           )}
           {fullHeight ? children : (
@@ -263,6 +281,7 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
           )}
         </main>
       </div>
+      <NotificationModal />
     </div>
   );
 }
