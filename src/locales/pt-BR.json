@@ -803,7 +803,6 @@
     "allocatedUsersDescription": "Defina quais usuários recebem notificações e por qual canal.",
     "noAllocatedUsers": "Nenhum usuário alocado a este projeto",
     "ticketCreation": "Criação de ticket",
-    "allEvents": "Todos os eventos",
     "email": "Email",
     "inApp": "In-App",
     "externalEmails": "Emails externos",
@@ -1314,6 +1313,9 @@
     }
   },
   "apiErrors": {
+    "NOTIFICATION_EMAIL_ALREADY_EXISTS": "Este email já está cadastrado para este evento.",
+    "NOTIFICATION_EMAIL_NOT_FOUND": "Email de notificação não encontrado.",
+    "INVALID_USER_IDS": "Um ou mais usuários não estão alocados ao projeto.",
     "AUTH_INVALID_CREDENTIALS": "Email ou senha incorretos.",
     "AUTH_TOKEN_REQUIRED": "Sessão expirada. Faça login novamente.",
     "AUTH_TOKEN_INVALID": "Sessão inválida ou expirada. Faça login novamente.",

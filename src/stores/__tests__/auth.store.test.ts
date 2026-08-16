@@ -21,7 +21,16 @@ vi.mock('../../services/api', () => ({
   setOnAuthFailure: mockSetOnAuthFailure,
 }))
 
+vi.mock('../../services/notification.service', () => ({
+  listNotifications: vi.fn(),
+  getUnreadCount: vi.fn(),
+  markAsRead: vi.fn(),
+  markAllAsRead: vi.fn(),
+}))
+
 import { useAuthStore } from '../auth.store'
+import { useNotificationStore } from '../notification.store'
+import { useNotificationToastStore } from '../notification-toast.store'
 
 const mockUser = {
   id: 'u1', name: 'Test', email: 'test@test.com', role: 'consultor' as const,
@@ -90,6 +99,26 @@ describe('useAuthStore', () => {
       mockLogout.mockResolvedValue(undefined)
       await useAuthStore.getState().logout()
       expect(localStorage.getItem('user')).toBeNull()
+    })
+
+    it('resets the notification store', async () => {
+      mockLogout.mockResolvedValue(undefined)
+      useNotificationStore.setState({ unreadCount: 3, isModalOpen: true, modalQueue: [{ id: 'n1' } as never] })
+
+      await useAuthStore.getState().logout()
+
+      expect(useNotificationStore.getState().unreadCount).toBe(0)
+      expect(useNotificationStore.getState().isModalOpen).toBe(false)
+      expect(useNotificationStore.getState().modalQueue).toHaveLength(0)
+    })
+
+    it('clears the notification toasts', async () => {
+      mockLogout.mockResolvedValue(undefined)
+      useNotificationToastStore.setState({ toasts: [{ id: 't1', notification: { id: 'n1' } as never }] })
+
+      await useAuthStore.getState().logout()
+
+      expect(useNotificationToastStore.getState().toasts).toHaveLength(0)
     })
   })
 

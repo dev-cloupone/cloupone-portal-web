@@ -32,6 +32,28 @@ interface RefreshResult {
 
 let refreshPromise: Promise<RefreshResult> | null = null;
 
+type TokenListener = (token: string | null) => void;
+const tokenListeners = new Set<TokenListener>();
+
+/** Assina rotacoes do access token. Retorna a funcao de cancelamento. */
+export function subscribeAccessToken(listener: TokenListener): () => void {
+  tokenListeners.add(listener);
+  return () => {
+    tokenListeners.delete(listener);
+  };
+}
+
+function notifyTokenListeners(): void {
+  for (const listener of [...tokenListeners]) {
+    try {
+      listener(accessToken);
+    } catch (err) {
+      // Um listener quebrado nao pode abortar o refresh de token.
+      console.warn('[auth] Access token listener failed:', err);
+    }
+  }
+}
+
 function scheduleTokenRefresh(token: string) {
   if (refreshTimer) clearTimeout(refreshTimer);
 
@@ -56,6 +78,7 @@ function scheduleTokenRefresh(token: string) {
 export function setAccessToken(token: string) {
   accessToken = token;
   scheduleTokenRefresh(token);
+  notifyTokenListeners();
 }
 
 export function clearAccessToken() {
@@ -64,6 +87,7 @@ export function clearAccessToken() {
     clearTimeout(refreshTimer);
     refreshTimer = null;
   }
+  notifyTokenListeners();
 }
 
 export function getAccessToken(): string | null {

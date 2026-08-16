@@ -10,9 +10,6 @@ import { ThemeToggle } from './theme-toggle';
 import { LanguageToggle } from './language-toggle';
 import { type NavEntry, type NavItem, type NavGroup, isNavGroup } from '../../hooks/use-nav-items';
 import { NotificationBell } from '../notifications/notification-bell';
-import { NotificationModal } from '../notifications/notification-modal';
-import { NotificationToastContainer } from '../notifications/notification-toast';
-import { useNotificationSSE } from '../../hooks/use-notification-sse';
 import { useNotificationStore } from '../../stores/notification.store';
 
 interface SidebarLayoutProps {
@@ -101,8 +98,6 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
   const isMobile = useMobile();
   const { t } = useTranslation();
   const { isOpen, isCollapsed, open, close, toggleCollapse: toggleSidebarCollapse } = useSidebarStore();
-  const fetchUnreadCount = useNotificationStore((s) => s.fetchUnreadCount);
-  const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
   const closeNotificationDropdown = useNotificationStore((s) => s.closeDropdown);
 
   // Fecha o dropdown junto com o collapse: a sidebar anima a largura por 200ms
@@ -111,13 +106,6 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
     closeNotificationDropdown();
     toggleSidebarCollapse();
   }, [closeNotificationDropdown, toggleSidebarCollapse]);
-
-  // Initialize SSE and fetch initial data
-  useNotificationSSE();
-  useEffect(() => {
-    fetchUnreadCount().catch(() => {});
-    fetchNotifications().catch(() => {});
-  }, [fetchUnreadCount, fetchNotifications]);
 
   const groupNames = useMemo(
     () => navItems.filter(isNavGroup).map((g) => g.group),
@@ -290,8 +278,6 @@ export function SidebarLayout({ children, navItems, title, fullHeight }: Sidebar
           )}
         </main>
       </div>
-      <NotificationModal />
-      <NotificationToastContainer />
     </div>
   );
 }

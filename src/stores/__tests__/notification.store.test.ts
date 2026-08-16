@@ -64,6 +64,63 @@ describe('useNotificationStore', () => {
       expect(useNotificationStore.getState().notifications[0].isRead).toBe(true)
       expect(useNotificationStore.getState().unreadCount).toBe(0)
     })
+
+    it('does not decrement a notification already read', async () => {
+      const { markAsRead: mockMarkAsRead } = await import('../../services/notification.service')
+      vi.mocked(mockMarkAsRead).mockClear()
+
+      useNotificationStore.setState({
+        notifications: [{ ...mockNotification, isRead: true }],
+        unreadCount: 3,
+      })
+
+      await useNotificationStore.getState().markAsRead('n1')
+      expect(useNotificationStore.getState().unreadCount).toBe(3)
+      expect(mockMarkAsRead).not.toHaveBeenCalled()
+    })
+
+    it('decrements when the notification is not in the local list', async () => {
+      const { markAsRead: mockMarkAsRead } = await import('../../services/notification.service')
+      vi.mocked(mockMarkAsRead).mockClear()
+      vi.mocked(mockMarkAsRead).mockResolvedValue(undefined)
+
+      useNotificationStore.setState({ notifications: [], unreadCount: 5 })
+
+      await useNotificationStore.getState().markAsRead('n-not-loaded')
+      expect(mockMarkAsRead).toHaveBeenCalledWith('n-not-loaded')
+      expect(useNotificationStore.getState().unreadCount).toBe(4)
+    })
+  })
+
+  describe('reset', () => {
+    it('clears the list, the count and the modal queue', () => {
+      useNotificationStore.setState({
+        notifications: [mockNotification],
+        unreadCount: 4,
+        isDropdownOpen: true,
+        dropdownOwner: 'bell-1',
+        ringToken: 7,
+        modalQueue: [mockNotification],
+        isModalOpen: true,
+      })
+
+      useNotificationStore.getState().reset()
+
+      const state = useNotificationStore.getState()
+      expect(state.notifications).toHaveLength(0)
+      expect(state.unreadCount).toBe(0)
+      expect(state.isDropdownOpen).toBe(false)
+      expect(state.dropdownOwner).toBeNull()
+      expect(state.ringToken).toBe(0)
+      expect(state.modalQueue).toHaveLength(0)
+      expect(state.isModalOpen).toBe(false)
+    })
+
+    it('preserves isDndActive (per-device preference)', () => {
+      useNotificationStore.setState({ isDndActive: true, unreadCount: 2 })
+      useNotificationStore.getState().reset()
+      expect(useNotificationStore.getState().isDndActive).toBe(true)
+    })
   })
 
   describe('markAllAsRead', () => {

@@ -9,6 +9,7 @@ import { RoleGuard } from './components/role-guard';
 import { DefaultRedirect } from './components/default-redirect';
 import { LoadingFallback } from './components/ui/loading-fallback';
 import { ToastContainer } from './components/ui/toast';
+import { NotificationProvider } from './components/notifications/notification-provider';
 
 // Public pages (lazy)
 const LoginPage = lazy(() => import('./pages/login'));
@@ -366,6 +367,7 @@ export default function App() {
           <Route path="*" element={<DefaultRedirect />} />
         </Routes>
       </Suspense>
+      <NotificationProvider />
       <ToastContainer />
     </BrowserRouter>
   );

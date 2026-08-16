@@ -62,7 +62,6 @@ export default function ProjectNotificationSettingsPage() {
 
   const EVENT_LABELS: Record<string, string> = {
     ticket_created: t('projects.ticketCreation'),
-    all: t('projects.allEvents'),
   };
 
   const handleToggle = (userId: string, field: 'channelEmail' | 'channelInApp') => {

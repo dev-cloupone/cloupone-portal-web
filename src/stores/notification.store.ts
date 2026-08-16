@@ -45,6 +45,7 @@ interface NotificationState {
   toggleDnd: () => void;
   enqueueModal: (notification: Notification) => void;
   dismissModal: () => void;
+  reset: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
@@ -68,6 +69,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   },
 
   markAsRead: async (id) => {
+    // Guarda no store, o unico ponto que nenhum chamador consegue esquecer:
+    // sem isso, marcar a mesma notificacao duas vezes subestima o badge.
+    const target = get().notifications.find(n => n.id === id);
+    if (target?.isRead) return;
+
     await notificationService.markAsRead(id);
     set((s) => ({
       notifications: s.notifications.map(n => n.id === id ? { ...n, isRead: true } : n),
@@ -124,4 +130,15 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       set({ isModalOpen: false, modalQueue: [] });
     }
   },
+
+  // Estado limpo, exceto isDndActive que e preferencia por dispositivo e persiste.
+  reset: () => set({
+    notifications: [],
+    unreadCount: 0,
+    isDropdownOpen: false,
+    dropdownOwner: null,
+    ringToken: 0,
+    modalQueue: [],
+    isModalOpen: false,
+  }),
 }));

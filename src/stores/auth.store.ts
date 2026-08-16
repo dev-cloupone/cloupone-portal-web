@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import type { User } from '../types/auth.types';
 import { setAccessToken, clearAccessToken, setOnAuthFailure, tryRefreshToken } from '../services/api';
 import * as authService from '../services/auth.service';
+import { useNotificationStore } from './notification.store';
+import { useNotificationToastStore } from './notification-toast.store';
 
 interface AuthState {
   user: User | null;
@@ -34,6 +36,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.warn('[auth] Logout request failed:', err);
     }
     clearAccessToken();
+    // Notificacoes sao por usuario: sem isso a fila de triagem do usuario
+    // anterior reaparece para quem logar em seguida na mesma aba.
+    useNotificationStore.getState().reset();
+    useNotificationToastStore.getState().clear();
     set({ user: null, isAuthenticated: false });
   },
 
