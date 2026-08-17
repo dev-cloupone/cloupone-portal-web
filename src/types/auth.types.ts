@@ -7,6 +7,8 @@ export interface User {
   avatarFileId?: string | null;
   clientId?: string | null;
   locale?: 'pt-BR' | 'en-US';
+  urgentNotificationsEnabled?: boolean;
+  notificationSoundEnabled?: boolean;
 }
 
 export interface LoginResponse {

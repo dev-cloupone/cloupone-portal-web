@@ -8,9 +8,58 @@ import { useAuth } from '../hooks/use-auth';
 import { useNavItems } from '../hooks/use-nav-items';
 import { api, formatApiError } from '../services/api';
 import * as loginHistoryService from '../services/login-history';
+import * as notificationService from '../services/notification.service';
 import { MSG } from '../constants/messages';
 import type { LoginHistoryEntry } from '../types/login-history.types';
 import { useLocaleStore } from '../stores/locale.store';
+
+interface ToggleRowProps {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (next: boolean) => Promise<void>;
+}
+
+/**
+ * Toggle com estado de envio: sem o `disabled`, cliques rapidos disparam PATCHs
+ * concorrentes que podem inverter o estado final salvo.
+ */
+function ToggleRow({ label, description, checked, onChange }: ToggleRowProps) {
+  const [pending, setPending] = useState(false);
+
+  const handleClick = async () => {
+    if (pending) return;
+    setPending(true);
+    try {
+      await onChange(!checked);
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <label className="flex items-center justify-between gap-4 py-2">
+      <div>
+        <p className="text-sm text-text-primary">{label}</p>
+        <p className="text-[11px] text-text-muted">{description}</p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        disabled={pending}
+        onClick={() => void handleClick()}
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors ${
+          pending ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+        } ${checked ? 'bg-accent' : 'bg-surface-3'}`}
+      >
+        <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
+          checked ? 'translate-x-5' : 'translate-x-0'
+        }`} />
+      </button>
+    </label>
+  );
+}
 
 export default function ProfilePage() {
   const { t } = useTranslation();
@@ -159,6 +208,39 @@ export default function ProfilePage() {
             {saving ? t('common.saving') : t('auth.changePassword')}
           </Button>
         </form>
+
+        {/* Notification Preferences */}
+        <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-4">
+          <h3 className="text-sm font-semibold text-text-primary">{t('notifications.preferences')}</h3>
+
+          <ToggleRow
+            label={t('notifications.triageMode')}
+            description={t('notifications.triageModeDescription')}
+            checked={user?.urgentNotificationsEnabled ?? false}
+            onChange={async (newVal) => {
+              try {
+                await notificationService.updateNotificationPreferences({ urgentNotificationsEnabled: newVal });
+                setUser({ ...user!, urgentNotificationsEnabled: newVal });
+              } catch (err) {
+                setError(formatApiError(err));
+              }
+            }}
+          />
+
+          <ToggleRow
+            label={t('notifications.soundEnabled')}
+            description={t('notifications.soundEnabledDescription')}
+            checked={user?.notificationSoundEnabled ?? false}
+            onChange={async (newVal) => {
+              try {
+                await notificationService.updateNotificationPreferences({ notificationSoundEnabled: newVal });
+                setUser({ ...user!, notificationSoundEnabled: newVal });
+              } catch (err) {
+                setError(formatApiError(err));
+              }
+            }}
+          />
+        </div>
 
         {/* Login History */}
         {loginHistory.length > 0 && (

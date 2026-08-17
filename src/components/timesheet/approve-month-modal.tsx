@@ -8,8 +8,9 @@ interface ApproveMonthModalProps {
   onClose: () => void;
   onConfirm: () => Promise<void>;
   monthLabel: string;
-  totalHours: number;
-  entryCount: number;
+  /** Resumo do mes alvo da aprovacao; null enquanto carrega ou se a busca falhar */
+  summary: { totalHours: number; entryCount: number } | null;
+  isLoadingSummary?: boolean;
 }
 
 export function ApproveMonthModal({
@@ -17,8 +18,8 @@ export function ApproveMonthModal({
   onClose,
   onConfirm,
   monthLabel,
-  totalHours,
-  entryCount,
+  summary,
+  isLoadingSummary = false,
 }: ApproveMonthModalProps) {
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,11 +44,13 @@ export function ApproveMonthModal({
         <div className="rounded-lg bg-surface-2 border border-border p-3 space-y-1">
           <div className="flex justify-between text-sm">
             <span className="text-text-tertiary">{t('timesheet.totalHoursLabel')}</span>
-            <span className="font-semibold text-text-primary">{totalHours.toFixed(1)}h</span>
+            <span className="font-semibold text-text-primary">
+              {summary ? `${summary.totalHours.toFixed(1)}h` : '—'}
+            </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-text-tertiary">{t('timesheet.entriesLabel')}</span>
-            <span className="text-text-secondary">{entryCount}</span>
+            <span className="text-text-secondary">{summary ? summary.entryCount : '—'}</span>
           </div>
         </div>
 
@@ -59,7 +62,7 @@ export function ApproveMonthModal({
           <Button variant="secondary" type="button" onClick={onClose} disabled={isSubmitting}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={handleConfirm} disabled={isSubmitting}>
+          <Button onClick={handleConfirm} disabled={isSubmitting || isLoadingSummary}>
             {isSubmitting ? t('timesheet.approving') : t('timesheet.approve')}
           </Button>
         </div>

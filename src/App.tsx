@@ -9,6 +9,7 @@ import { RoleGuard } from './components/role-guard';
 import { DefaultRedirect } from './components/default-redirect';
 import { LoadingFallback } from './components/ui/loading-fallback';
 import { ToastContainer } from './components/ui/toast';
+import { NotificationProvider } from './components/notifications/notification-provider';
 
 // Public pages (lazy)
 const LoginPage = lazy(() => import('./pages/login'));
@@ -20,6 +21,7 @@ const ResetPasswordPage = lazy(() => import('./pages/reset-password'));
 const ProfilePage = lazy(() => import('./pages/profile'));
 const ChangePasswordFirstPage = lazy(() => import('./pages/change-password-first'));
 const HomePage = lazy(() => import('./pages/home'));
+const NotificationsPage = lazy(() => import('./pages/notifications'));
 
 // Super Admin pages (lazy)
 const AdminDashboardPage = lazy(() => import('./pages/admin/dashboard'));
@@ -65,6 +67,7 @@ const AdminProjectHubPage = lazy(() => import('./pages/admin/project-hub'));
 const AdminProjectGeneralPage = lazy(() => import('./pages/admin/project-general'));
 const AdminProjectTeamPage = lazy(() => import('./pages/admin/project-team'));
 const AdminProjectFinancialPage = lazy(() => import('./pages/admin/project-financial'));
+const AdminProjectNotificationSettingsPage = lazy(() => import('./pages/admin/project-notification-settings'));
 
 // Financial (super_admin + administrative)
 const PaymentHoursListPage = lazy(() => import('./pages/financial/payment-hours-list'));
@@ -138,6 +141,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationsPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Admin Routes (super_admin + gestor) */}
           <Route
@@ -166,6 +177,7 @@ export default function App() {
                     <Route path="projects/:id/financial" element={<RoleGuard allowedRoles={['super_admin']}><AdminProjectFinancialPage /></RoleGuard>} />
                     <Route path="projects/:id/expenses" element={<AdminProjectExpensesConfigPage />} />
                     <Route path="projects/:id/expense-categories" element={<AdminProjectExpenseCategoriesConfigPage />} />
+                    <Route path="projects/:id/notifications" element={<RoleGuard allowedRoles={['super_admin']}><AdminProjectNotificationSettingsPage /></RoleGuard>} />
                   </Routes>
                 </RoleGuard>
               </ProtectedRoute>
@@ -355,6 +367,7 @@ export default function App() {
           <Route path="*" element={<DefaultRedirect />} />
         </Routes>
       </Suspense>
+      <NotificationProvider />
       <ToastContainer />
     </BrowserRouter>
   );
