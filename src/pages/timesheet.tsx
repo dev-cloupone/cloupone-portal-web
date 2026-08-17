@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { MonthHeader } from '../components/timesheet/month-header';
@@ -12,6 +12,7 @@ import { useMonthTimesheet } from '../hooks/use-month-timesheet';
 import { useNavItems } from '../hooks/use-nav-items';
 import { useAuth } from '../hooks/use-auth';
 import * as consultantService from '../services/consultant.service';
+import * as timeEntryService from '../services/time-entry.service';
 import type { TimeEntry } from '../types/time-entry.types';
 import { Skeleton } from '../components/ui/skeleton';
 import { getShortMonthName } from '../utils/formatters';
@@ -37,6 +38,9 @@ export default function TimesheetPage() {
   const [panelState, setPanelState] = useState<PanelState>({ view: 'month-summary' });
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [approveTarget, setApproveTarget] = useState<{ year: number; month: number } | null>(null);
+  const [approveSummary, setApproveSummary] = useState<{ totalHours: number; entryCount: number } | null>(null);
+  const [isLoadingApproveSummary, setIsLoadingApproveSummary] = useState(false);
+  const approveRequestRef = useRef(0);
 
   // Load categories and allocated projects
   useEffect(() => {
@@ -76,15 +80,34 @@ export default function TimesheetPage() {
     setPanelState({ view: 'month-summary' });
   }
 
-  function handleOpenApproveModal(year: number, month: number) {
+  // Sempre busca o resumo do mes alvo — ele pode ser diferente do mes aberto no calendario
+  async function handleOpenApproveModal(year: number, month: number) {
+    const requestId = ++approveRequestRef.current;
     setApproveTarget({ year, month });
+    setApproveSummary(null);
+    setIsLoadingApproveSummary(true);
     setShowApproveModal(true);
+
+    try {
+      const data = await timeEntryService.getMonthEntries(`${year}-${String(month).padStart(2, '0')}`);
+      if (approveRequestRef.current !== requestId) return;
+      setApproveSummary({ totalHours: data.totalHours, entryCount: data.entries.length });
+    } catch {
+      // resumo fica indisponivel (—), aprovacao segue possivel
+    } finally {
+      if (approveRequestRef.current === requestId) setIsLoadingApproveSummary(false);
+    }
   }
 
   function handleApproveCurrentMonth() {
     const [yearStr, monthStr] = currentMonth.split('-');
-    setApproveTarget({ year: parseInt(yearStr), month: parseInt(monthStr) });
-    setShowApproveModal(true);
+    handleOpenApproveModal(parseInt(yearStr), parseInt(monthStr));
+  }
+
+  function handleCloseApproveModal() {
+    approveRequestRef.current++; // invalida resposta em voo
+    setShowApproveModal(false);
+    setIsLoadingApproveSummary(false);
   }
 
   // Consultants can only approve past months; admins/gestors can approve anytime
@@ -187,15 +210,15 @@ export default function TimesheetPage() {
       {/* Approve month modal */}
       <ApproveMonthModal
         isOpen={showApproveModal}
-        onClose={() => setShowApproveModal(false)}
+        onClose={handleCloseApproveModal}
         onConfirm={async () => {
           if (approveTarget && user) {
             await approveMonth(user.id, approveTarget.year, approveTarget.month);
           }
         }}
         monthLabel={approveMonthLabel}
-        totalHours={monthData?.totalHours ?? 0}
-        entryCount={monthData?.entries.length ?? 0}
+        summary={approveSummary}
+        isLoadingSummary={isLoadingApproveSummary}
       />
     </SidebarLayout>
   );
