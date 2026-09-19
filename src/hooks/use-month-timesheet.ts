@@ -207,16 +207,12 @@ export function useMonthTimesheet() {
 
   // CRUD
   const saveEntry = useCallback(async (data: UpsertEntryData) => {
-    try {
-      const result = await timeEntryService.upsertEntry(data);
-      await loadMonth(currentMonth);
-      return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao salvar registro.';
-      addToast(message, 'error');
-      throw err;
-    }
-  }, [currentMonth, loadMonth, addToast]);
+    // Errors are surfaced inline by the form (InlineEntryForm has dedicated space for them),
+    // so we intentionally don't toast here to avoid duplicate error messages.
+    const result = await timeEntryService.upsertEntry(data);
+    await loadMonth(currentMonth);
+    return result;
+  }, [currentMonth, loadMonth]);
 
   const deleteEntry = useCallback(async (entryId: string) => {
     try {

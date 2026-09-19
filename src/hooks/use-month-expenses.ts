@@ -280,15 +280,11 @@ export function useMonthExpenses(projectIds?: string[], filters?: MonthExpensesF
 
   // CRUD
   const saveExpense = useCallback(async (data: UpsertExpenseData) => {
-    try {
-      await expenseService.upsertExpense(data);
-      await loadMonth(currentYear, currentMonth);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao salvar despesa.';
-      addToast(message, 'error');
-      throw err;
-    }
-  }, [currentYear, currentMonth, loadMonth, addToast]);
+    // Errors are surfaced inline by ExpenseForm (dedicated space for them),
+    // so we intentionally don't toast here to avoid duplicate error messages.
+    await expenseService.upsertExpense(data);
+    await loadMonth(currentYear, currentMonth);
+  }, [currentYear, currentMonth, loadMonth]);
 
   const deleteExpense = useCallback(async (expenseId: string) => {
     try {

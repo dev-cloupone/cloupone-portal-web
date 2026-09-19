@@ -1,6 +1,7 @@
 import { api } from './api';
 import type { TimeEntry, WeekData, MonthData, UpsertEntryData, TimeEntryListParams, TimeEntryListResponse } from '../types/time-entry.types';
 import type { PaginatedResponse } from '../types/pagination.types';
+import type { LockStatus } from '../types/timesheet-lock.types';
 
 export async function getMonthEntries(date: string): Promise<MonthData> {
   return api<MonthData>(`/time-entries/month?date=${date}`);
@@ -8,6 +9,10 @@ export async function getMonthEntries(date: string): Promise<MonthData> {
 
 export async function getWeekEntries(date: string): Promise<WeekData> {
   return api<WeekData>(`/time-entries/week?date=${date}`);
+}
+
+export async function getLockStatus(month: string): Promise<LockStatus> {
+  return api<LockStatus>(`/time-entries/lock-status?month=${month}`);
 }
 
 export async function upsertEntry(data: UpsertEntryData): Promise<TimeEntry> {
