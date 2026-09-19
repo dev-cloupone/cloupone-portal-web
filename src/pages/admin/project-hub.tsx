@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, Settings, Layers, Users, Receipt, DollarSign, Bell } from 'lucide-react';
+import { ArrowLeft, Settings, Layers, Users, Receipt, DollarSign, Bell, Clock } from 'lucide-react';
 import { SidebarLayout } from '../../components/ui/sidebar-layout';
 import { IconButton } from '../../components/ui/icon-button';
 import { Button } from '../../components/ui/button';
@@ -126,6 +126,12 @@ export default function ProjectHubPage() {
         icon: <Bell size={20} />,
         description: t('projects.notificationsDescription'),
         path: `/admin/projects/${id}/notifications`,
+      },
+      {
+        title: t('projects.timesheetCard'),
+        icon: <Clock size={20} />,
+        description: t('projects.timesheetCardDesc'),
+        path: `/admin/projects/${id}/timesheet`,
       },
     ] : []),
   ];

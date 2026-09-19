@@ -38,6 +38,7 @@ const AdminConsultantsPage = lazy(() => import('./pages/admin/consultants'));
 const AdminExpenseCategoriesPage = lazy(() => import('./pages/admin/expense-categories'));
 const AdminProjectPhasesPage = lazy(() => import('./pages/admin/project-phases'));
 const AdminProjectExpensesConfigPage = lazy(() => import('./pages/admin/project-expenses-config'));
+const AdminProjectTimesheetConfigPage = lazy(() => import('./pages/admin/project-timesheet-config'));
 const AdminProjectExpenseCategoriesConfigPage = lazy(() => import('./pages/admin/project-expense-categories-config'));
 
 // Timesheet (consultor + gestor + super_admin)
@@ -178,6 +179,7 @@ export default function App() {
                     <Route path="projects/:id/expenses" element={<AdminProjectExpensesConfigPage />} />
                     <Route path="projects/:id/expense-categories" element={<AdminProjectExpenseCategoriesConfigPage />} />
                     <Route path="projects/:id/notifications" element={<RoleGuard allowedRoles={['super_admin']}><AdminProjectNotificationSettingsPage /></RoleGuard>} />
+                    <Route path="projects/:id/timesheet" element={<RoleGuard allowedRoles={['super_admin']}><AdminProjectTimesheetConfigPage /></RoleGuard>} />
                   </Routes>
                 </RoleGuard>
               </ProtectedRoute>

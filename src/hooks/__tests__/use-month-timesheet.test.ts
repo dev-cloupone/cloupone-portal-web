@@ -119,6 +119,18 @@ describe('useMonthTimesheet', () => {
       } catch { /* expected */ }
       expect(mockAddToast).toHaveBeenCalledWith('fail', 'error')
     })
+
+    it('exibe no toast a mensagem de bloqueio vinda da API', async () => {
+      mockUpsertEntry.mockRejectedValue(new Error('Projeto bloqueado para apontamentos deste mês. Contate o administrador do sistema.'))
+      const { result } = renderHook(() => useMonthTimesheet())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      try {
+        await act(async () => {
+          await result.current.saveEntry({ projectId: 'p1' } as never)
+        })
+      } catch { /* expected */ }
+      expect(mockAddToast).toHaveBeenCalledWith('Projeto bloqueado para apontamentos deste mês. Contate o administrador do sistema.', 'error')
+    })
   })
 
   describe('deleteEntry', () => {
