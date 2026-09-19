@@ -72,7 +72,6 @@ export function InlineEntryForm({
   const [availableSubphases, setAvailableSubphases] = useState<AvailableSubphase[]>([]);
   const [projectTickets, setProjectTickets] = useState<Ticket[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
 
   // Initialize form
   useEffect(() => {
@@ -93,7 +92,6 @@ export function InlineEntryForm({
       setTicketId('');
       setSubphaseId('');
     }
-    setError('');
   }, [entry, date, existingEntries, projects]);
 
   // Load available subphases when project changes
@@ -128,7 +126,6 @@ export function InlineEntryForm({
     if (!projectId || !startTime || !endTime) return;
 
     setIsSaving(true);
-    setError('');
     try {
       await onSave({
         id: entry?.id,
@@ -140,8 +137,8 @@ export function InlineEntryForm({
         ticketId: ticketId || null,
         subphaseId: subphaseId || null,
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('timesheet.errorSaving'));
+    } catch {
+      // error handled by caller via toast
     } finally {
       setIsSaving(false);
     }
@@ -304,12 +301,6 @@ export function InlineEntryForm({
             {description.length}/500
           </div>
         </div>
-
-        {error && (
-          <div className="rounded-lg bg-danger-muted border border-danger/20 px-3 py-2">
-            <p className="text-xs text-danger">{error}</p>
-          </div>
-        )}
 
         <div className="flex items-center gap-2 pt-2">
           <Button variant="secondary" type="button" onClick={onCancel} disabled={isSaving} className="flex-1">

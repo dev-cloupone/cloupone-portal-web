@@ -476,7 +476,6 @@
     "noneOptional": "None (optional)",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Describe the activity performed...",
-    "errorSaving": "Error saving entry.",
     "approveMonthTitle": "Approve Month",
     "approveConfirm": "Are you sure you want to approve your entries for <strong>{{month}}</strong>?",
     "totalHoursLabel": "Total hours",

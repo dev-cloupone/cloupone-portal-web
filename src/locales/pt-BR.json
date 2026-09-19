@@ -476,7 +476,6 @@
     "noneOptional": "Nenhum (opcional)",
     "descriptionLabel": "Descrição",
     "descriptionPlaceholder": "Descreva a atividade realizada...",
-    "errorSaving": "Erro ao salvar registro.",
     "approveMonthTitle": "Aprovar Mês",
     "approveConfirm": "Tem certeza que deseja aprovar seus apontamentos de <strong>{{month}}</strong>?",
     "totalHoursLabel": "Total de horas",
