@@ -108,28 +108,28 @@ describe('useMonthTimesheet', () => {
       expect(mockUpsertEntry).toHaveBeenCalled()
     })
 
-    it('shows error toast on failure', async () => {
+    it('rejects and does not toast on failure (error is shown inline by the form)', async () => {
       mockUpsertEntry.mockRejectedValue(new Error('fail'))
       const { result } = renderHook(() => useMonthTimesheet())
       await waitFor(() => expect(result.current.isLoading).toBe(false))
-      try {
-        await act(async () => {
+      await expect(
+        act(async () => {
           await result.current.saveEntry({ projectId: 'p1' } as never)
         })
-      } catch { /* expected */ }
-      expect(mockAddToast).toHaveBeenCalledWith('fail', 'error')
+      ).rejects.toThrow('fail')
+      expect(mockAddToast).not.toHaveBeenCalled()
     })
 
-    it('exibe no toast a mensagem de bloqueio vinda da API', async () => {
+    it('propaga a mensagem de bloqueio vinda da API sem duplicar em toast', async () => {
       mockUpsertEntry.mockRejectedValue(new Error('Projeto bloqueado para apontamentos deste mês. Contate o administrador do sistema.'))
       const { result } = renderHook(() => useMonthTimesheet())
       await waitFor(() => expect(result.current.isLoading).toBe(false))
-      try {
-        await act(async () => {
+      await expect(
+        act(async () => {
           await result.current.saveEntry({ projectId: 'p1' } as never)
         })
-      } catch { /* expected */ }
-      expect(mockAddToast).toHaveBeenCalledWith('Projeto bloqueado para apontamentos deste mês. Contate o administrador do sistema.', 'error')
+      ).rejects.toThrow('Projeto bloqueado para apontamentos deste mês. Contate o administrador do sistema.')
+      expect(mockAddToast).not.toHaveBeenCalled()
     })
   })
 
