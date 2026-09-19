@@ -8,11 +8,6 @@ export interface ProjectLockInfo {
   deadline: string;
 }
 
-export interface ProjectDeadlineInfo extends ProjectLockInfo {
-  daysLeft: number;
-}
-
 export interface LockStatus {
   lockedProjects: ProjectLockInfo[];
-  upcomingDeadlines: ProjectDeadlineInfo[];
 }

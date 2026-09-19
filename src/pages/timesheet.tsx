@@ -37,7 +37,7 @@ export default function TimesheetPage() {
   } = useMonthTimesheet();
 
   const [allocatedProjects, setAllocatedProjects] = useState<Array<{ projectId: string; projectName: string; clientName: string }>>([]);
-  const [lockStatus, setLockStatus] = useState<LockStatus>({ lockedProjects: [], upcomingDeadlines: [] });
+  const [lockStatus, setLockStatus] = useState<LockStatus>({ lockedProjects: [] });
   const [panelState, setPanelState] = useState<PanelState>({ view: 'month-summary' });
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [approveTarget, setApproveTarget] = useState<{ year: number; month: number } | null>(null);
@@ -56,7 +56,7 @@ export default function TimesheetPage() {
   useEffect(() => {
     timeEntryService.getLockStatus(currentMonth)
       .then(setLockStatus)
-      .catch(() => setLockStatus({ lockedProjects: [], upcomingDeadlines: [] }));
+      .catch(() => setLockStatus({ lockedProjects: [] }));
   }, [currentMonth]);
 
   // Explicit panel state handlers (no useEffect to avoid race conditions)
@@ -147,7 +147,6 @@ export default function TimesheetPage() {
       <div className="space-y-4">
         <ProjectLockBanner
           lockedProjects={lockStatus.lockedProjects}
-          upcomingDeadlines={lockStatus.upcomingDeadlines}
           month={currentMonth}
         />
 

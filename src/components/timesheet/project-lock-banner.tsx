@@ -1,43 +1,38 @@
-import { Lock, Clock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { ProjectLockInfo, ProjectDeadlineInfo } from '../../types/timesheet-lock.types';
-import { formatDate, getShortMonthName } from '../../utils/formatters';
+import type { ProjectLockInfo } from '../../types/timesheet-lock.types';
+import { getShortMonthName } from '../../utils/formatters';
 
 interface Props {
   lockedProjects: ProjectLockInfo[];
-  upcomingDeadlines: ProjectDeadlineInfo[];
   month: string;
 }
 
-export function ProjectLockBanner({ lockedProjects, upcomingDeadlines, month }: Props) {
+export function ProjectLockBanner({ lockedProjects, month }: Props) {
   const { t } = useTranslation();
-  if (lockedProjects.length === 0 && upcomingDeadlines.length === 0) return null;
+  if (lockedProjects.length === 0) return null;
 
   const [yearStr, monthStr] = month.split('-');
   const monthLabel = `${getShortMonthName(parseInt(monthStr, 10) - 1)}/${yearStr}`;
 
   return (
-    <div className="space-y-2">
-      {lockedProjects.map(p => (
-        <div key={p.projectId} className="rounded-xl border bg-danger-muted border-danger/20 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-start gap-2 flex-1 min-w-0">
-            <Lock size={16} className="text-danger shrink-0 mt-0.5" />
-            <p className="text-sm text-text-primary">
-              {t('timesheet.projectLocked', { project: p.projectName, month: monthLabel })}
-            </p>
-          </div>
+    <div className="rounded-xl border bg-danger-muted border-danger/20 px-4 py-3 flex items-start gap-2">
+      <Lock size={16} className="text-danger shrink-0 mt-0.5" />
+      <div className="min-w-0">
+        <p className="text-sm text-text-primary">
+          {t('timesheet.projectsLocked', { count: lockedProjects.length, month: monthLabel })}
+        </p>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {lockedProjects.map((p) => (
+            <span
+              key={p.projectId}
+              className="inline-flex items-center rounded-md border border-danger/20 bg-surface-1 px-2 py-0.5 text-xs text-text-primary"
+            >
+              {p.projectName}
+            </span>
+          ))}
         </div>
-      ))}
-      {upcomingDeadlines.map(p => (
-        <div key={p.projectId} className="rounded-xl border bg-warning-muted border-warning/30 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-start gap-2 flex-1 min-w-0">
-            <Clock size={16} className="text-warning shrink-0 mt-0.5" />
-            <p className="text-sm text-text-primary">
-              {t('timesheet.projectDeadlineNear', { project: p.projectName, month: monthLabel, deadline: formatDate(p.deadline) })}
-            </p>
-          </div>
-        </div>
-      ))}
+      </div>
     </div>
   );
 }
