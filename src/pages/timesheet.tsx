@@ -148,6 +148,7 @@ export default function TimesheetPage() {
         <ProjectLockBanner
           lockedProjects={lockStatus.lockedProjects}
           month={currentMonth}
+          monthStatus={currentMonthStatus}
         />
 
         {/* Pending months banner */}

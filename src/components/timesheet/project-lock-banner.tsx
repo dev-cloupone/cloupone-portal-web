@@ -1,16 +1,18 @@
 import { Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ProjectLockInfo } from '../../types/timesheet-lock.types';
+import type { MonthlyTimesheetStatus } from '../../types/monthly-timesheet.types';
 import { getShortMonthName } from '../../utils/formatters';
 
 interface Props {
   lockedProjects: ProjectLockInfo[];
   month: string;
+  monthStatus?: MonthlyTimesheetStatus | null;
 }
 
-export function ProjectLockBanner({ lockedProjects, month }: Props) {
+export function ProjectLockBanner({ lockedProjects, month, monthStatus }: Props) {
   const { t } = useTranslation();
-  if (lockedProjects.length === 0) return null;
+  if (lockedProjects.length === 0 || monthStatus === 'approved') return null;
 
   const [yearStr, monthStr] = month.split('-');
   const monthLabel = `${getShortMonthName(parseInt(monthStr, 10) - 1)}/${yearStr}`;

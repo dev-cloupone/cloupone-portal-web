@@ -49,4 +49,26 @@ describe('ProjectLockBanner', () => {
     )
     expect(container.querySelectorAll('.bg-danger-muted')).toHaveLength(1)
   })
+
+  it('nao renderiza nada quando o mes ja esta aprovado, mesmo com projeto bloqueado', () => {
+    const { container } = render(
+      <ProjectLockBanner
+        lockedProjects={[{ projectId: 'p1', projectName: 'Projeto A', deadline: '2026-02-05' }]}
+        month="2026-02"
+        monthStatus="approved"
+      />,
+    )
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('renderiza normalmente quando o mes esta aberto ou reaberto', () => {
+    render(
+      <ProjectLockBanner
+        lockedProjects={[{ projectId: 'p1', projectName: 'Projeto A', deadline: '2026-02-05' }]}
+        month="2026-02"
+        monthStatus="reopened"
+      />,
+    )
+    expect(screen.getByText('Projeto A')).toBeInTheDocument()
+  })
 })
