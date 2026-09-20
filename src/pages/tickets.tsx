@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { Plus, List, LayoutGrid } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { Button } from '../components/ui/button';
@@ -12,6 +12,7 @@ import { TicketPriorityBadge } from '../components/tickets/ticket-priority-badge
 import { TicketTypeBadge } from '../components/tickets/ticket-type-badge';
 import { TicketFilters, type TicketFilterValues } from '../components/tickets/ticket-filters';
 import { TicketKanban } from '../components/tickets/ticket-kanban';
+import { TicketExportButton } from '../components/tickets/ticket-export-button';
 import { ticketService } from '../services/ticket.service';
 import { listProjects } from '../services/project.service';
 import { listConsultantsByScope } from '../services/consultant.service';
@@ -19,7 +20,7 @@ import { formatApiError } from '../services/api';
 import { usePagination } from '../hooks/use-pagination';
 import { useNavItems } from '../hooks/use-nav-items';
 import { useAuth } from '../hooks/use-auth';
-import type { Ticket } from '../types/ticket.types';
+import type { Ticket, ExportTicketParams } from '../types/ticket.types';
 import type { ConsultantOption } from '../types/time-entry.types';
 import { useLocaleStore } from '../stores/locale.store';
 
@@ -41,19 +42,33 @@ function formatDate(iso: string): string {
 
 const NOT_FINISHED_STATUSES = 'open,in_analysis,awaiting_customer,awaiting_third_party';
 
-const emptyFilters: TicketFilterValues = {
-  projectId: '',
-  status: 'active',
-  type: '',
-  priority: '',
-  search: '',
-  assignedTo: '',
-};
-
 function resolveStatusParam(status: string): string | undefined {
   if (status === 'active') return NOT_FINISHED_STATUSES;
   if (status === 'all') return undefined;
   return status || undefined;
+}
+
+function parseFiltersFromSearchParams(params: URLSearchParams): TicketFilterValues {
+  return {
+    projectId: params.get('projectId') || '',
+    status: params.get('status') || 'active',
+    type: params.get('type') || '',
+    priority: params.get('priority') || '',
+    search: params.get('search') || '',
+    assignedTo: params.get('assignedTo') || '',
+  };
+}
+
+function buildSearchParams(filters: TicketFilterValues, page: number): URLSearchParams {
+  const params = new URLSearchParams();
+  if (filters.projectId) params.set('projectId', filters.projectId);
+  if (filters.status && filters.status !== 'active') params.set('status', filters.status);
+  if (filters.type) params.set('type', filters.type);
+  if (filters.priority) params.set('priority', filters.priority);
+  if (filters.search) params.set('search', filters.search);
+  if (filters.assignedTo) params.set('assignedTo', filters.assignedTo);
+  if (page && page !== 1) params.set('page', String(page));
+  return params;
 }
 
 export default function TicketsPage() {
@@ -61,14 +76,22 @@ export default function TicketsPage() {
   const navItems = useNavItems();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filters, setFilters] = useState<TicketFilterValues>(emptyFilters);
+  const [filters, setFilters] = useState<TicketFilterValues>(() => parseFiltersFromSearchParams(searchParams));
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
   const [consultants, setConsultants] = useState<ConsultantOption[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>(getInitialViewMode);
-  const { page, limit, meta, setMeta, goToPage, resetPage } = usePagination({ initialLimit: 20 });
+  const { page, limit, meta, setMeta, goToPage, resetPage } = usePagination({
+    initialPage: Number(searchParams.get('page')) || 1,
+    initialLimit: 20,
+  });
+
+  function syncSearchParams(nextFilters: TicketFilterValues, nextPage: number) {
+    setSearchParams(buildSearchParams(nextFilters, nextPage), { replace: true });
+  }
 
   const loadTickets = useCallback(async () => {
     setLoading(true);
@@ -123,6 +146,12 @@ export default function TicketsPage() {
   function handleFiltersChange(newFilters: TicketFilterValues) {
     setFilters(newFilters);
     resetPage();
+    syncSearchParams(newFilters, 1);
+  }
+
+  function handlePageChange(newPage: number) {
+    goToPage(newPage);
+    syncSearchParams(filters, newPage);
   }
 
   function handleViewModeChange(mode: ViewMode) {
@@ -137,13 +166,26 @@ export default function TicketsPage() {
   }
 
   function handleViewAllFinished() {
-    setFilters({ ...filters, status: 'finished' });
+    const newFilters = { ...filters, status: 'finished' };
+    setFilters(newFilters);
     handleViewModeChange('list');
     resetPage();
+    syncSearchParams(newFilters, 1);
   }
 
   const isInternalUser = user?.role !== 'client';
   const effectiveViewMode: ViewMode = isInternalUser ? viewMode : 'list';
+
+  const exportParams: ExportTicketParams = {
+    projectId: filters.projectId || undefined,
+    status: resolveStatusParam(filters.status),
+    type: (filters.type as Ticket['type']) || undefined,
+    priority: (filters.priority as Ticket['priority']) || undefined,
+    search: filters.search || undefined,
+    assignedTo: filters.assignedTo || undefined,
+    sort: 'updated_at',
+    order: 'desc',
+  };
 
   return (
     <SidebarLayout navItems={navItems} title={t('tickets.support')}>
@@ -175,6 +217,7 @@ export default function TicketsPage() {
               </button>
             </div>
           )}
+          <TicketExportButton params={exportParams} />
           <Button onClick={() => navigate('/tickets/new')}>
             <Plus size={16} className="mr-2" /> {t('tickets.newTicket')}
           </Button>
@@ -248,7 +291,7 @@ export default function TicketsPage() {
                   ))}
                 </TableBody>
               </Table>
-              {meta && <PaginationControls meta={meta} onPageChange={goToPage} />}
+              {meta && <PaginationControls meta={meta} onPageChange={handlePageChange} />}
             </>
           )}
         </>
