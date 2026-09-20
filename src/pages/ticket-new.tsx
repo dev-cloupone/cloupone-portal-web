@@ -111,7 +111,7 @@ export default function TicketNewPage() {
       }
 
       addToast(t('tickets.ticketCreated'), 'success');
-      navigate(`/tickets/${ticket.id}`);
+      navigate(`/tickets/${ticket.id}`, { replace: true });
     } catch (err) {
       setError(formatApiError(err));
     } finally {

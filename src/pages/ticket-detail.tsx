@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useLocation } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { SidebarLayout } from '../components/ui/sidebar-layout';
 import { Skeleton } from '../components/ui/skeleton';
@@ -37,8 +37,17 @@ export default function TicketDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navItems = useNavItems();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const addToast = useToastStore((s) => s.addToast);
+
+  function handleBack() {
+    if (location.key === 'default') {
+      navigate('/tickets');
+    } else {
+      navigate(-1);
+    }
+  }
 
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [comments, setComments] = useState<TicketComment[]>([]);
@@ -250,7 +259,7 @@ export default function TicketDetailPage() {
           <p className="text-danger mb-4">{error || t('tickets.notFound')}</p>
           <button
             type="button"
-            onClick={() => navigate('/tickets')}
+            onClick={handleBack}
             className="text-sm text-accent hover:text-accent-hover"
           >
             {t('tickets.backToList')}
@@ -268,7 +277,7 @@ export default function TicketDetailPage() {
       <div className="mb-6">
         <button
           type="button"
-          onClick={() => navigate('/tickets')}
+          onClick={handleBack}
           className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
