@@ -112,6 +112,8 @@ export interface ListTicketParams {
   finishedAfter?: string;
 }
 
+export type ExportTicketParams = Omit<ListTicketParams, 'page' | 'limit'>;
+
 export const TICKET_TYPE_LABELS: Record<TicketType, string> = {
   system_error: 'tickets.typeBug',
   question: 'tickets.typeQuestion',

@@ -1,6 +1,6 @@
-import { api } from './api';
+import { api, apiFetch } from './api';
 import { uploadFile } from './uploads';
-import type { Ticket, TicketComment, TicketHistoryEntry, TicketAttachment, TicketStats, CreateTicketData, UpdateTicketData, ListTicketParams } from '../types/ticket.types';
+import type { Ticket, TicketComment, TicketHistoryEntry, TicketAttachment, TicketStats, CreateTicketData, UpdateTicketData, ListTicketParams, ExportTicketParams } from '../types/ticket.types';
 import type { PaginatedResponse } from '../types/pagination.types';
 
 export const ticketService = {
@@ -19,6 +19,19 @@ export const ticketService = {
     }
     const qs = query.toString();
     return api(`/tickets${qs ? `?${qs}` : ''}`);
+  },
+
+  export(params?: ExportTicketParams): Promise<Response> {
+    const query = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          query.set(key, String(value));
+        }
+      });
+    }
+    const qs = query.toString();
+    return apiFetch(`/tickets/export${qs ? `?${qs}` : ''}`);
   },
 
   getById(id: string): Promise<Ticket> {

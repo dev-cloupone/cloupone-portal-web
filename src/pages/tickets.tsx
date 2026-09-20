@@ -12,6 +12,7 @@ import { TicketPriorityBadge } from '../components/tickets/ticket-priority-badge
 import { TicketTypeBadge } from '../components/tickets/ticket-type-badge';
 import { TicketFilters, type TicketFilterValues } from '../components/tickets/ticket-filters';
 import { TicketKanban } from '../components/tickets/ticket-kanban';
+import { TicketExportButton } from '../components/tickets/ticket-export-button';
 import { ticketService } from '../services/ticket.service';
 import { listProjects } from '../services/project.service';
 import { listConsultantsByScope } from '../services/consultant.service';
@@ -19,7 +20,7 @@ import { formatApiError } from '../services/api';
 import { usePagination } from '../hooks/use-pagination';
 import { useNavItems } from '../hooks/use-nav-items';
 import { useAuth } from '../hooks/use-auth';
-import type { Ticket } from '../types/ticket.types';
+import type { Ticket, ExportTicketParams } from '../types/ticket.types';
 import type { ConsultantOption } from '../types/time-entry.types';
 import { useLocaleStore } from '../stores/locale.store';
 
@@ -175,6 +176,17 @@ export default function TicketsPage() {
   const isInternalUser = user?.role !== 'client';
   const effectiveViewMode: ViewMode = isInternalUser ? viewMode : 'list';
 
+  const exportParams: ExportTicketParams = {
+    projectId: filters.projectId || undefined,
+    status: resolveStatusParam(filters.status),
+    type: (filters.type as Ticket['type']) || undefined,
+    priority: (filters.priority as Ticket['priority']) || undefined,
+    search: filters.search || undefined,
+    assignedTo: filters.assignedTo || undefined,
+    sort: 'updated_at',
+    order: 'desc',
+  };
+
   return (
     <SidebarLayout navItems={navItems} title={t('tickets.support')}>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -205,6 +217,7 @@ export default function TicketsPage() {
               </button>
             </div>
           )}
+          <TicketExportButton params={exportParams} />
           <Button onClick={() => navigate('/tickets/new')}>
             <Plus size={16} className="mr-2" /> {t('tickets.newTicket')}
           </Button>
