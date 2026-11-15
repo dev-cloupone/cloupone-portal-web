@@ -517,6 +517,7 @@
     "totalLabel": "Total:",
     "adjustedHoursColumn": "Adjusted hours",
     "adjustedHoursTotalLabel": "Adjusted total:",
+    "adjustedHoursUpdated": "Adjusted hours saved.",
     "exportOptionsTitle": "Export options",
     "exportSumByLabel": "Sum by",
     "exportByHours": "Logged hours",

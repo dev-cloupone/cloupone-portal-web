@@ -42,6 +42,7 @@ export function ListTable({ entries, totalHours, loading, filtering, showConsult
     if (Number(value) === Number(entry.adjustedHours ?? 0)) return;
     try {
       await timeEntryService.updateAdjustedHours(entry.id, value);
+      addToast(t('timesheet.adjustedHoursUpdated'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
     }
@@ -114,7 +115,7 @@ export function ListTable({ entries, totalHours, loading, filtering, showConsult
               <TableCell className="text-right">
                 <input
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="0"
                   max="24"
                   value={adjustedHoursDraft[entry.id] ?? entry.adjustedHours ?? ''}
