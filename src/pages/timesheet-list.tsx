@@ -23,6 +23,7 @@ export default function TimesheetListPage() {
     isSuperAdmin,
     user,
     refetch,
+    updateEntryAdjustedHours,
   } = useTimesheetList();
   const [showImportModal, setShowImportModal] = useState(false);
 
@@ -80,6 +81,7 @@ export default function TimesheetListPage() {
           filtering={filtering}
           showConsultantColumn={isAdminOrGestor}
           isSuperAdmin={isSuperAdmin}
+          onAdjustedHoursSaved={updateEntryAdjustedHours}
         />
       </div>
 

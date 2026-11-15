@@ -108,6 +108,10 @@ export function useTimesheetList() {
     setRefreshKey(k => k + 1);
   }, []);
 
+  const updateEntryAdjustedHours = useCallback((entryId: string, adjustedHours: string) => {
+    setEntries(prev => prev.map(e => (e.id === entryId ? { ...e, adjustedHours } : e)));
+  }, []);
+
   return {
     currentMonth,
     entries,
@@ -127,5 +131,6 @@ export function useTimesheetList() {
     isSuperAdmin,
     user,
     refetch,
+    updateEntryAdjustedHours,
   };
 }

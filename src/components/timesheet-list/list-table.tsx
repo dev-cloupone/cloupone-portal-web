@@ -13,6 +13,7 @@ interface ListTableProps {
   filtering: boolean;
   showConsultantColumn: boolean;
   isSuperAdmin: boolean;
+  onAdjustedHoursSaved: (entryId: string, adjustedHours: string) => void;
 }
 
 function formatDate(dateStr: string): string {
@@ -32,7 +33,7 @@ function SkeletonRow({ cols }: { cols: number }) {
   );
 }
 
-export function ListTable({ entries, totalHours, loading, filtering, showConsultantColumn, isSuperAdmin }: ListTableProps) {
+export function ListTable({ entries, totalHours, loading, filtering, showConsultantColumn, isSuperAdmin, onAdjustedHoursSaved }: ListTableProps) {
   const { t } = useTranslation();
   const addToast = useToastStore((s) => s.addToast);
   const [adjustedHoursDraft, setAdjustedHoursDraft] = useState<Record<string, string>>({});
@@ -41,7 +42,8 @@ export function ListTable({ entries, totalHours, loading, filtering, showConsult
   async function handleAdjustedHoursBlur(entry: TimeEntryListItem, value: string) {
     if (Number(value) === Number(entry.adjustedHours ?? 0)) return;
     try {
-      await timeEntryService.updateAdjustedHours(entry.id, value);
+      const updated = await timeEntryService.updateAdjustedHours(entry.id, value);
+      onAdjustedHoursSaved(entry.id, updated.adjustedHours ?? value);
       addToast(t('timesheet.adjustedHoursUpdated'), 'success');
     } catch (err) {
       addToast(formatApiError(err), 'error');
