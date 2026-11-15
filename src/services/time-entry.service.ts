@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { TimeEntry, WeekData, MonthData, UpsertEntryData, TimeEntryListParams, TimeEntryListResponse } from '../types/time-entry.types';
+import type { TimeEntry, WeekData, MonthData, UpsertEntryData, TimeEntryListParams, TimeEntryListResponse, TimeEntryListItem } from '../types/time-entry.types';
 import type { PaginatedResponse } from '../types/pagination.types';
 
 export async function getMonthEntries(date: string): Promise<MonthData> {
@@ -27,6 +27,13 @@ export async function getTimeEntryList(params: TimeEntryListParams): Promise<Tim
   if (params.ticketId) searchParams.set('ticketId', params.ticketId);
   if (params.all) searchParams.set('all', 'true');
   return api<TimeEntryListResponse>(`/time-entries/list?${searchParams.toString()}`);
+}
+
+export async function updateAdjustedHours(entryId: string, adjustedHours: string): Promise<TimeEntryListItem> {
+  return api<TimeEntryListItem>(`/time-entries/${entryId}/adjusted-hours`, {
+    method: 'PATCH',
+    body: JSON.stringify({ adjustedHours }),
+  });
 }
 
 export async function listTimeEntries(params?: {

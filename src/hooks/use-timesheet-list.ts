@@ -17,6 +17,7 @@ interface ProjectOption { id: string; name: string; }
 export function useTimesheetList() {
   const { user } = useAuth();
   const isAdminOrGestor = user?.role === 'super_admin' || user?.role === 'gestor';
+  const isSuperAdmin = user?.role === 'super_admin';
 
   const [currentMonth, setCurrentMonth] = useState(() => format(new Date(), 'yyyy-MM'));
   const [filters, setFilters] = useState<Filters>(() =>
@@ -123,6 +124,7 @@ export function useTimesheetList() {
     goToNextMonth,
     goToToday,
     isAdminOrGestor,
+    isSuperAdmin,
     user,
     refetch,
   };

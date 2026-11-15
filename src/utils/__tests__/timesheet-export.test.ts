@@ -61,6 +61,16 @@ const mockEntries: TimeEntryListItem[] = [
   },
 ]
 
+const mockEntriesWithPn: TimeEntryListItem[] = [
+  {
+    id: 'e1', date: '2024-06-10', startTime: '08:00:00', endTime: '09:00:00',
+    hours: '1.00', adjustedHours: '2.00', description: 'Test', consultantId: 'u1', consultantName: 'John',
+    projectId: 'p1', projectName: 'Project A', subphaseId: null, subphaseName: '', phaseName: null,
+    ticketId: null, ticketCode: '', ticketTitle: '',
+    partnerBillingRate: '100.00', partnerCostRate: '50.00',
+  },
+]
+
 describe('exportToExcel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -88,6 +98,56 @@ describe('exportToExcel', () => {
   })
 })
 
+describe('exportToExcel - PN options', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('produz headers e linhas idênticos ao padrão quando nenhuma opção PN é marcada', () => {
+    exportToExcel({
+      entries: mockEntriesWithPn, totalHours: '1.00', currentMonth: '2024-06',
+      showConsultantColumn: false,
+    })
+    const sheetData = vi.mocked(XLSX.utils.aoa_to_sheet).mock.calls[0][0] as string[][]
+    const headers = sheetData[0]
+    expect(headers).toEqual(['Data', 'Projeto', 'Fase', 'Subfase', 'Ticket', 'Início', 'Fim', 'Horas', 'Descrição'])
+    expect(sheetData[1][7]).toBe('1.00') // coluna Horas usa hours, nao adjustedHours
+  })
+
+  it('usa a coluna adjustedHours quando hoursField = adjustedHours', () => {
+    exportToExcel({
+      entries: mockEntriesWithPn, totalHours: '1.00', currentMonth: '2024-06',
+      showConsultantColumn: false, hoursField: 'adjustedHours',
+    })
+    const sheetData = vi.mocked(XLSX.utils.aoa_to_sheet).mock.calls[0][0] as string[][]
+    expect(sheetData[1][7]).toBe('2.00')
+    const lastRow = sheetData[sheetData.length - 1]
+    expect(lastRow[6]).toBe('Total:')
+    expect(lastRow[7]).toBe('2.00') // soma de adjustedHours, nao o totalHours (de hours) recebido via prop
+  })
+
+  it('adiciona colunas e totais PN quando as 2 flags são marcadas', () => {
+    exportToExcel({
+      entries: mockEntriesWithPn, totalHours: '1.00', currentMonth: '2024-06',
+      showConsultantColumn: false, includePartnerBillingRate: true, includePartnerCostRate: true,
+    })
+    const sheetData = vi.mocked(XLSX.utils.aoa_to_sheet).mock.calls[0][0] as string[][]
+    const headers = sheetData[0]
+    expect(headers).toEqual([
+      'Data', 'Projeto', 'Fase', 'Subfase', 'Ticket', 'Início', 'Fim', 'Horas', 'Descrição',
+      'Valor/h cobrado cliente (PN)', 'Total cobrado cliente (PN)',
+      'Valor/h pago consultor (PN)', 'Total pago consultor (PN)',
+    ])
+    // hours=1.00, partnerBillingRate=100.00 -> total cobrado = 100.00; partnerCostRate=50.00 -> total pago = 50.00
+    const row = sheetData[1]
+    expect(row[10]).toContain('100')
+    expect(row[12]).toContain('50')
+    const lastRow = sheetData[sheetData.length - 1]
+    expect(lastRow[10]).toContain('100')
+    expect(lastRow[12]).toContain('50')
+  })
+})
+
 describe('exportToPdf', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -108,6 +168,32 @@ describe('exportToPdf', () => {
       showConsultantColumn: false,
     })
     expect(mockDoc.addImage).toHaveBeenCalled()
+  })
+
+  it('reduces fontSize and adds right-aligned columnStyles when PN columns are present', async () => {
+    const autoTable = (await import('jspdf-autotable')).default
+    await exportToPdf({
+      entries: mockEntriesWithPn, totalHours: '1.00', currentMonth: '2024-06',
+      showConsultantColumn: false, includePartnerBillingRate: true, includePartnerCostRate: true,
+    })
+    const callArgs = vi.mocked(autoTable).mock.calls[0][1] as Record<string, unknown>
+    const styles = callArgs.styles as { fontSize: number }
+    expect(styles.fontSize).toBe(7)
+    const head = callArgs.head as string[][]
+    const columnStyles = callArgs.columnStyles as Record<number, { halign: string }>
+    const billingRateIdx = head[0].indexOf('Valor/h cobrado cliente (PN)')
+    expect(columnStyles[billingRateIdx].halign).toBe('right')
+  })
+
+  it('keeps fontSize at 8 when no PN columns are present', async () => {
+    const autoTable = (await import('jspdf-autotable')).default
+    await exportToPdf({
+      entries: mockEntries, totalHours: '1.00', currentMonth: '2024-06',
+      showConsultantColumn: false,
+    })
+    const callArgs = vi.mocked(autoTable).mock.calls[0][1] as Record<string, unknown>
+    const styles = callArgs.styles as { fontSize: number }
+    expect(styles.fontSize).toBe(8)
   })
 
   it('adds styled total row', async () => {
