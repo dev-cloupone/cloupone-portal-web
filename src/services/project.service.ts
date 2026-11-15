@@ -47,6 +47,6 @@ export async function removeAllocation(projectId: string, userId: string): Promi
   await api(`/projects/${projectId}/allocations/${userId}`, { method: 'DELETE' });
 }
 
-export async function updateAllocationRates(projectId: string, userId: string, data: { costRate: string; billingRate: string }): Promise<ProjectAllocation> {
+export async function updateAllocationRates(projectId: string, userId: string, data: { costRate: string; billingRate: string; partnerBillingRate: string; partnerCostRate: string }): Promise<ProjectAllocation> {
   return api<ProjectAllocation>(`/projects/${projectId}/allocations/${userId}`, { method: 'PATCH', body: JSON.stringify(data) });
 }

@@ -93,6 +93,11 @@ export interface TimeEntryListItem {
   ticketId: string | null;
   ticketCode: string | null;
   ticketTitle: string | null;
+  adjustedHours?: string;
+  billingRate?: string;
+  costRate?: string;
+  partnerBillingRate?: string;
+  partnerCostRate?: string;
 }
 
 export interface TimeEntryListResponse {

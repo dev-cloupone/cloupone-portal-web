@@ -41,5 +41,7 @@ export interface ProjectAllocation {
   userEmail: string;
   costRate?: string;
   billingRate?: string;
+  partnerBillingRate?: string;
+  partnerCostRate?: string;
   createdAt: string;
 }

@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { TimeEntryListItem } from '../types/time-entry.types';
 import { useLocaleStore } from '../stores/locale.store';
+import { formatCurrency } from './formatters';
 
 const BRAND_COLOR: [number, number, number] = [96, 165, 250];
 
@@ -16,13 +17,22 @@ async function loadLogoAsDataUrl(): Promise<string> {
   });
 }
 
-interface ExportOptions {
+export type RateSource = 'real' | 'partner';
+
+export interface RateColumnsOptions {
+  client: RateSource;
+  consultant: RateSource;
+}
+
+export interface ExportOptions {
   entries: TimeEntryListItem[];
   totalHours: string;
   currentMonth: string;
   consultantName?: string;
   projectName?: string;
   showConsultantColumn: boolean;
+  hoursField?: 'hours' | 'adjustedHours';
+  rateColumns?: RateColumnsOptions;
 }
 
 function getFileName(month: string, consultantName: string | undefined, ext: string) {
@@ -36,15 +46,33 @@ function formatDate(dateStr: string): string {
   return `${d}/${m}/${y}`;
 }
 
-function getHeaders(showConsultant: boolean): string[] {
+const CLIENT_TOTAL_HEADER = 'Total cliente';
+const CONSULTANT_TOTAL_HEADER = 'Total consultor';
+
+function clientRateOf(e: TimeEntryListItem, rateColumns: RateColumnsOptions): number {
+  return Number((rateColumns.client === 'partner' ? e.partnerBillingRate : e.billingRate) ?? 0);
+}
+
+function consultantRateOf(e: TimeEntryListItem, rateColumns: RateColumnsOptions): number {
+  return Number((rateColumns.consultant === 'partner' ? e.partnerCostRate : e.costRate) ?? 0);
+}
+
+function getHeaders(showConsultant: boolean, rateColumns?: RateColumnsOptions): string[] {
   const headers = ['Data'];
   if (showConsultant) headers.push('Consultor');
   headers.push('Projeto', 'Fase', 'Subfase', 'Ticket', 'Início', 'Fim', 'Horas', 'Descrição');
+  if (rateColumns) headers.push(CLIENT_TOTAL_HEADER, CONSULTANT_TOTAL_HEADER);
   return headers;
 }
 
-function buildRows(entries: TimeEntryListItem[], showConsultant: boolean): string[][] {
+function buildRows(
+  entries: TimeEntryListItem[],
+  showConsultant: boolean,
+  hoursField: 'hours' | 'adjustedHours',
+  rateColumns?: RateColumnsOptions,
+): string[][] {
   return entries.map(e => {
+    const hoursValue = Number(e[hoursField] ?? e.hours);
     const row: string[] = [formatDate(e.date)];
     if (showConsultant) row.push(e.consultantName);
     row.push(
@@ -54,11 +82,41 @@ function buildRows(entries: TimeEntryListItem[], showConsultant: boolean): strin
       e.ticketCode || '-',
       e.startTime.slice(0, 5),
       e.endTime.slice(0, 5),
-      Number(e.hours).toFixed(2),
+      hoursValue.toFixed(2),
       e.description || '-',
     );
+    if (rateColumns) {
+      row.push(
+        formatCurrency(clientRateOf(e, rateColumns) * hoursValue),
+        formatCurrency(consultantRateOf(e, rateColumns) * hoursValue),
+      );
+    }
     return row;
   });
+}
+
+function buildTotalRow(
+  headers: string[],
+  entries: TimeEntryListItem[],
+  totalHours: string,
+  hoursField: 'hours' | 'adjustedHours',
+  rateColumns?: RateColumnsOptions,
+): string[] {
+  const totalRow = new Array(headers.length).fill('');
+  const horasIdx = headers.indexOf('Horas');
+  totalRow[horasIdx - 1] = 'Total:';
+  totalRow[horasIdx] = hoursField === 'hours'
+    ? totalHours
+    : entries.reduce((sum, e) => sum + Number(e[hoursField] ?? e.hours), 0).toFixed(2);
+
+  if (rateColumns) {
+    const clientTotal = entries.reduce((sum, e) => sum + clientRateOf(e, rateColumns) * Number(e[hoursField] ?? e.hours), 0);
+    const consultantTotal = entries.reduce((sum, e) => sum + consultantRateOf(e, rateColumns) * Number(e[hoursField] ?? e.hours), 0);
+    totalRow[headers.indexOf(CLIENT_TOTAL_HEADER)] = formatCurrency(clientTotal);
+    totalRow[headers.indexOf(CONSULTANT_TOTAL_HEADER)] = formatCurrency(consultantTotal);
+  }
+
+  return totalRow;
 }
 
 interface HeaderOptions {
@@ -101,15 +159,13 @@ function drawHeader(doc: jsPDF, pageWidth: number, opts: HeaderOptions): number 
 }
 
 export function exportToExcel(options: ExportOptions) {
-  const { entries, totalHours, currentMonth, consultantName, showConsultantColumn } = options;
-  const headers = getHeaders(showConsultantColumn);
-  const rows = buildRows(entries, showConsultantColumn);
-
-  const totalRow = new Array(headers.length).fill('');
-  const horasIdx = headers.indexOf('Horas');
-  totalRow[horasIdx - 1] = 'Total:';
-  totalRow[horasIdx] = totalHours;
-  rows.push(totalRow);
+  const {
+    entries, totalHours, currentMonth, consultantName, showConsultantColumn,
+    hoursField = 'hours', rateColumns,
+  } = options;
+  const headers = getHeaders(showConsultantColumn, rateColumns);
+  const rows = buildRows(entries, showConsultantColumn, hoursField, rateColumns);
+  rows.push(buildTotalRow(headers, entries, totalHours, hoursField, rateColumns));
 
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
   const wb = XLSX.utils.book_new();
@@ -118,15 +174,16 @@ export function exportToExcel(options: ExportOptions) {
 }
 
 export async function exportToPdf(options: ExportOptions) {
-  const { entries, totalHours, currentMonth, consultantName, projectName, showConsultantColumn } = options;
-  const headers = getHeaders(showConsultantColumn);
-  const rows = buildRows(entries, showConsultantColumn);
-
-  const totalRow = new Array(headers.length).fill('');
+  const {
+    entries, totalHours, currentMonth, consultantName, projectName, showConsultantColumn,
+    hoursField = 'hours', rateColumns,
+  } = options;
+  const headers = getHeaders(showConsultantColumn, rateColumns);
+  const rows = buildRows(entries, showConsultantColumn, hoursField, rateColumns);
   const horasIdx = headers.indexOf('Horas');
-  totalRow[horasIdx - 1] = 'Total:';
-  totalRow[horasIdx] = totalHours;
-  rows.push(totalRow);
+  rows.push(buildTotalRow(headers, entries, totalHours, hoursField, rateColumns));
+
+  const hasExtraColumns = !!rateColumns;
 
   const logoDataUrl = await loadLogoAsDataUrl();
 
@@ -135,7 +192,7 @@ export async function exportToPdf(options: ExportOptions) {
   const pageHeight = doc.internal.pageSize.getHeight();
 
   const headerOpts: HeaderOptions = { currentMonth, logoDataUrl, consultantName, projectName };
-  let startY = drawHeader(doc, pageWidth, headerOpts);
+  const startY = drawHeader(doc, pageWidth, headerOpts);
 
 
   const lastRowIndex = rows.length - 1;
@@ -147,7 +204,7 @@ export async function exportToPdf(options: ExportOptions) {
     margin: { top: startY + 3, right: 14, bottom: 20, left: 14 },
     theme: 'grid',
     styles: {
-      fontSize: 8,
+      fontSize: hasExtraColumns ? 7 : 8,
       cellPadding: 3,
       lineColor: [220, 220, 220],
       lineWidth: 0.2,
@@ -167,6 +224,10 @@ export async function exportToPdf(options: ExportOptions) {
       [headers.indexOf('Início')]: { halign: 'center', cellWidth: 16 },
       [headers.indexOf('Fim')]: { halign: 'center', cellWidth: 16 },
       [horasIdx]: { halign: 'right', cellWidth: 16 },
+      ...(rateColumns ? {
+        [headers.indexOf(CLIENT_TOTAL_HEADER)]: { halign: 'right', cellWidth: 26 },
+        [headers.indexOf(CONSULTANT_TOTAL_HEADER)]: { halign: 'right', cellWidth: 26 },
+      } : {}),
     },
     didParseCell: (data) => {
       if (data.section === 'body' && data.row.index === lastRowIndex) {

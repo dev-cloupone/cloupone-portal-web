@@ -20,6 +20,7 @@ export default function TimesheetListPage() {
     consultants, projects,
     goToPreviousMonth, goToNextMonth, goToToday,
     isAdminOrGestor,
+    isSuperAdmin,
     user,
     refetch,
   } = useTimesheetList();
@@ -48,6 +49,7 @@ export default function TimesheetListPage() {
               consultantName={filters.all ? undefined : (selectedConsultantName || user?.name)}
               projectName={selectedProjectName}
               showConsultantColumn={isAdminOrGestor}
+              isSuperAdmin={isSuperAdmin}
               disabled={loading || entries.length === 0}
             />
             <Button variant="ghost" size="sm" onClick={() => setShowImportModal(true)}>
@@ -77,6 +79,7 @@ export default function TimesheetListPage() {
           loading={loading}
           filtering={filtering}
           showConsultantColumn={isAdminOrGestor}
+          isSuperAdmin={isSuperAdmin}
         />
       </div>
 

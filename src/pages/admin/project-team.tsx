@@ -20,6 +20,8 @@ import { useTranslation } from 'react-i18next';
 interface AllocationRow extends ProjectAllocation {
   editCostRate: string;
   editBillingRate: string;
+  editPartnerBillingRate: string;
+  editPartnerCostRate: string;
 }
 
 export default function ProjectTeamPage() {
@@ -54,6 +56,8 @@ export default function ProjectTeamPage() {
         ...a,
         editCostRate: a.costRate ?? '0.00',
         editBillingRate: a.billingRate ?? '0.00',
+        editPartnerBillingRate: a.partnerBillingRate ?? '0.00',
+        editPartnerCostRate: a.partnerCostRate ?? '0.00',
       })));
       setConsultantsList(consultantsResult.data);
     } catch (err) {
@@ -91,7 +95,7 @@ export default function ProjectTeamPage() {
     }
   }
 
-  function updateField(userId: string, field: 'editCostRate' | 'editBillingRate', value: string) {
+  function updateField(userId: string, field: 'editCostRate' | 'editBillingRate' | 'editPartnerBillingRate' | 'editPartnerCostRate', value: string) {
     setRows((prev) => prev.map((r) => (r.userId === userId ? { ...r, [field]: value } : r)));
   }
 
@@ -102,6 +106,8 @@ export default function ProjectTeamPage() {
       await projectService.updateAllocationRates(projectId, row.userId, {
         costRate: row.editCostRate,
         billingRate: row.editBillingRate,
+        partnerBillingRate: row.editPartnerBillingRate,
+        partnerCostRate: row.editPartnerCostRate,
       });
       addToast(t('projects.ratesUpdated', { name: row.userName }), 'success');
     } catch (err) {
@@ -164,6 +170,8 @@ export default function ProjectTeamPage() {
               <TableHeader>{t('common.email')}</TableHeader>
               {isSuperAdmin && <TableHeader>{t('projects.costRateConsultant')}</TableHeader>}
               {isSuperAdmin && <TableHeader>{t('projects.billingRateClientTeam')}</TableHeader>}
+              {isSuperAdmin && <TableHeader>{t('projects.partnerCostRateLabel')}</TableHeader>}
+              {isSuperAdmin && <TableHeader>{t('projects.partnerBillingRateLabel')}</TableHeader>}
               <TableHeader>{t('common.actions')}</TableHeader>
             </TableRow>
           </TableHead>
@@ -192,6 +200,30 @@ export default function ProjectTeamPage() {
                       min="0"
                       value={row.editBillingRate}
                       onChange={(e) => updateField(row.userId, 'editBillingRate', e.target.value)}
+                      className="w-28 rounded-md border border-border bg-surface-2 px-2 py-1 text-right text-sm font-mono text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+                    />
+                  </TableCell>
+                )}
+                {isSuperAdmin && (
+                  <TableCell>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={row.editPartnerCostRate}
+                      onChange={(e) => updateField(row.userId, 'editPartnerCostRate', e.target.value)}
+                      className="w-28 rounded-md border border-border bg-surface-2 px-2 py-1 text-right text-sm font-mono text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+                    />
+                  </TableCell>
+                )}
+                {isSuperAdmin && (
+                  <TableCell>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={row.editPartnerBillingRate}
+                      onChange={(e) => updateField(row.userId, 'editPartnerBillingRate', e.target.value)}
                       className="w-28 rounded-md border border-border bg-surface-2 px-2 py-1 text-right text-sm font-mono text-text-primary focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
                     />
                   </TableCell>
