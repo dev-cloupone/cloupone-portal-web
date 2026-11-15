@@ -4,11 +4,11 @@ import { Modal } from '../ui/modal';
 import { Button } from '../ui/button';
 import { formatCurrency } from '../../utils/formatters';
 import type { TimeEntryListItem } from '../../types/time-entry.types';
+import type { RateColumnsOptions, RateSource } from '../../utils/timesheet-export';
 
 export interface ExportSelection {
   hoursField: 'hours' | 'adjustedHours';
-  includePartnerBillingRate: boolean;
-  includePartnerCostRate: boolean;
+  rateColumns: RateColumnsOptions;
 }
 
 interface ExportOptionsModalProps {
@@ -21,25 +21,31 @@ interface ExportOptionsModalProps {
 export function ExportOptionsModal({ isOpen, onClose, entries, onConfirm }: ExportOptionsModalProps) {
   const { t } = useTranslation();
   const [hoursField, setHoursField] = useState<'hours' | 'adjustedHours'>('hours');
-  const [includePartnerBillingRate, setIncludePartnerBillingRate] = useState(false);
-  const [includePartnerCostRate, setIncludePartnerCostRate] = useState(false);
+  const [clientRateSource, setClientRateSource] = useState<RateSource>('real');
+  const [consultantRateSource, setConsultantRateSource] = useState<RateSource>('real');
 
   function hoursOf(entry: TimeEntryListItem): number {
     return Number(entry[hoursField] ?? entry.hours);
   }
 
-  const partnerBillingTotal = entries.reduce((sum, e) => sum + Number(e.partnerBillingRate ?? 0) * hoursOf(e), 0);
-  const partnerCostTotal = entries.reduce((sum, e) => sum + Number(e.partnerCostRate ?? 0) * hoursOf(e), 0);
+  const clientTotal = entries.reduce((sum, e) => {
+    const rate = Number((clientRateSource === 'partner' ? e.partnerBillingRate : e.billingRate) ?? 0);
+    return sum + rate * hoursOf(e);
+  }, 0);
+  const consultantTotal = entries.reduce((sum, e) => {
+    const rate = Number((consultantRateSource === 'partner' ? e.partnerCostRate : e.costRate) ?? 0);
+    return sum + rate * hoursOf(e);
+  }, 0);
 
   function handleClose() {
     setHoursField('hours');
-    setIncludePartnerBillingRate(false);
-    setIncludePartnerCostRate(false);
+    setClientRateSource('real');
+    setConsultantRateSource('real');
     onClose();
   }
 
   function handleConfirm() {
-    onConfirm({ hoursField, includePartnerBillingRate, includePartnerCostRate });
+    onConfirm({ hoursField, rateColumns: { client: clientRateSource, consultant: consultantRateSource } });
     handleClose();
   }
 
@@ -76,36 +82,70 @@ export function ExportOptionsModal({ isOpen, onClose, entries, onConfirm }: Expo
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="flex items-center justify-between gap-2 text-sm text-text-secondary cursor-pointer">
-            <span className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={includePartnerBillingRate}
-                onChange={(e) => setIncludePartnerBillingRate(e.target.checked)}
-                className="rounded border-border"
-              />
-              {t('timesheet.exportIncludePartnerBillingRate')}
+        <div>
+          <label className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+              {t('timesheet.exportClientRateLabel')}
             </span>
-            {includePartnerBillingRate && (
-              <span className="font-mono text-xs text-text-tertiary">{formatCurrency(partnerBillingTotal)}</span>
-            )}
+            <span className="font-mono text-xs text-text-tertiary">{formatCurrency(clientTotal)}</span>
           </label>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
+              <input
+                type="radio"
+                name="export-client-rate-source"
+                value="real"
+                checked={clientRateSource === 'real'}
+                onChange={() => setClientRateSource('real')}
+                className="h-4 w-4 text-accent focus:ring-accent"
+              />
+              {t('timesheet.exportRateSourceReal')}
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
+              <input
+                type="radio"
+                name="export-client-rate-source"
+                value="partner"
+                checked={clientRateSource === 'partner'}
+                onChange={() => setClientRateSource('partner')}
+                className="h-4 w-4 text-accent focus:ring-accent"
+              />
+              {t('timesheet.exportRateSourcePartner')}
+            </label>
+          </div>
+        </div>
 
-          <label className="flex items-center justify-between gap-2 text-sm text-text-secondary cursor-pointer">
-            <span className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={includePartnerCostRate}
-                onChange={(e) => setIncludePartnerCostRate(e.target.checked)}
-                className="rounded border-border"
-              />
-              {t('timesheet.exportIncludePartnerCostRate')}
+        <div>
+          <label className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+              {t('timesheet.exportConsultantRateLabel')}
             </span>
-            {includePartnerCostRate && (
-              <span className="font-mono text-xs text-text-tertiary">{formatCurrency(partnerCostTotal)}</span>
-            )}
+            <span className="font-mono text-xs text-text-tertiary">{formatCurrency(consultantTotal)}</span>
           </label>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
+              <input
+                type="radio"
+                name="export-consultant-rate-source"
+                value="real"
+                checked={consultantRateSource === 'real'}
+                onChange={() => setConsultantRateSource('real')}
+                className="h-4 w-4 text-accent focus:ring-accent"
+              />
+              {t('timesheet.exportRateSourceReal')}
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
+              <input
+                type="radio"
+                name="export-consultant-rate-source"
+                value="partner"
+                checked={consultantRateSource === 'partner'}
+                onChange={() => setConsultantRateSource('partner')}
+                className="h-4 w-4 text-accent focus:ring-accent"
+              />
+              {t('timesheet.exportRateSourcePartner')}
+            </label>
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-2">

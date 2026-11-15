@@ -17,6 +17,13 @@ async function loadLogoAsDataUrl(): Promise<string> {
   });
 }
 
+export type RateSource = 'real' | 'partner';
+
+export interface RateColumnsOptions {
+  client: RateSource;
+  consultant: RateSource;
+}
+
 export interface ExportOptions {
   entries: TimeEntryListItem[];
   totalHours: string;
@@ -25,8 +32,7 @@ export interface ExportOptions {
   projectName?: string;
   showConsultantColumn: boolean;
   hoursField?: 'hours' | 'adjustedHours';
-  includePartnerBillingRate?: boolean;
-  includePartnerCostRate?: boolean;
+  rateColumns?: RateColumnsOptions;
 }
 
 function getFileName(month: string, consultantName: string | undefined, ext: string) {
@@ -40,17 +46,22 @@ function formatDate(dateStr: string): string {
   return `${d}/${m}/${y}`;
 }
 
-const PARTNER_BILLING_RATE_HEADER = 'Valor/h cobrado cliente (PN)';
-const PARTNER_BILLING_TOTAL_HEADER = 'Total cobrado cliente (PN)';
-const PARTNER_COST_RATE_HEADER = 'Valor/h pago consultor (PN)';
-const PARTNER_COST_TOTAL_HEADER = 'Total pago consultor (PN)';
+const CLIENT_TOTAL_HEADER = 'Total cliente';
+const CONSULTANT_TOTAL_HEADER = 'Total consultor';
 
-function getHeaders(showConsultant: boolean, includePartnerBillingRate = false, includePartnerCostRate = false): string[] {
+function clientRateOf(e: TimeEntryListItem, rateColumns: RateColumnsOptions): number {
+  return Number((rateColumns.client === 'partner' ? e.partnerBillingRate : e.billingRate) ?? 0);
+}
+
+function consultantRateOf(e: TimeEntryListItem, rateColumns: RateColumnsOptions): number {
+  return Number((rateColumns.consultant === 'partner' ? e.partnerCostRate : e.costRate) ?? 0);
+}
+
+function getHeaders(showConsultant: boolean, rateColumns?: RateColumnsOptions): string[] {
   const headers = ['Data'];
   if (showConsultant) headers.push('Consultor');
   headers.push('Projeto', 'Fase', 'Subfase', 'Ticket', 'Início', 'Fim', 'Horas', 'Descrição');
-  if (includePartnerBillingRate) headers.push(PARTNER_BILLING_RATE_HEADER, PARTNER_BILLING_TOTAL_HEADER);
-  if (includePartnerCostRate) headers.push(PARTNER_COST_RATE_HEADER, PARTNER_COST_TOTAL_HEADER);
+  if (rateColumns) headers.push(CLIENT_TOTAL_HEADER, CONSULTANT_TOTAL_HEADER);
   return headers;
 }
 
@@ -58,8 +69,7 @@ function buildRows(
   entries: TimeEntryListItem[],
   showConsultant: boolean,
   hoursField: 'hours' | 'adjustedHours',
-  includePartnerBillingRate: boolean,
-  includePartnerCostRate: boolean,
+  rateColumns?: RateColumnsOptions,
 ): string[][] {
   return entries.map(e => {
     const hoursValue = Number(e[hoursField] ?? e.hours);
@@ -75,13 +85,11 @@ function buildRows(
       hoursValue.toFixed(2),
       e.description || '-',
     );
-    if (includePartnerBillingRate) {
-      const rate = Number(e.partnerBillingRate ?? 0);
-      row.push(formatCurrency(rate), formatCurrency(rate * hoursValue));
-    }
-    if (includePartnerCostRate) {
-      const rate = Number(e.partnerCostRate ?? 0);
-      row.push(formatCurrency(rate), formatCurrency(rate * hoursValue));
+    if (rateColumns) {
+      row.push(
+        formatCurrency(clientRateOf(e, rateColumns) * hoursValue),
+        formatCurrency(consultantRateOf(e, rateColumns) * hoursValue),
+      );
     }
     return row;
   });
@@ -92,8 +100,7 @@ function buildTotalRow(
   entries: TimeEntryListItem[],
   totalHours: string,
   hoursField: 'hours' | 'adjustedHours',
-  includePartnerBillingRate: boolean,
-  includePartnerCostRate: boolean,
+  rateColumns?: RateColumnsOptions,
 ): string[] {
   const totalRow = new Array(headers.length).fill('');
   const horasIdx = headers.indexOf('Horas');
@@ -102,13 +109,11 @@ function buildTotalRow(
     ? totalHours
     : entries.reduce((sum, e) => sum + Number(e[hoursField] ?? e.hours), 0).toFixed(2);
 
-  if (includePartnerBillingRate) {
-    const total = entries.reduce((sum, e) => sum + Number(e.partnerBillingRate ?? 0) * Number(e[hoursField] ?? e.hours), 0);
-    totalRow[headers.indexOf(PARTNER_BILLING_TOTAL_HEADER)] = formatCurrency(total);
-  }
-  if (includePartnerCostRate) {
-    const total = entries.reduce((sum, e) => sum + Number(e.partnerCostRate ?? 0) * Number(e[hoursField] ?? e.hours), 0);
-    totalRow[headers.indexOf(PARTNER_COST_TOTAL_HEADER)] = formatCurrency(total);
+  if (rateColumns) {
+    const clientTotal = entries.reduce((sum, e) => sum + clientRateOf(e, rateColumns) * Number(e[hoursField] ?? e.hours), 0);
+    const consultantTotal = entries.reduce((sum, e) => sum + consultantRateOf(e, rateColumns) * Number(e[hoursField] ?? e.hours), 0);
+    totalRow[headers.indexOf(CLIENT_TOTAL_HEADER)] = formatCurrency(clientTotal);
+    totalRow[headers.indexOf(CONSULTANT_TOTAL_HEADER)] = formatCurrency(consultantTotal);
   }
 
   return totalRow;
@@ -156,11 +161,11 @@ function drawHeader(doc: jsPDF, pageWidth: number, opts: HeaderOptions): number 
 export function exportToExcel(options: ExportOptions) {
   const {
     entries, totalHours, currentMonth, consultantName, showConsultantColumn,
-    hoursField = 'hours', includePartnerBillingRate = false, includePartnerCostRate = false,
+    hoursField = 'hours', rateColumns,
   } = options;
-  const headers = getHeaders(showConsultantColumn, includePartnerBillingRate, includePartnerCostRate);
-  const rows = buildRows(entries, showConsultantColumn, hoursField, includePartnerBillingRate, includePartnerCostRate);
-  rows.push(buildTotalRow(headers, entries, totalHours, hoursField, includePartnerBillingRate, includePartnerCostRate));
+  const headers = getHeaders(showConsultantColumn, rateColumns);
+  const rows = buildRows(entries, showConsultantColumn, hoursField, rateColumns);
+  rows.push(buildTotalRow(headers, entries, totalHours, hoursField, rateColumns));
 
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
   const wb = XLSX.utils.book_new();
@@ -171,14 +176,14 @@ export function exportToExcel(options: ExportOptions) {
 export async function exportToPdf(options: ExportOptions) {
   const {
     entries, totalHours, currentMonth, consultantName, projectName, showConsultantColumn,
-    hoursField = 'hours', includePartnerBillingRate = false, includePartnerCostRate = false,
+    hoursField = 'hours', rateColumns,
   } = options;
-  const headers = getHeaders(showConsultantColumn, includePartnerBillingRate, includePartnerCostRate);
-  const rows = buildRows(entries, showConsultantColumn, hoursField, includePartnerBillingRate, includePartnerCostRate);
+  const headers = getHeaders(showConsultantColumn, rateColumns);
+  const rows = buildRows(entries, showConsultantColumn, hoursField, rateColumns);
   const horasIdx = headers.indexOf('Horas');
-  rows.push(buildTotalRow(headers, entries, totalHours, hoursField, includePartnerBillingRate, includePartnerCostRate));
+  rows.push(buildTotalRow(headers, entries, totalHours, hoursField, rateColumns));
 
-  const hasExtraColumns = includePartnerBillingRate || includePartnerCostRate;
+  const hasExtraColumns = !!rateColumns;
 
   const logoDataUrl = await loadLogoAsDataUrl();
 
@@ -219,13 +224,9 @@ export async function exportToPdf(options: ExportOptions) {
       [headers.indexOf('Início')]: { halign: 'center', cellWidth: 16 },
       [headers.indexOf('Fim')]: { halign: 'center', cellWidth: 16 },
       [horasIdx]: { halign: 'right', cellWidth: 16 },
-      ...(includePartnerBillingRate ? {
-        [headers.indexOf(PARTNER_BILLING_RATE_HEADER)]: { halign: 'right', cellWidth: 26 },
-        [headers.indexOf(PARTNER_BILLING_TOTAL_HEADER)]: { halign: 'right', cellWidth: 26 },
-      } : {}),
-      ...(includePartnerCostRate ? {
-        [headers.indexOf(PARTNER_COST_RATE_HEADER)]: { halign: 'right', cellWidth: 26 },
-        [headers.indexOf(PARTNER_COST_TOTAL_HEADER)]: { halign: 'right', cellWidth: 26 },
+      ...(rateColumns ? {
+        [headers.indexOf(CLIENT_TOTAL_HEADER)]: { halign: 'right', cellWidth: 26 },
+        [headers.indexOf(CONSULTANT_TOTAL_HEADER)]: { halign: 'right', cellWidth: 26 },
       } : {}),
     },
     didParseCell: (data) => {

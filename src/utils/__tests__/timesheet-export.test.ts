@@ -61,12 +61,13 @@ const mockEntries: TimeEntryListItem[] = [
   },
 ]
 
-const mockEntriesWithPn: TimeEntryListItem[] = [
+const mockEntriesWithRates: TimeEntryListItem[] = [
   {
     id: 'e1', date: '2024-06-10', startTime: '08:00:00', endTime: '09:00:00',
     hours: '1.00', adjustedHours: '2.00', description: 'Test', consultantId: 'u1', consultantName: 'John',
     projectId: 'p1', projectName: 'Project A', subphaseId: null, subphaseName: '', phaseName: null,
     ticketId: null, ticketCode: '', ticketTitle: '',
+    billingRate: '120.00', costRate: '60.00',
     partnerBillingRate: '100.00', partnerCostRate: '50.00',
   },
 ]
@@ -98,14 +99,14 @@ describe('exportToExcel', () => {
   })
 })
 
-describe('exportToExcel - PN options', () => {
+describe('exportToExcel - rate columns', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('produz headers e linhas idênticos ao padrão quando nenhuma opção PN é marcada', () => {
+  it('produz headers e linhas idênticos ao padrão quando rateColumns não é informado', () => {
     exportToExcel({
-      entries: mockEntriesWithPn, totalHours: '1.00', currentMonth: '2024-06',
+      entries: mockEntriesWithRates, totalHours: '1.00', currentMonth: '2024-06',
       showConsultantColumn: false,
     })
     const sheetData = vi.mocked(XLSX.utils.aoa_to_sheet).mock.calls[0][0] as string[][]
@@ -116,7 +117,7 @@ describe('exportToExcel - PN options', () => {
 
   it('usa a coluna adjustedHours quando hoursField = adjustedHours', () => {
     exportToExcel({
-      entries: mockEntriesWithPn, totalHours: '1.00', currentMonth: '2024-06',
+      entries: mockEntriesWithRates, totalHours: '1.00', currentMonth: '2024-06',
       showConsultantColumn: false, hoursField: 'adjustedHours',
     })
     const sheetData = vi.mocked(XLSX.utils.aoa_to_sheet).mock.calls[0][0] as string[][]
@@ -126,25 +127,36 @@ describe('exportToExcel - PN options', () => {
     expect(lastRow[7]).toBe('2.00') // soma de adjustedHours, nao o totalHours (de hours) recebido via prop
   })
 
-  it('adiciona colunas e totais PN quando as 2 flags são marcadas', () => {
+  it('adiciona Total cliente/Total consultor usando valores reais por padrão', () => {
     exportToExcel({
-      entries: mockEntriesWithPn, totalHours: '1.00', currentMonth: '2024-06',
-      showConsultantColumn: false, includePartnerBillingRate: true, includePartnerCostRate: true,
+      entries: mockEntriesWithRates, totalHours: '1.00', currentMonth: '2024-06',
+      showConsultantColumn: false, rateColumns: { client: 'real', consultant: 'real' },
     })
     const sheetData = vi.mocked(XLSX.utils.aoa_to_sheet).mock.calls[0][0] as string[][]
     const headers = sheetData[0]
     expect(headers).toEqual([
       'Data', 'Projeto', 'Fase', 'Subfase', 'Ticket', 'Início', 'Fim', 'Horas', 'Descrição',
-      'Valor/h cobrado cliente (PN)', 'Total cobrado cliente (PN)',
-      'Valor/h pago consultor (PN)', 'Total pago consultor (PN)',
+      'Total cliente', 'Total consultor',
     ])
-    // hours=1.00, partnerBillingRate=100.00 -> total cobrado = 100.00; partnerCostRate=50.00 -> total pago = 50.00
+    // hours=1.00, billingRate=120.00 -> total cliente = 120.00; costRate=60.00 -> total consultor = 60.00
     const row = sheetData[1]
-    expect(row[10]).toContain('100')
-    expect(row[12]).toContain('50')
+    expect(row[9]).toContain('120')
+    expect(row[10]).toContain('60')
     const lastRow = sheetData[sheetData.length - 1]
-    expect(lastRow[10]).toContain('100')
-    expect(lastRow[12]).toContain('50')
+    expect(lastRow[9]).toContain('120')
+    expect(lastRow[10]).toContain('60')
+  })
+
+  it('usa partnerBillingRate/partnerCostRate quando a fonte é partner', () => {
+    exportToExcel({
+      entries: mockEntriesWithRates, totalHours: '1.00', currentMonth: '2024-06',
+      showConsultantColumn: false, rateColumns: { client: 'partner', consultant: 'partner' },
+    })
+    const sheetData = vi.mocked(XLSX.utils.aoa_to_sheet).mock.calls[0][0] as string[][]
+    // hours=1.00, partnerBillingRate=100.00 -> total cliente = 100.00; partnerCostRate=50.00 -> total consultor = 50.00
+    const row = sheetData[1]
+    expect(row[9]).toContain('100')
+    expect(row[10]).toContain('50')
   })
 })
 
@@ -170,22 +182,22 @@ describe('exportToPdf', () => {
     expect(mockDoc.addImage).toHaveBeenCalled()
   })
 
-  it('reduces fontSize and adds right-aligned columnStyles when PN columns are present', async () => {
+  it('reduces fontSize and adds right-aligned columnStyles when rate columns are present', async () => {
     const autoTable = (await import('jspdf-autotable')).default
     await exportToPdf({
-      entries: mockEntriesWithPn, totalHours: '1.00', currentMonth: '2024-06',
-      showConsultantColumn: false, includePartnerBillingRate: true, includePartnerCostRate: true,
+      entries: mockEntriesWithRates, totalHours: '1.00', currentMonth: '2024-06',
+      showConsultantColumn: false, rateColumns: { client: 'real', consultant: 'real' },
     })
     const callArgs = vi.mocked(autoTable).mock.calls[0][1] as Record<string, unknown>
     const styles = callArgs.styles as { fontSize: number }
     expect(styles.fontSize).toBe(7)
     const head = callArgs.head as string[][]
     const columnStyles = callArgs.columnStyles as Record<number, { halign: string }>
-    const billingRateIdx = head[0].indexOf('Valor/h cobrado cliente (PN)')
-    expect(columnStyles[billingRateIdx].halign).toBe('right')
+    const clientTotalIdx = head[0].indexOf('Total cliente')
+    expect(columnStyles[clientTotalIdx].halign).toBe('right')
   })
 
-  it('keeps fontSize at 8 when no PN columns are present', async () => {
+  it('keeps fontSize at 8 when no rate columns are present', async () => {
     const autoTable = (await import('jspdf-autotable')).default
     await exportToPdf({
       entries: mockEntries, totalHours: '1.00', currentMonth: '2024-06',
