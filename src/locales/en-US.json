@@ -487,8 +487,6 @@
     "monthReopened": "The month of {{month}} was reopened.",
     "monthNotApproved": "The month of {{month}} has not been approved yet.",
     "reasonLabel": "Reason: {{reason}}",
-    "projectsLocked": "{{count}} project has entries locked in {{month}} (retroactive window). Contact the system administrator.",
-    "projectsLocked_other": "{{count}} projects have entries locked in {{month}} (retroactive window). Contact the system administrator.",
     "viewMonth": "View month",
     "myEntries": "My entries",
     "allEntries": "All",

@@ -487,8 +487,6 @@
     "monthReopened": "O mês de {{month}} foi reaberto.",
     "monthNotApproved": "O mês de {{month}} ainda não foi aprovado.",
     "reasonLabel": "Motivo: {{reason}}",
-    "projectsLocked": "{{count}} projeto com apontamentos bloqueados em {{month}} (janela retroativa). Contate o administrador do sistema.",
-    "projectsLocked_other": "{{count}} projetos com apontamentos bloqueados em {{month}} (janela retroativa). Contate o administrador do sistema.",
     "viewMonth": "Ver mês",
     "myEntries": "Meus apontamentos",
     "allEntries": "Todos",
