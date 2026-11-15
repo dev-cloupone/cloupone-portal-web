@@ -5,7 +5,7 @@ export interface TimesheetLockConfig {
 export interface ProjectLockInfo {
   projectId: string;
   projectName: string;
-  deadline: string;
+  earliestAllowed: string;
 }
 
 export interface LockStatus {

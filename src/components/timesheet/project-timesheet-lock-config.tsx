@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { addDays, endOfMonth, format } from 'date-fns';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import * as timesheetLockService from '../../services/project-timesheet-lock.service';
 import { formatApiError } from '../../services/api';
-import { useDateLocale } from '../../hooks/use-locale';
+import { todayInBrazil, addDays, toBrDateLabel } from '../../utils/brazil-date';
 
 interface Props {
   projectId: string;
@@ -13,7 +12,6 @@ interface Props {
 
 export function ProjectTimesheetLockConfig({ projectId }: Props) {
   const { t } = useTranslation();
-  const dateLocale = useDateLocale();
   const [lockDaysInput, setLockDaysInput] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -44,11 +42,9 @@ export function ProjectTimesheetLockConfig({ projectId }: Props) {
     }
   }
 
-  const now = new Date();
-  const monthLabel = format(now, 'MMMM/yyyy', { locale: dateLocale });
   const lockDaysNum = lockDaysInput.trim() === '' ? null : Number(lockDaysInput);
-  const deadlineLabel = lockDaysNum !== null && !Number.isNaN(lockDaysNum)
-    ? format(addDays(endOfMonth(now), lockDaysNum), 'dd/MM/yyyy')
+  const earliestAllowedLabel = lockDaysNum !== null && !Number.isNaN(lockDaysNum)
+    ? toBrDateLabel(addDays(todayInBrazil(), -lockDaysNum))
     : null;
 
   return (
@@ -72,8 +68,8 @@ export function ProjectTimesheetLockConfig({ projectId }: Props) {
             onChange={(e) => setLockDaysInput(e.target.value)}
           />
           <p className="text-xs text-text-tertiary">
-            {deadlineLabel
-              ? t('projects.timesheetLockHint', { days: lockDaysNum, month: monthLabel, deadline: deadlineLabel })
+            {earliestAllowedLabel
+              ? t('projects.timesheetLockHint', { days: lockDaysNum, earliestAllowed: earliestAllowedLabel })
               : t('projects.timesheetLockNone')}
           </p>
         </div>

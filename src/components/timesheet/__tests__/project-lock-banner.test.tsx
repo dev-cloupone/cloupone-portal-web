@@ -11,11 +11,11 @@ describe('ProjectLockBanner', () => {
   it('renderiza no singular quando ha um projeto bloqueado', () => {
     render(
       <ProjectLockBanner
-        lockedProjects={[{ projectId: 'p1', projectName: 'Projeto A', deadline: '2026-02-05' }]}
+        lockedProjects={[{ projectId: 'p1', projectName: 'Projeto A', earliestAllowed: '2026-02-05' }]}
         month="2026-02"
       />,
     )
-    expect(screen.getByText(/1 projeto bloqueado para apontamentos de Fev\/2026/)).toBeInTheDocument()
+    expect(screen.getByText(/1 projeto com apontamentos bloqueados em Fev\/2026/)).toBeInTheDocument()
     expect(screen.getByText('Projeto A')).toBeInTheDocument()
   })
 
@@ -23,14 +23,14 @@ describe('ProjectLockBanner', () => {
     render(
       <ProjectLockBanner
         lockedProjects={[
-          { projectId: 'p1', projectName: 'Projeto A', deadline: '2026-02-05' },
-          { projectId: 'p2', projectName: 'Projeto B', deadline: '2026-02-05' },
-          { projectId: 'p3', projectName: 'Projeto C', deadline: '2026-02-05' },
+          { projectId: 'p1', projectName: 'Projeto A', earliestAllowed: '2026-02-05' },
+          { projectId: 'p2', projectName: 'Projeto B', earliestAllowed: '2026-02-05' },
+          { projectId: 'p3', projectName: 'Projeto C', earliestAllowed: '2026-02-05' },
         ]}
         month="2026-02"
       />,
     )
-    expect(screen.getByText(/3 projetos bloqueados para apontamentos de Fev\/2026/)).toBeInTheDocument()
+    expect(screen.getByText(/3 projetos com apontamentos bloqueados em Fev\/2026/)).toBeInTheDocument()
     expect(screen.getByText('Projeto A')).toBeInTheDocument()
     expect(screen.getByText('Projeto B')).toBeInTheDocument()
     expect(screen.getByText('Projeto C')).toBeInTheDocument()
@@ -42,7 +42,7 @@ describe('ProjectLockBanner', () => {
         lockedProjects={Array.from({ length: 8 }, (_, i) => ({
           projectId: `p${i}`,
           projectName: `Projeto ${i}`,
-          deadline: '2026-02-05',
+          earliestAllowed: '2026-02-05',
         }))}
         month="2026-02"
       />,
@@ -53,7 +53,7 @@ describe('ProjectLockBanner', () => {
   it('nao renderiza nada quando o mes ja esta aprovado, mesmo com projeto bloqueado', () => {
     const { container } = render(
       <ProjectLockBanner
-        lockedProjects={[{ projectId: 'p1', projectName: 'Projeto A', deadline: '2026-02-05' }]}
+        lockedProjects={[{ projectId: 'p1', projectName: 'Projeto A', earliestAllowed: '2026-02-05' }]}
         month="2026-02"
         monthStatus="approved"
       />,
@@ -64,7 +64,7 @@ describe('ProjectLockBanner', () => {
   it('renderiza normalmente quando o mes esta aberto ou reaberto', () => {
     render(
       <ProjectLockBanner
-        lockedProjects={[{ projectId: 'p1', projectName: 'Projeto A', deadline: '2026-02-05' }]}
+        lockedProjects={[{ projectId: 'p1', projectName: 'Projeto A', earliestAllowed: '2026-02-05' }]}
         month="2026-02"
         monthStatus="reopened"
       />,
