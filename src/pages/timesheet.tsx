@@ -7,7 +7,6 @@ import { MonthSummary } from '../components/timesheet/month-summary';
 import { DayPanel } from '../components/timesheet/day-panel';
 import { InlineEntryForm } from '../components/timesheet/inline-entry-form';
 import { PendingMonthsBanner } from '../components/timesheet/pending-months-banner';
-import { ProjectLockBanner } from '../components/timesheet/project-lock-banner';
 import { ApproveMonthModal } from '../components/timesheet/approve-month-modal';
 import { useMonthTimesheet } from '../hooks/use-month-timesheet';
 import { useNavItems } from '../hooks/use-nav-items';
@@ -15,7 +14,6 @@ import { useAuth } from '../hooks/use-auth';
 import * as consultantService from '../services/consultant.service';
 import * as timeEntryService from '../services/time-entry.service';
 import type { TimeEntry } from '../types/time-entry.types';
-import type { LockStatus } from '../types/timesheet-lock.types';
 import { Skeleton } from '../components/ui/skeleton';
 import { getShortMonthName } from '../utils/formatters';
 
@@ -37,7 +35,6 @@ export default function TimesheetPage() {
   } = useMonthTimesheet();
 
   const [allocatedProjects, setAllocatedProjects] = useState<Array<{ projectId: string; projectName: string; clientName: string }>>([]);
-  const [lockStatus, setLockStatus] = useState<LockStatus>({ lockedProjects: [] });
   const [panelState, setPanelState] = useState<PanelState>({ view: 'month-summary' });
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [approveTarget, setApproveTarget] = useState<{ year: number; month: number } | null>(null);
@@ -52,12 +49,6 @@ export default function TimesheetPage() {
     }
   }, [user]);
 
-  // Load project lock status for the current month
-  useEffect(() => {
-    timeEntryService.getLockStatus(currentMonth)
-      .then(setLockStatus)
-      .catch(() => setLockStatus({ lockedProjects: [] }));
-  }, [currentMonth]);
 
   // Explicit panel state handlers (no useEffect to avoid race conditions)
   function handleSelectDate(date: string) {
@@ -145,12 +136,6 @@ export default function TimesheetPage() {
   return (
     <SidebarLayout navItems={navItems} title={t('timesheet.sidebarTitle')}>
       <div className="space-y-4">
-        <ProjectLockBanner
-          lockedProjects={lockStatus.lockedProjects}
-          month={currentMonth}
-          monthStatus={currentMonthStatus}
-        />
-
         {/* Pending months banner */}
         <PendingMonthsBanner
           pendingMonths={pendingMonths}
