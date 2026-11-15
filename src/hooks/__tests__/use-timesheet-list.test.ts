@@ -125,5 +125,16 @@ describe('useTimesheetList', () => {
       await waitFor(() => expect(result.current.loading).toBe(false))
       expect(result.current.totalHours).toBe('8.00')
     })
+
+    it('updateEntryAdjustedHours atualiza a entrada em memoria sem refetch', async () => {
+      mockGetTimeEntryList.mockResolvedValue({ entries: [{ id: 'e1', hours: '3.00', adjustedHours: '3.00' }], totalHours: '3.00' })
+      const { result } = renderHook(() => useTimesheetList())
+      await waitFor(() => expect(result.current.loading).toBe(false))
+
+      act(() => { result.current.updateEntryAdjustedHours('e1', '5.00') })
+
+      expect(result.current.entries[0].adjustedHours).toBe('5.00')
+      expect(mockGetTimeEntryList).toHaveBeenCalledTimes(1)
+    })
   })
 })
