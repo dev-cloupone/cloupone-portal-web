@@ -111,7 +111,7 @@ export function ListTable({ entries, totalHours, loading, filtering, showConsult
             <TableCell className="whitespace-nowrap">{entry.endTime.slice(0, 5)}</TableCell>
             <TableCell className="text-right font-medium whitespace-nowrap">{Number(entry.hours).toFixed(2)}</TableCell>
             {isSuperAdmin && (
-              <TableCell>
+              <TableCell className="text-right">
                 <input
                   type="number"
                   step="0.01"
